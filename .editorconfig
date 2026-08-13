@@ -1,0 +1,5 @@
+root = true
+# Test method names read as sentences, so the underscores are deliberate. CA1707 protects the
+# naming of a public API, and a test method is never called by anything.
+[tests/**.cs]
+dotnet_diagnostic.CA1707.severity = none

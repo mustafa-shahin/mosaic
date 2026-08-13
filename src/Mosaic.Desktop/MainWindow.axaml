@@ -1,0 +1,40 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Mosaic.Desktop.ViewModels"
+        x:Class="Mosaic.Desktop.MainWindow"
+        x:DataType="vm:HealthViewModel"
+        Title="Mosaic"
+        Width="520" Height="320"
+        WindowStartupLocation="CenterScreen">
+
+  <Grid RowDefinitions="Auto,*,Auto" Margin="24">
+
+    <TextBlock Grid.Row="0"
+               Text="Mosaic control plane"
+               FontSize="20" FontWeight="SemiBold" />
+
+    <StackPanel Grid.Row="1" VerticalAlignment="Center" Spacing="8">
+
+      <TextBlock Text="Checking the API…"
+                 IsVisible="{Binding IsChecking}" />
+
+      <StackPanel IsVisible="{Binding IsReachable}" Spacing="4">
+        <TextBlock Text="API reachable" FontWeight="SemiBold" />
+        <TextBlock Text="{Binding Service}" Opacity="0.7" />
+        <TextBlock Text="{Binding ServerTimeUtc}" Opacity="0.7" />
+      </StackPanel>
+
+      <StackPanel IsVisible="{Binding IsUnreachable}" Spacing="4">
+        <TextBlock Text="API not reachable" FontWeight="SemiBold" />
+        <TextBlock Text="{Binding ErrorCode}" Opacity="0.7" />
+      </StackPanel>
+
+    </StackPanel>
+
+    <Button Grid.Row="2"
+            Content="Check again"
+            HorizontalAlignment="Right"
+            Command="{Binding CheckCommand}" />
+
+  </Grid>
+</Window>

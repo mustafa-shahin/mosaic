@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "dependencies": {
+    "net10.0": {
+      "mosaic.application": {
+        "type": "Project",
+        "dependencies": {
+          "Mosaic.Contracts": "[1.0.0, )",
+          "Mosaic.Domain": "[1.0.0, )"
+        }
+      },
+      "mosaic.contracts": {
+        "type": "Project"
+      },
+      "mosaic.domain": {
+        "type": "Project"
+      }
+    }
+  }
+}

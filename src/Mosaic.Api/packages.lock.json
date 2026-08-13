@@ -1,0 +1,42 @@
+{
+  "version": 2,
+  "dependencies": {
+    "net10.0": {
+      "Microsoft.AspNetCore.OpenApi": {
+        "type": "Direct",
+        "requested": "[10.0.10, )",
+        "resolved": "10.0.10",
+        "contentHash": "d4Atx9IHq7JgX0F/h7Db+m9zAUzC+cKdI9k+OWnnyQIOUQtfvjIEuhvbjPigVMkAmPUgCbJ8Yp6M9ghUqHtJSQ==",
+        "dependencies": {
+          "Microsoft.OpenApi": "2.0.0"
+        }
+      },
+      "mosaic.application": {
+        "type": "Project",
+        "dependencies": {
+          "Mosaic.Contracts": "[1.0.0, )",
+          "Mosaic.Domain": "[1.0.0, )"
+        }
+      },
+      "mosaic.contracts": {
+        "type": "Project"
+      },
+      "mosaic.domain": {
+        "type": "Project"
+      },
+      "mosaic.infrastructure": {
+        "type": "Project",
+        "dependencies": {
+          "Mosaic.Application": "[1.0.0, )",
+          "Mosaic.Domain": "[1.0.0, )"
+        }
+      },
+      "Microsoft.OpenApi": {
+        "type": "CentralTransitive",
+        "requested": "[2.11.0, )",
+        "resolved": "2.11.0",
+        "contentHash": "/ignjfdeKT2SGLIR7QEv19KnI0rvoxRG/TYDOZdK9EsWLjKK9IK8i1Mo5NRm9PRV3i64DzlTqnIflWvoyfljLg=="
+      }
+    }
+  }
+}

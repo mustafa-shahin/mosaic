@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Mosaic.Application\Mosaic.Application.csproj" />
+    <ProjectReference Include="..\Mosaic.Infrastructure\Mosaic.Infrastructure.csproj" />
+    <ProjectReference Include="..\Mosaic.Contracts\Mosaic.Contracts.csproj" />
+    <ProjectReference Include="..\Mosaic.Domain\Mosaic.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

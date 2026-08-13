@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Mosaic.Domain\Mosaic.Domain.csproj" />
+    <ProjectReference Include="..\Mosaic.Contracts\Mosaic.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>
