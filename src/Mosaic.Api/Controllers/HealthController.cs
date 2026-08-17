@@ -14,6 +14,7 @@ public sealed class HealthController(TimeProvider clock) : ControllerBase
         ApiResponse.Ok(new HealthResult
         {
             Service = ServiceName,
-            ServerTimeUtc = clock.GetUtcNow()
+            ServerTimeUtc = clock.GetUtcNow(),
+            ApiContract = ApiContract.Version
         });
 }

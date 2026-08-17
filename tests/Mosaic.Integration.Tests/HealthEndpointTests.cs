@@ -24,6 +24,7 @@ public sealed class HealthEndpointTests(WebApplicationFactory<Program> factory)
         Assert.True(body.Success);
         Assert.Null(body.Error);
         Assert.Equal("Mosaic.Api", body.Data!.Service);
+        Assert.Equal(ApiContract.Version, body.Data.ApiContract);
     }
 
     [Fact]
@@ -35,6 +36,7 @@ public sealed class HealthEndpointTests(WebApplicationFactory<Program> factory)
 
         Assert.Contains("\"success\":true", json);
         Assert.Contains("\"service\":\"Mosaic.Api\"", json);
+        Assert.Contains($"\"apiContract\":\"{ApiContract.Version}\"", json);
         Assert.DoesNotContain("\"error\"", json);
         Assert.DoesNotContain("\"traceId\"", json);
     }
