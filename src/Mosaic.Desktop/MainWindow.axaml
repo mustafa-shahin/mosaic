@@ -29,6 +29,11 @@
         <TextBlock Text="{Binding ErrorCode}" Opacity="0.7" />
       </StackPanel>
 
+      <StackPanel IsVisible="{Binding IsIncompatible}" Spacing="4">
+        <TextBlock Text="API version mismatch" FontWeight="SemiBold" />
+        <TextBlock Text="{Binding ContractSummary}" Opacity="0.7" TextWrapping="Wrap" />
+      </StackPanel>
+
     </StackPanel>
 
     <Button Grid.Row="2"

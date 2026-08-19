@@ -4,5 +4,6 @@ public enum ConnectionState
 {
     Checking,
     Reachable,
-    Unreachable
+    Unreachable,
+    Incompatible
 }

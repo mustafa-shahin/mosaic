@@ -11,6 +11,7 @@ public sealed partial class HealthViewModel(ApiClient api) : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsChecking))]
     [NotifyPropertyChangedFor(nameof(IsReachable))]
     [NotifyPropertyChangedFor(nameof(IsUnreachable))]
+    [NotifyPropertyChangedFor(nameof(IsIncompatible))]
     private ConnectionState _state = ConnectionState.Checking;
 
     [ObservableProperty]
@@ -22,9 +23,17 @@ public sealed partial class HealthViewModel(ApiClient api) : ObservableObject
     [ObservableProperty]
     private string? _errorCode;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ContractSummary))]
+    private string? _serverContract;
+
     public bool IsChecking => State == ConnectionState.Checking;
     public bool IsReachable => State == ConnectionState.Reachable;
     public bool IsUnreachable => State == ConnectionState.Unreachable;
+    public bool IsIncompatible => State == ConnectionState.Incompatible;
+
+    public string ContractSummary =>
+        $"This desktop speaks {ApiContract.Version}. The server speaks {ServerContract ?? "an older version"}.";
 
     [RelayCommand]
     public async Task CheckAsync(CancellationToken cancellationToken)
@@ -38,12 +47,16 @@ public sealed partial class HealthViewModel(ApiClient api) : ObservableObject
         {
             Service = health.Service;
             ServerTimeUtc = health.ServerTimeUtc;
-            State = ConnectionState.Reachable;
+            ServerContract = health.ApiContract;
+            State = ApiContract.IsCompatible(health.ApiContract)
+                ? ConnectionState.Reachable
+                : ConnectionState.Incompatible;
             return;
         }
 
         Service = null;
         ServerTimeUtc = null;
+        ServerContract = null;
         ErrorCode = response.Error?.Code;
         State = ConnectionState.Unreachable;
     }
