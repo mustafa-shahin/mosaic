@@ -99,6 +99,7 @@ public sealed class HealthViewModelTests
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => check);
     }
+
     [Fact]
     public async Task Check_WhenNoApiAddressIsConfigured_ReportsUnreachableWithoutCallingTheNetwork()
     {

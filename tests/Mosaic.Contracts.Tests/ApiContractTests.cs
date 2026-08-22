@@ -1,6 +1,6 @@
 namespace Mosaic.Contracts.Tests;
 
-public class ApiContractTests
+public sealed class ApiContractTests
 {
     [Fact]
     public void Version_IsMajorDotMinorWithAMajorAboveZero()
