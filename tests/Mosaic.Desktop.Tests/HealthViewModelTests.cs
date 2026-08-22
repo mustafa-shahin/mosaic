@@ -99,4 +99,15 @@ public sealed class HealthViewModelTests
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => check);
     }
+    [Fact]
+    public async Task Check_WhenNoApiAddressIsConfigured_ReportsUnreachableWithoutCallingTheNetwork()
+    {
+        var viewModel = new HealthViewModel(
+            new ApiClient(new HttpClient(new ThrowingHandler(new InvalidOperationException("must not be called")))));
+
+        await viewModel.CheckAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(ConnectionState.Unreachable, viewModel.State);
+        Assert.Equal(DesktopErrorCodes.ApiAddressInvalid, viewModel.ErrorCode);
+    }
 }

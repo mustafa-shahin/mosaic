@@ -8,6 +8,10 @@ public sealed class ApiClient(HttpClient http)
 {
     public async Task<ApiResponse<T>> GetAsync<T>(string path, CancellationToken cancellationToken)
     {
+        if (http.BaseAddress is null)
+        {
+            return Failed<T>(DesktopErrorCodes.ApiAddressInvalid, "The client has no usable base address.");
+        }
         try
         {
             var response = await http.GetAsync(path, cancellationToken);

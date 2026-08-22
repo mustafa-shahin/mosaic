@@ -41,7 +41,7 @@ public sealed partial class HealthViewModel(ApiClient api) : ObservableObject
         State = ConnectionState.Checking;
         ErrorCode = null;
 
-        var response = await api.GetAsync<HealthResult>("/health", cancellationToken);
+        var response = await api.GetAsync<HealthResult>("health", cancellationToken);
 
         if (response.Success && response.Data is { } health)
         {

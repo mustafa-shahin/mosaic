@@ -35,7 +35,7 @@ public partial class App : Application
 
         // One HttpClient for the life of the app, which is the documented pattern for a client
         // talking to a single host. A handler chain for auth arrives with login.
-        services.AddSingleton(new HttpClient { BaseAddress = ApiEndpoint.BaseAddress });
+        services.AddSingleton(new HttpClient { BaseAddress = ApiEndpoint.FromEnvironment() });
         services.AddSingleton<ApiClient>();
         services.AddTransient<HealthViewModel>();
 
