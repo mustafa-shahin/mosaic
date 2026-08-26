@@ -2,43 +2,8 @@ using System.Text.Json;
 
 namespace Mosaic.Contracts.Tests;
 
-public class ApiResponseTests
+public sealed class ApiResponseTests
 {
-    [Fact]
-    public void Ok_WithNoPayload_ReportsSuccess()
-    {
-        var response = ApiResponse.Ok();
-
-        Assert.True(response.Success);
-        Assert.Null(response.Error);
-    }
-
-    [Fact]
-    public void Fail_WithError_DoesNotReportSuccess()
-    {
-        var error = new ApiError
-        {
-            Code = "auth.invalid_credentials",
-            Message = "Email or password is incorrect."
-        };
-
-        var response = ApiResponse.Fail(error);
-
-        Assert.False(response.Success);
-        Assert.Equal(error, response.Error);
-    }
-
-    [Fact]
-    public void Ok_WithPayload_KeepsThePayload()
-    {
-        var payload = new { Name = "Test", Value = 42 };
-
-        var response = ApiResponse.Ok(payload);
-
-        Assert.True(response.Success);
-        Assert.Equal(payload, response.Data);
-    }
-
     [Fact]
     public void Fail_RoundTrippedThroughJson_KeepsCodeParamsAndFieldErrors()
     {

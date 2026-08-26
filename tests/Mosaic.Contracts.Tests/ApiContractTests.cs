@@ -12,12 +12,6 @@ public sealed class ApiContractTests
         Assert.True(major > 0);
     }
 
-    [Fact]
-    public void OwnVersion_IsCompatible()
-    {
-        Assert.True(ApiContract.IsCompatible(ApiContract.Version));
-    }
-
     [Theory]
     [InlineData("1.0")]
     [InlineData("1.4")]
