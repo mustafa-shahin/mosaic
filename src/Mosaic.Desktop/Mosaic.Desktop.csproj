@@ -9,7 +9,6 @@
     <PackageReference Include="Avalonia" />
     <PackageReference Include="Avalonia.Desktop" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Avalonia.Themes.Fluent" />
     <PackageReference Include="Avalonia.Fonts.Inter" />
     <PackageReference Include="AvaloniaUI.DiagnosticsSupport">
@@ -22,4 +21,8 @@
     <ProjectReference Include="..\Mosaic.Contracts\Mosaic.Contracts.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- WithCulture=false, otherwise the SDK treats Strings.de.json as a satellite resource for "de". -->
+    <EmbeddedResource Include="Localization\*.json" WithCulture="false" />
+  </ItemGroup>
 </Project>
