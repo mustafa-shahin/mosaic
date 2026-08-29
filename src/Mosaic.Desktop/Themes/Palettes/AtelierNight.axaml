@@ -1,0 +1,34 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- surfaces, darkest at the back. Sunk is the inset area inside a card -->
+  <SolidColorBrush x:Key="SurfaceWindow">#131211</SolidColorBrush>
+  <SolidColorBrush x:Key="SurfaceSidebar">#191715</SolidColorBrush>
+  <SolidColorBrush x:Key="SurfaceCard">#1E1C19</SolidColorBrush>
+  <SolidColorBrush x:Key="SurfaceHover">#2C2925</SolidColorBrush>
+  <SolidColorBrush x:Key="SurfaceSunk">#191715</SolidColorBrush>
+
+  <!-- white at low alpha -->
+  <SolidColorBrush x:Key="HairlineFaint">#0FFFFFFF</SolidColorBrush>
+  <SolidColorBrush x:Key="HairlineSoft">#17FFFFFF</SolidColorBrush>
+  <SolidColorBrush x:Key="HairlineStrong">#26FFFFFF</SolidColorBrush>
+
+  <SolidColorBrush x:Key="TextPrimary">#F2EEE7</SolidColorBrush>
+  <SolidColorBrush x:Key="TextSecondary">#B5AC9F</SolidColorBrush>
+  <SolidColorBrush x:Key="TextMuted">#837B6F</SolidColorBrush>
+
+  <SolidColorBrush x:Key="Accent">#CFA96C</SolidColorBrush>
+  <SolidColorBrush x:Key="AccentHover">#E6C892</SolidColorBrush>
+  <SolidColorBrush x:Key="AccentSoft">#1FCFA96C</SolidColorBrush>
+
+  <SolidColorBrush x:Key="StatusOk">#86B97F</SolidColorBrush>
+  <SolidColorBrush x:Key="StatusWarn">#D9973F</SolidColorBrush>
+  <SolidColorBrush x:Key="StatusBad">#CE5F55</SolidColorBrush>
+  <SolidColorBrush x:Key="StatusInfo">#7F9DBB</SolidColorBrush>
+
+  <SolidColorBrush x:Key="StatusOkSoft">#1F86B97F</SolidColorBrush>
+  <SolidColorBrush x:Key="StatusWarnSoft">#1FD9973F</SolidColorBrush>
+  <SolidColorBrush x:Key="StatusBadSoft">#1FCE5F55</SolidColorBrush>
+  <SolidColorBrush x:Key="StatusInfoSoft">#1F7F9DBB</SolidColorBrush>
+
+</ResourceDictionary>

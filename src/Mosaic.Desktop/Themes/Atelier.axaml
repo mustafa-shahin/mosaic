@@ -1,0 +1,42 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- Dark/Light only pick the palette, everything below is shared -->
+
+  <ResourceDictionary.ThemeDictionaries>
+
+    <ResourceDictionary x:Key="Dark">
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://Mosaic.Desktop/Themes/Palettes/AtelierNight.axaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+
+    <ResourceDictionary x:Key="Light">
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://Mosaic.Desktop/Themes/Palettes/AtelierDay.axaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+
+  </ResourceDictionary.ThemeDictionaries>
+
+  <x:Double x:Key="HeaderHeight">64</x:Double>
+  <x:Double x:Key="RowHeight">44</x:Double>
+  <x:Double x:Key="NavRowHeight">34</x:Double>
+  <!-- Width, not MaxWidth. With MaxWidth + Stretch, Avalonia centres the element and it drifts on resize. -->
+  <x:Double x:Key="ContentColumnWidth">560</x:Double>
+
+  <CornerRadius x:Key="CardRadius">12</CornerRadius>
+  <CornerRadius x:Key="ControlRadius">8</CornerRadius>
+  <CornerRadius x:Key="PillRadius">999</CornerRadius>
+
+  <FontFamily x:Key="TextFont">Inter</FontFamily>
+  <FontFamily x:Key="MonoFont">Cascadia Code, JetBrains Mono, Consolas, monospace</FontFamily>
+
+  <x:Double x:Key="TitleSize">22</x:Double>
+  <x:Double x:Key="CardTitleSize">17</x:Double>
+  <x:Double x:Key="BodySize">14</x:Double>
+  <x:Double x:Key="NoteSize">13</x:Double>
+  <x:Double x:Key="MonoSize">12.5</x:Double>
+  <x:Double x:Key="CaptionSize">11.5</x:Double>
+
+</ResourceDictionary>

@@ -1,0 +1,35 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- hover goes darker here, in the night palette it goes lighter -->
+  <SolidColorBrush x:Key="SurfaceWindow">#F7F4EF</SolidColorBrush>
+  <SolidColorBrush x:Key="SurfaceSidebar">#FBF9F6</SolidColorBrush>
+  <SolidColorBrush x:Key="SurfaceCard">#FFFFFF</SolidColorBrush>
+  <SolidColorBrush x:Key="SurfaceHover">#F1EDE5</SolidColorBrush>
+  <SolidColorBrush x:Key="SurfaceSunk">#F1EDE5</SolidColorBrush>
+
+  <!-- solid colours here, semi-transparent black looks cold on the warm background -->
+  <SolidColorBrush x:Key="HairlineFaint">#E9E4DA</SolidColorBrush>
+  <SolidColorBrush x:Key="HairlineSoft">#DED7C9</SolidColorBrush>
+  <SolidColorBrush x:Key="HairlineStrong">#C9C0AE</SolidColorBrush>
+
+  <SolidColorBrush x:Key="TextPrimary">#23201B</SolidColorBrush>
+  <SolidColorBrush x:Key="TextSecondary">#6B6355</SolidColorBrush>
+  <SolidColorBrush x:Key="TextMuted">#948B7B</SolidColorBrush>
+
+  <!-- darker than the night palette, for contrast on white -->
+  <SolidColorBrush x:Key="Accent">#9A7B45</SolidColorBrush>
+  <SolidColorBrush x:Key="AccentHover">#85683A</SolidColorBrush>
+  <SolidColorBrush x:Key="AccentSoft">#1F9A7B45</SolidColorBrush>
+
+  <SolidColorBrush x:Key="StatusOk">#4C7F4E</SolidColorBrush>
+  <SolidColorBrush x:Key="StatusWarn">#A66321</SolidColorBrush>
+  <SolidColorBrush x:Key="StatusBad">#B04A42</SolidColorBrush>
+  <SolidColorBrush x:Key="StatusInfo">#4E718F</SolidColorBrush>
+
+  <SolidColorBrush x:Key="StatusOkSoft">#1F4C7F4E</SolidColorBrush>
+  <SolidColorBrush x:Key="StatusWarnSoft">#1FA66321</SolidColorBrush>
+  <SolidColorBrush x:Key="StatusBadSoft">#1FB04A42</SolidColorBrush>
+  <SolidColorBrush x:Key="StatusInfoSoft">#1F4E718F</SolidColorBrush>
+
+</ResourceDictionary>

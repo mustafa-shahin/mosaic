@@ -1,0 +1,180 @@
+﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="using:Mosaic.Desktop.Controls">
+
+  <!-- StatusLevel to colours -->
+  <Style Selector="c|StatusPill[Level=Info]">
+    <Setter Property="Foreground" Value="{DynamicResource StatusInfo}" />
+    <Setter Property="Background" Value="{DynamicResource StatusInfoSoft}" />
+  </Style>
+
+  <Style Selector="c|StatusPill[Level=Ok]">
+    <Setter Property="Foreground" Value="{DynamicResource StatusOk}" />
+    <Setter Property="Background" Value="{DynamicResource StatusOkSoft}" />
+  </Style>
+
+  <Style Selector="c|StatusPill[Level=Warn]">
+    <Setter Property="Foreground" Value="{DynamicResource StatusWarn}" />
+    <Setter Property="Background" Value="{DynamicResource StatusWarnSoft}" />
+  </Style>
+
+  <Style Selector="c|StatusPill[Level=Bad]">
+    <Setter Property="Foreground" Value="{DynamicResource StatusBad}" />
+    <Setter Property="Background" Value="{DynamicResource StatusBadSoft}" />
+  </Style>
+
+  <Style Selector="c|FactRow[IsLast=True] /template/ Border#PART_Separator">
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+
+  <Style Selector=":is(TextBlock)">
+    <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+    <Setter Property="FontFamily" Value="{DynamicResource TextFont}" />
+  </Style>
+
+  <Style Selector=":is(TextBlock).title">
+    <Setter Property="FontSize" Value="{DynamicResource TitleSize}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="LetterSpacing" Value="-0.3" />
+  </Style>
+
+  <Style Selector=":is(TextBlock).cardTitle">
+    <Setter Property="FontSize" Value="{DynamicResource CardTitleSize}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <Style Selector=":is(TextBlock).body">
+    <Setter Property="FontSize" Value="{DynamicResource BodySize}" />
+  </Style>
+
+  <Style Selector=":is(TextBlock).note">
+    <Setter Property="FontSize" Value="{DynamicResource NoteSize}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+
+  <Style Selector=":is(TextBlock).secondary">
+    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
+  </Style>
+
+  <!-- No text-transform in Avalonia. The nav section captions are stored uppercase in the json files instead. -->
+  <Style Selector=":is(TextBlock).caption">
+    <Setter Property="FontSize" Value="{DynamicResource CaptionSize}" />
+    <Setter Property="FontWeight" Value="Medium" />
+    <Setter Property="LetterSpacing" Value="0.8" />
+    <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+  </Style>
+
+  <Style Selector=":is(TextBlock).mono">
+    <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+    <Setter Property="FontSize" Value="{DynamicResource MonoSize}" />
+    <Setter Property="FontFeatures" Value="tnum" />
+    <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+  </Style>
+
+  <!-- letter spacing breaks Arabic letter joins, reset it for RTL. Has to come after .title and .caption -->
+  <Style Selector=":is(TextBlock)[FlowDirection=RightToLeft]">
+    <Setter Property="LetterSpacing" Value="0" />
+  </Style>
+
+  <Style Selector="Border.sunk">
+    <Setter Property="Background" Value="{DynamicResource SurfaceSunk}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource HairlineFaint}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlRadius}" />
+    <Setter Property="Padding" Value="16,4" />
+  </Style>
+
+  <Style Selector="Button.secondary">
+    <Setter Property="Height" Value="36" />
+    <Setter Property="Padding" Value="12,0" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlRadius}" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource HairlineSoft}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+
+  <Style Selector="Button.secondary:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource SurfaceHover}" />
+    <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextPrimary}" />
+  </Style>
+
+  <!-- The active indicator bar lives in MainWindow.axaml so it mirrors correctly in RTL. -->
+  <Style Selector="Button.nav">
+    <Setter Property="Height" Value="{DynamicResource NavRowHeight}" />
+    <Setter Property="Padding" Value="10,0" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlRadius}" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+
+  <Style Selector="Button.nav:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource SurfaceHover}" />
+    <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextPrimary}" />
+  </Style>
+
+  <Style Selector="Button.nav.active">
+    <Setter Property="Background" Value="{DynamicResource AccentSoft}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+    <Setter Property="FontWeight" Value="Medium" />
+  </Style>
+
+  <Style Selector="Button.nav.active /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AccentSoft}" />
+  </Style>
+
+  <Style Selector="ComboBox">
+    <Setter Property="Height" Value="{DynamicResource RowHeight}" />
+    <Setter Property="Padding" Value="14,0" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlRadius}" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="{DynamicResource HairlineSoft}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+
+  <Style Selector="ComboBox:pointerover /template/ Border#Background">
+    <Setter Property="Background" Value="{DynamicResource SurfaceHover}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource HairlineStrong}" />
+  </Style>
+
+  <Style Selector="ComboBox:focus /template/ Border#Background">
+    <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+  </Style>
+
+  <Style Selector="ComboBoxItem">
+    <Setter Property="Height" Value="36" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+
+  <Style Selector="Button.icon">
+    <Setter Property="Width" Value="{DynamicResource RowHeight}" />
+    <Setter Property="Height" Value="{DynamicResource RowHeight}" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlRadius}" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="{DynamicResource HairlineSoft}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+
+  <Style Selector="Button.icon:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource SurfaceHover}" />
+    <Setter Property="TextBlock.Foreground" Value="{DynamicResource Accent}" />
+  </Style>
+
+
+</Styles>
