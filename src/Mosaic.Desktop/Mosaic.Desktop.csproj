@@ -3,6 +3,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\mosaic.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,5 +25,7 @@
   <ItemGroup>
     <!-- WithCulture=false, otherwise the SDK treats Strings.de.json as a satellite resource for "de". -->
     <EmbeddedResource Include="Localization\*.json" WithCulture="false" />
+    <!-- .ico is handled by ApplicationIcon above -->
+    <AvaloniaResource Include="Assets\*.png" />
   </ItemGroup>
 </Project>
