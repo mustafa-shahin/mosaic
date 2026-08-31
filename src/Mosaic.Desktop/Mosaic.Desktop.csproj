@@ -4,6 +4,8 @@
     <OutputType>WinExe</OutputType>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\mosaic.ico</ApplicationIcon>
+    <!-- NU1608: FluentIcons.Avalonia wants Common 2.1.339 exactly and we override it, see Directory.Packages.props -->
+    <NoWarn>$(NoWarn);NU1608</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,6 +14,8 @@
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="Avalonia.Themes.Fluent" />
     <PackageReference Include="Avalonia.Fonts.Inter" />
+    <PackageReference Include="FluentIcons.Avalonia" />
+    <PackageReference Include="FluentIcons.Common" />
     <PackageReference Include="AvaloniaUI.DiagnosticsSupport">
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
@@ -21,6 +25,12 @@
   <ItemGroup>
     <ProjectReference Include="..\Mosaic.Contracts\Mosaic.Contracts.csproj" />
   </ItemGroup>
+
+  <!-- breaks the build on a FluentIcons bump so the Common override gets re-checked -->
+  <Target Name="FluentIconsOverrideStillNeeded" BeforeTargets="Build">
+    <Error Condition="'$(FluentIconsVersion)' != '2.1.339'"
+           Text="FluentIcons moved off 2.1.339. Check whether FluentIcons.Common still throws from its static initializer on .NET 10. If it is fixed, drop the .1 suffix on its PackageVersion and the NU1608 suppression above." />
+  </Target>
 
   <ItemGroup>
     <!-- WithCulture=false, otherwise the SDK treats Strings.de.json as a satellite resource for "de". -->
