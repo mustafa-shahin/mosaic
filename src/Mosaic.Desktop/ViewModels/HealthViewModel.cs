@@ -1,17 +1,31 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Mosaic.Contracts;
+using Mosaic.Desktop.Controls;
+using Mosaic.Desktop.Localization;
 using Mosaic.Desktop.Services;
 
 namespace Mosaic.Desktop.ViewModels;
 
-public sealed partial class HealthViewModel(ApiClient api) : ObservableObject
+public sealed partial class HealthViewModel : ObservableObject
 {
+    private readonly ApiClient _api;
+
+    public HealthViewModel(ApiClient api, Localizer strings)
+    {
+        _api = api;
+        Strings = strings;
+    }
+
+    public Localizer Strings { get; }
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsChecking))]
     [NotifyPropertyChangedFor(nameof(IsReachable))]
     [NotifyPropertyChangedFor(nameof(IsUnreachable))]
     [NotifyPropertyChangedFor(nameof(IsIncompatible))]
+    [NotifyPropertyChangedFor(nameof(Status))]
+    [NotifyPropertyChangedFor(nameof(StatusText))]
     private ConnectionState _state = ConnectionState.Checking;
 
     [ObservableProperty]
@@ -21,7 +35,13 @@ public sealed partial class HealthViewModel(ApiClient api) : ObservableObject
     private DateTimeOffset? _serverTimeUtc;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ErrorMessage))]
     private string? _errorCode;
+
+    // placeholder values from the server, see Localizer.TranslateCode
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ErrorMessage))]
+    private IReadOnlyDictionary<string, string>? _errorParams;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ContractSummary))]
@@ -32,16 +52,48 @@ public sealed partial class HealthViewModel(ApiClient api) : ObservableObject
     public bool IsUnreachable => State == ConnectionState.Unreachable;
     public bool IsIncompatible => State == ConnectionState.Incompatible;
 
-    public string ContractSummary =>
-        $"This desktop speaks {ApiContract.Version}. The server speaks {ServerContract ?? "an older version"}.";
+    public StatusLevel Status => State switch
+    {
+        ConnectionState.Reachable => StatusLevel.Ok,
+        ConnectionState.Unreachable => StatusLevel.Bad,
+        ConnectionState.Incompatible => StatusLevel.Warn,
+        _ => StatusLevel.Info
+    };
+
+    public string StatusText => State switch
+    {
+        ConnectionState.Reachable => Strings.Translate("health.reachable"),
+        ConnectionState.Unreachable => Strings.Translate("health.unreachable"),
+        ConnectionState.Incompatible => Strings.Translate("health.incompatible"),
+        _ => Strings.Translate("health.checking")
+    };
+
+    public string? ErrorMessage => ErrorCode is null ? null : Strings.TranslateCode(ErrorCode, ErrorParams);
+
+    public string ContractSummary => Strings.Translate("health.contract_mismatch", new Dictionary<string, string>
+    {
+        ["desktop"] = ApiContract.Version,
+        ["server"] = ServerContract ?? Strings.Translate("health.contract_unknown")
+    });
+
+    // AsyncRelayCommand cancels a running execution when Execute is called again, and the cancelled
+    // task then blows up on the dispatcher. Hence the IsRunning check.
+    public void CheckIfIdle()
+    {
+        if (!CheckCommand.IsRunning)
+        {
+            CheckCommand.Execute(null);
+        }
+    }
 
     [RelayCommand]
     public async Task CheckAsync(CancellationToken cancellationToken)
     {
         State = ConnectionState.Checking;
         ErrorCode = null;
+        ErrorParams = null;
 
-        var response = await api.GetAsync<HealthResult>("health", cancellationToken);
+        var response = await _api.GetAsync<HealthResult>("health", cancellationToken);
 
         if (response.Success && response.Data is { } health)
         {
@@ -58,6 +110,7 @@ public sealed partial class HealthViewModel(ApiClient api) : ObservableObject
         ServerTimeUtc = null;
         ServerContract = null;
         ErrorCode = response.Error?.Code;
+        ErrorParams = response.Error?.Params;
         State = ConnectionState.Unreachable;
     }
 }

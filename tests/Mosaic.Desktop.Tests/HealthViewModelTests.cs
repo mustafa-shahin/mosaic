@@ -1,5 +1,7 @@
 using System.Net;
 using Mosaic.Contracts;
+using Mosaic.Desktop.Controls;
+using Mosaic.Desktop.Localization;
 using Mosaic.Desktop.Services;
 using Mosaic.Desktop.ViewModels;
 
@@ -13,8 +15,10 @@ public sealed class HealthViewModelTests
     private const string UnversionedBody =
         """{"data":{"service":"Mosaic.Api","serverTimeUtc":"2026-01-01T09:30:00+00:00"},"success":true}""";
 
+    private static Localizer English() => Localizer.Load(LanguageCatalog.Resolve("en"));
+
     private static HealthViewModel ViewModelWith(HttpMessageHandler handler) =>
-        new(new ApiClient(new HttpClient(handler) { BaseAddress = new Uri("http://localhost") }));
+        new(new ApiClient(new HttpClient(handler) { BaseAddress = new Uri("http://localhost") }), English());
 
     [Fact]
     public async Task Check_WhenTheApiAnswers_ReportsReachableAndKeepsTheServiceName()
@@ -104,11 +108,55 @@ public sealed class HealthViewModelTests
     public async Task Check_WhenNoApiAddressIsConfigured_ReportsUnreachableWithoutCallingTheNetwork()
     {
         var viewModel = new HealthViewModel(
-            new ApiClient(new HttpClient(new ThrowingHandler(new InvalidOperationException("must not be called")))));
+            new ApiClient(new HttpClient(new ThrowingHandler(new InvalidOperationException("must not be called")))),
+            English());
 
         await viewModel.CheckAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(ConnectionState.Unreachable, viewModel.State);
         Assert.Equal(DesktopErrorCodes.ApiAddressInvalid, viewModel.ErrorCode);
+    }
+
+    [Fact]
+    public async Task Check_WhenTheApiCannotBeReached_ShowsABadStatusAndTheTranslatedReason()
+    {
+        var viewModel = ViewModelWith(new ThrowingHandler(new HttpRequestException("no route to host")));
+
+        await viewModel.CheckAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(StatusLevel.Bad, viewModel.Status);
+        Assert.Equal(viewModel.Strings.Translate("health.unreachable"), viewModel.StatusText);
+        Assert.Equal(viewModel.Strings.Translate(DesktopErrorCodes.ApiUnreachable), viewModel.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task Check_WhenTheServerRefuses_KeepsTheValuesItSentWithTheCode()
+    {
+        var viewModel = ViewModelWith(new CannedResponseHandler(
+            HttpStatusCode.NotFound,
+            """{"error":{"code":"deployment.not_found","params":{"name":"tessera"}}}"""));
+
+        await viewModel.CheckAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal("deployment.not_found", viewModel.ErrorCode);
+        Assert.Equal("tessera", viewModel.ErrorParams!["name"]);
+    }
+
+    // Navigating away and back calls this again while the first check may still be running.
+    [Fact]
+    public void CheckIfIdle_WhileACheckIsRunning_LeavesTheFirstOneAlone()
+    {
+        var viewModel = ViewModelWith(new NeverRespondingHandler());
+
+        viewModel.CheckIfIdle();
+
+        var first = viewModel.CheckCommand.ExecutionTask;
+
+        viewModel.CheckIfIdle();
+
+        Assert.Same(first, viewModel.CheckCommand.ExecutionTask);
+        Assert.False(first!.IsCanceled);
+        Assert.False(first.IsFaulted);
+        Assert.True(viewModel.CheckCommand.IsRunning);
     }
 }
