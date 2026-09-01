@@ -1,0 +1,44 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Mosaic.Desktop.ViewModels"
+             xmlns:loc="using:Mosaic.Desktop.Localization"
+             xmlns:fi="using:FluentIcons.Avalonia"
+             xmlns:c="using:Mosaic.Desktop.Controls"
+             x:Class="Mosaic.Desktop.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+
+  <StackPanel Spacing="16" Width="{DynamicResource ContentColumnWidth}" HorizontalAlignment="Left">
+
+    <c:Card Title="{Binding Strings[settings.language]}">
+      <ComboBox ItemsSource="{Binding Languages}"
+                SelectedItem="{Binding SelectedLanguage}"
+                HorizontalAlignment="Stretch">
+        <ComboBox.ItemTemplate>
+          <DataTemplate x:DataType="loc:LanguageOption">
+            <TextBlock Text="{Binding NativeName}" VerticalAlignment="Center" />
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+    </c:Card>
+
+    <c:Card Title="{Binding Strings[settings.appearance]}">
+      <Grid ColumnDefinitions="*,Auto" Height="{DynamicResource RowHeight}">
+
+        <SelectableTextBlock Grid.Column="0" Classes="body"
+                             Text="{Binding AppearanceName}"
+                             VerticalAlignment="Center" />
+
+        <Button Grid.Column="1" Classes="icon"
+                Command="{Binding ToggleAppearanceCommand}"
+                ToolTip.Tip="{Binding AppearanceAction}">
+          <Panel>
+            <fi:SymbolIcon Symbol="WeatherSunny" FontSize="18" IsVisible="{Binding IsDark}" />
+            <fi:SymbolIcon Symbol="WeatherMoon" FontSize="18" IsVisible="{Binding !IsDark}" />
+          </Panel>
+        </Button>
+
+      </Grid>
+    </c:Card>
+
+  </StackPanel>
+</UserControl>

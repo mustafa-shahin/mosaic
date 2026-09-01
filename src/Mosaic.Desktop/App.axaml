@@ -11,6 +11,9 @@
         <DataTemplate DataType="vm:HealthViewModel">
             <views:HealthView />
         </DataTemplate>
+        <DataTemplate DataType="vm:SettingsViewModel">
+            <views:SettingsView />
+        </DataTemplate>
     </Application.DataTemplates>
 
     <Application.Resources>
