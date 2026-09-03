@@ -1,45 +1,85 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Mosaic.Desktop.ViewModels"
+        xmlns:fi="using:FluentIcons.Avalonia"
+        xmlns:c="using:Mosaic.Desktop.Controls"
         x:Class="Mosaic.Desktop.MainWindow"
-        x:DataType="vm:HealthViewModel"
-        Title="Mosaic"
-        Width="520" Height="320"
+        x:DataType="vm:ShellViewModel"
+        Title="{Binding Strings[app.title]}"
+        Icon="/Assets/mosaic-256.png"
+        FlowDirection="{Binding Strings.FlowDirection}"
+        Background="{DynamicResource SurfaceWindow}"
+        Width="1360" Height="848"
+        MinWidth="960" MinHeight="600"
         WindowStartupLocation="CenterScreen">
 
-  <Grid RowDefinitions="Auto,*,Auto" Margin="24">
+  <Grid ColumnDefinitions="264,*">
 
-    <TextBlock Grid.Row="0"
-               Text="Mosaic control plane"
-               FontSize="20" FontWeight="SemiBold" />
+    <Border Grid.Column="0"
+            Background="{DynamicResource SurfaceSidebar}"
+            BorderBrush="{DynamicResource HairlineFaint}"
+            BorderThickness="0,0,1,0"
+            Padding="12,18,12,12">
 
-    <StackPanel Grid.Row="1" VerticalAlignment="Center" Spacing="8">
+      <DockPanel LastChildFill="True">
 
-      <TextBlock Text="Checking the API…"
-                 IsVisible="{Binding IsChecking}" />
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="10" Margin="8,0,8,18">
+          <c:MosaicMark VerticalAlignment="Center" />
+          <TextBlock Text="Mosaic" FontSize="17" FontWeight="SemiBold"
+                     LetterSpacing="-0.2" VerticalAlignment="Center" />
+        </StackPanel>
 
-      <StackPanel IsVisible="{Binding IsReachable}" Spacing="4">
-        <TextBlock Text="API reachable" FontWeight="SemiBold" />
-        <TextBlock Text="{Binding Service}" Opacity="0.7" />
-        <TextBlock Text="{Binding ServerTimeUtc}" Opacity="0.7" />
-      </StackPanel>
+        <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding Sections}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:NavSection">
+              <StackPanel Spacing="2">
+                <TextBlock Classes="caption" Text="{Binding Caption}" Margin="10,12,10,6" />
+                <ItemsControl ItemsSource="{Binding Entries}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:NavEntry">
+                      <Panel Margin="0,0,0,2">
+                        <Button Classes="nav"
+                                Classes.active="{Binding IsActive}"
+                                Command="{Binding $parent[Window].((vm:ShellViewModel)DataContext).GoCommand}"
+                                CommandParameter="{Binding}">
+                          <StackPanel Orientation="Horizontal" Spacing="10">
+                            <fi:SymbolIcon Symbol="{Binding Icon}" FontSize="16" VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding Label}" VerticalAlignment="Center" />
+                          </StackPanel>
+                        </Button>
+                        <Border Width="3" Height="22" CornerRadius="0,2,2,0"
+                                HorizontalAlignment="Left" VerticalAlignment="Center"
+                                Background="{DynamicResource Accent}"
+                                IsVisible="{Binding IsActive}"
+                                IsHitTestVisible="False" />
+                      </Panel>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
 
-      <StackPanel IsVisible="{Binding IsUnreachable}" Spacing="4">
-        <TextBlock Text="API not reachable" FontWeight="SemiBold" />
-        <TextBlock Text="{Binding ErrorCode}" Opacity="0.7" />
-      </StackPanel>
+        <!-- account section goes here once we have login -->
+        <Panel />
 
-      <StackPanel IsVisible="{Binding IsIncompatible}" Spacing="4">
-        <TextBlock Text="API version mismatch" FontWeight="SemiBold" />
-        <TextBlock Text="{Binding ContractSummary}" Opacity="0.7" TextWrapping="Wrap" />
-      </StackPanel>
+      </DockPanel>
+    </Border>
 
-    </StackPanel>
+    <DockPanel Grid.Column="1" LastChildFill="True">
 
-    <Button Grid.Row="2"
-            Content="Check again"
-            HorizontalAlignment="Right"
-            Command="{Binding CheckCommand}" />
+      <Border DockPanel.Dock="Top" Height="{DynamicResource HeaderHeight}"
+              BorderBrush="{DynamicResource HairlineFaint}" BorderThickness="0,0,0,1"
+              Padding="24,0">
+        <SelectableTextBlock Classes="title" Text="{Binding Title}" VerticalAlignment="Center" />
+      </Border>
+
+      <ScrollViewer Padding="24">
+        <ContentControl Content="{Binding Current}" HorizontalAlignment="Stretch" />
+      </ScrollViewer>
+
+    </DockPanel>
 
   </Grid>
 </Window>
