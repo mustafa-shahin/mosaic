@@ -1,5 +1,4 @@
-﻿using System.Globalization;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -29,14 +28,26 @@ public sealed partial class TranslationDriftTests
         Assert.Contains(LanguageCatalog.Available, language => language.Code == LanguageCatalog.DefaultCode);
     }
 
-    [Theory]
-    [MemberData(nameof(ShippedLanguages))]
-    public void EveryShippedCodeIsARealCulture(string code)
+    // The catalog is hand-written now. A json file nobody declared would never reach the picker,
+    // and a declared language with no file would render as bare keys.
+    [Fact]
+    public void TheEmbeddedFilesAreExactlyTheDeclaredLanguages()
     {
-        // GetCultureInfo accepts made-up names, so compare against the real list.
-        var known = CultureInfo.GetCultures(CultureTypes.AllCultures);
+        var declared = LanguageCatalog.Available
+            .Select(language => LanguageCatalog.ResourceNameFor(language.Code))
+            .Order()
+            .ToList();
 
-        Assert.Contains(known, culture => string.Equals(culture.Name, code, StringComparison.OrdinalIgnoreCase));
+        // prefix too, not just .json, so an unrelated embedded json doesn't fail this
+        const string prefix = "Mosaic.Desktop.Localization.Strings.";
+
+        var embedded = typeof(LanguageCatalog).Assembly.GetManifestResourceNames()
+            .Where(name => name.StartsWith(prefix, StringComparison.Ordinal)
+                && name.EndsWith(".json", StringComparison.Ordinal))
+            .Order()
+            .ToList();
+
+        Assert.Equal(declared, embedded);
     }
 
     [Fact]

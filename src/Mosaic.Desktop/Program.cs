@@ -1,4 +1,6 @@
 ﻿using Avalonia;
+using Avalonia.Media;
+using Avalonia.Media.Fonts;
 using System;
 
 namespace Mosaic.Desktop;
@@ -20,5 +22,17 @@ sealed class Program
             .WithDeveloperTools()
 #endif
             .WithInterFont()
+            // Inter has no Arabic. Per-glyph fallback, so Latin stays Inter and only the missing glyphs
+            // come from Noto. The name after # is the family name inside the ttf files, not the file name.
+            .With(new FontManagerOptions
+            {
+                FontFallbacks =
+                [
+                    new FontFallback
+                    {
+                        FontFamily = new FontFamily("avares://Mosaic.Desktop/Assets/Fonts#Noto Sans Arabic"),
+                    },
+                ],
+            })
             .LogToTrace();
 }

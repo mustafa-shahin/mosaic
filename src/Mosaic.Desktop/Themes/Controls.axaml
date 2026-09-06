@@ -65,9 +65,10 @@
     <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
   </Style>
 
-  <Style Selector=":is(TextBlock).mono">
-    <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
-    <Setter Property="FontSize" Value="{DynamicResource MonoSize}" />
+  <!-- FactRow value column, see Components.axaml. tnum so times and versions line up down the column.
+       No monospace font is embedded and the system ones differ per OS, so this stays Inter. -->
+  <Style Selector=":is(TextBlock).value">
+    <Setter Property="FontSize" Value="{DynamicResource NoteSize}" />
     <Setter Property="FontFeatures" Value="tnum" />
     <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
   </Style>
