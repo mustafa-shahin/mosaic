@@ -37,5 +37,9 @@
     <EmbeddedResource Include="Localization\*.json" WithCulture="false" />
     <!-- .ico is handled by ApplicationIcon above -->
     <AvaloniaResource Include="Assets\*.png" />
+    <!-- Arabic fallback for Inter, see Program.cs. -->
+    <AvaloniaResource Include="Assets\Fonts\*.ttf" />
+    <!-- OFL wants the licence text shipped with the font. The ttf is inside the assembly, so copy the file next to the exe. -->
+    <Content Include="Assets\Fonts\OFL.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
