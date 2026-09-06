@@ -30,13 +30,11 @@
   <CornerRadius x:Key="PillRadius">999</CornerRadius>
 
   <FontFamily x:Key="TextFont">Inter</FontFamily>
-  <FontFamily x:Key="MonoFont">Cascadia Code, JetBrains Mono, Consolas, monospace</FontFamily>
 
   <x:Double x:Key="TitleSize">22</x:Double>
   <x:Double x:Key="CardTitleSize">17</x:Double>
   <x:Double x:Key="BodySize">14</x:Double>
   <x:Double x:Key="NoteSize">13</x:Double>
-  <x:Double x:Key="MonoSize">12.5</x:Double>
   <x:Double x:Key="CaptionSize">11.5</x:Double>
 
 </ResourceDictionary>

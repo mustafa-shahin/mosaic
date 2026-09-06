@@ -85,7 +85,7 @@
           <Grid ColumnDefinitions="150,*">
             <TextBlock Grid.Column="0" Classes="note secondary" VerticalAlignment="Center"
                        Text="{TemplateBinding Label}" />
-            <SelectableTextBlock Grid.Column="1" Classes="mono" VerticalAlignment="Center"
+            <SelectableTextBlock Grid.Column="1" Classes="value" VerticalAlignment="Center"
                                  Text="{TemplateBinding Value}" />
           </Grid>
         </Border>

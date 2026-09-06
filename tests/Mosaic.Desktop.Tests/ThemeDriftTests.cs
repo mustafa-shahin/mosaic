@@ -54,6 +54,48 @@ public sealed partial class ThemeDriftTests
         Assert.True(unused.Count == 0, $"Defined but never asked for: {string.Join(", ", unused)}");
     }
 
+    // same for classes: Classes="foo" with no .foo selector anywhere just renders unstyled. Names only.
+    [Fact]
+    public void EveryClassAskedForInXamlHasAStyle()
+    {
+        var styled = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var file in XamlFiles())
+        {
+            foreach (var selector in StyleSelector().Matches(File.ReadAllText(file)).Cast<Match>())
+            {
+                foreach (var name in SelectorClass().Matches(selector.Groups[1].Value).Cast<Match>())
+                {
+                    styled.Add(name.Groups[1].Value);
+                }
+            }
+        }
+
+        var missing = new List<string>();
+
+        foreach (var file in XamlFiles())
+        {
+            foreach (var use in ClassUse().Matches(File.ReadAllText(file)).Cast<Match>())
+            {
+                // two forms: Classes="a b" and Classes.a="{Binding ...}"
+                var bound = use.Groups[1].Value;
+                string[] names = bound.Length > 0
+                    ? [bound]
+                    : use.Groups[2].Value.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+                foreach (var name in names)
+                {
+                    if (!styled.Contains(name))
+                    {
+                        missing.Add($"{Path.GetFileName(file)} asks for '{name}'");
+                    }
+                }
+            }
+        }
+
+        Assert.True(missing.Count == 0, $"No style selects: {string.Join("; ", missing)}");
+    }
+
     private static HashSet<string> DefinedKeys()
     {
         var keys = new HashSet<string>(StringComparer.Ordinal);
@@ -85,4 +127,13 @@ public sealed partial class ThemeDriftTests
 
     [GeneratedRegex(@"<([\w:]+)[^>]*?\sx:Key=""([^""]+)""")]
     private static partial Regex DefinedKey();
+
+    [GeneratedRegex(@"Selector=""([^""]+)""")]
+    private static partial Regex StyleSelector();
+
+    [GeneratedRegex(@"\.([A-Za-z][\w-]*)")]
+    private static partial Regex SelectorClass();
+
+    [GeneratedRegex(@"\bClasses(?:\.(\w+))?=""([^""]+)""")]
+    private static partial Regex ClassUse();
 }
