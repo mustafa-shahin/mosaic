@@ -8,7 +8,9 @@
     <Project Path="src/Mosaic.Infrastructure/Mosaic.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Mosaic.Application.Tests/Mosaic.Application.Tests.csproj" />
     <Project Path="tests/Mosaic.Contracts.Tests/Mosaic.Contracts.Tests.csproj" />
+    <Project Path="tests/Mosaic.Domain.Tests/Mosaic.Domain.Tests.csproj" />
     <Project Path="tests/Mosaic.Desktop.Tests/Mosaic.Desktop.Tests.csproj" />
     <Project Path="tests/Mosaic.Integration.Tests/Mosaic.Integration.Tests.csproj" />
   </Folder>

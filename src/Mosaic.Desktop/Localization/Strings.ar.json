@@ -5,6 +5,7 @@
   "client.api_unreachable": "تعذر الوصول إلى الخادم.",
   "client.unexpected_response": "أرسل الخادم استجابة لا يفهمها هذا التطبيق.",
   "error.unexpected": "حدث خطأ في الخادم.",
+  "error.unknown_permission": "هذا الإذن غير موجود.",
   "health.check_again": "إعادة الفحص",
   "health.checking": "جارٍ فحص الواجهة…",
   "health.contract_mismatch": "هذا التطبيق يتحدث {desktop}. الخادم يتحدث {server}.",

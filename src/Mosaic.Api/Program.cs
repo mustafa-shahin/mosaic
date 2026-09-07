@@ -1,7 +1,14 @@
 using Mosaic.Api;
 using Mosaic.Contracts;
+using Mosaic.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddInfrastructure(
+    builder.Configuration.GetConnectionString("Management")
+    ?? throw new InvalidOperationException(
+        "ConnectionStrings:Management is not configured. appsettings.Development.json carries the "
+        + "local one; elsewhere it arrives as the ConnectionStrings__Management variable."));
 
 builder.Services.AddControllers()
     .AddJsonOptions(options => MosaicJson.ApplyTo(options.JsonSerializerOptions));

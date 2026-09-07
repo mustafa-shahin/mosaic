@@ -1,12 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Mosaic.Contracts;
 
 namespace Mosaic.Integration.Tests;
 
-public sealed class HealthEndpointTests(WebApplicationFactory<Program> factory)
-    : IClassFixture<WebApplicationFactory<Program>>
+public sealed class HealthEndpointTests(ApiFactory factory) : IClassFixture<ApiFactory>
 {
     [Fact]
     public async Task Health_ReturnsSuccessEnvelopeWithTheServiceName()

@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http.Json;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Mosaic.Contracts;
@@ -8,8 +7,7 @@ using Mosaic.Contracts;
 namespace Mosaic.Integration.Tests;
 
 // Checks the handler is actually wired into the pipeline and wins over the ProblemDetails fallback.
-public sealed class ExceptionPipelineTests(WebApplicationFactory<Program> factory)
-    : IClassFixture<WebApplicationFactory<Program>>
+public sealed class ExceptionPipelineTests(ApiFactory factory) : IClassFixture<ApiFactory>
 {
     [Fact]
     public async Task Endpoint_WhenItThrows_AnswersWithTheEnvelopeAsJson()

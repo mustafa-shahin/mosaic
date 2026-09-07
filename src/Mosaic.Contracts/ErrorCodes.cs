@@ -4,4 +4,5 @@ namespace Mosaic.Contracts;
 public static class ErrorCodes
 {
     public const string Unexpected = "error.unexpected";
+    public const string UnknownPermission = "error.unknown_permission";
 }

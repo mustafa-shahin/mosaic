@@ -5,6 +5,7 @@
   "client.api_unreachable": "Der Server ist nicht erreichbar.",
   "client.unexpected_response": "Der Server hat eine Antwort gesendet, die diese App nicht versteht.",
   "error.unexpected": "Auf dem Server ist ein Fehler aufgetreten.",
+  "error.unknown_permission": "Diese Berechtigung existiert nicht.",
   "health.check_again": "Erneut prüfen",
   "health.checking": "API wird geprüft…",
   "health.contract_mismatch": "Diese App spricht {desktop}. Der Server spricht {server}.",

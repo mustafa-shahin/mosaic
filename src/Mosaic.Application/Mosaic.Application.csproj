@@ -1,6 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Mosaic.Domain\Mosaic.Domain.csproj" />
     <ProjectReference Include="..\Mosaic.Contracts\Mosaic.Contracts.csproj" />
   </ItemGroup>

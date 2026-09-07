@@ -29,3 +29,12 @@ public sealed class NotFoundException(
 {
     public override HttpStatusCode Status => HttpStatusCode.NotFound;
 }
+
+public sealed class InvalidRequestException(
+    string code,
+    string? detail = null,
+    IReadOnlyDictionary<string, string>? parameters = null)
+    : MosaicException(code, detail, parameters)
+{
+    public override HttpStatusCode Status => HttpStatusCode.BadRequest;
+}
