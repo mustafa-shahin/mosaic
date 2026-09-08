@@ -1,4 +1,4 @@
-﻿<Styles xmlns="https://github.com/avaloniaui"
+<Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:c="using:Mosaic.Desktop.Controls">
 
@@ -23,7 +23,7 @@
     <Setter Property="Background" Value="{DynamicResource StatusBadSoft}" />
   </Style>
 
-  <Style Selector="c|FactRow[IsLast=True] /template/ Border#PART_Separator">
+  <Style Selector="c|FactRow[IsLast=True] /template/ Border#Separator">
     <Setter Property="BorderThickness" Value="0" />
   </Style>
 

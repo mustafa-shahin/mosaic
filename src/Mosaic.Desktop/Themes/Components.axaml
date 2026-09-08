@@ -16,7 +16,7 @@
                 BorderThickness="{TemplateBinding BorderThickness}"
                 CornerRadius="{TemplateBinding CornerRadius}"
                 Padding="{TemplateBinding Padding}"
-                BoxShadow="0 1 2 0 #40000000">
+                BoxShadow="{DynamicResource CardShadow}">
           <DockPanel LastChildFill="True">
             <StackPanel DockPanel.Dock="Top" Spacing="3" Margin="0,0,0,14">
               <SelectableTextBlock Classes="cardTitle" Text="{TemplateBinding Title}" />
@@ -81,8 +81,12 @@
       <ControlTemplate>
         <Border BorderBrush="{DynamicResource HairlineFaint}"
                 BorderThickness="0,0,0,1"
-                Name="PART_Separator">
-          <Grid ColumnDefinitions="150,*">
+                Name="Separator">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="{DynamicResource FactLabelWidth}" />
+              <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
             <TextBlock Grid.Column="0" Classes="note secondary" VerticalAlignment="Center"
                        Text="{TemplateBinding Label}" />
             <SelectableTextBlock Grid.Column="1" Classes="value" VerticalAlignment="Center"
