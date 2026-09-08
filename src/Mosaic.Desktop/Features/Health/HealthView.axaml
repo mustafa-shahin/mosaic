@@ -1,8 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="using:Mosaic.Desktop.ViewModels"
+             xmlns:vm="using:Mosaic.Desktop.Features.Health"
              xmlns:c="using:Mosaic.Desktop.Controls"
-             x:Class="Mosaic.Desktop.Views.HealthView"
+             x:Class="Mosaic.Desktop.Features.Health.HealthView"
              x:DataType="vm:HealthViewModel">
 
   <c:Card Title="{Binding Strings[health.title]}"

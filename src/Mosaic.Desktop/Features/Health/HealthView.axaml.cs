@@ -1,8 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Mosaic.Desktop.ViewModels;
 
-namespace Mosaic.Desktop.Views;
+namespace Mosaic.Desktop.Features.Health;
 
 public partial class HealthView : UserControl
 {

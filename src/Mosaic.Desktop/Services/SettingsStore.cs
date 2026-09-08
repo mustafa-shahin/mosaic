@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Mosaic.Contracts;
 
-namespace Mosaic.Desktop.Settings;
+namespace Mosaic.Desktop.Services;
 
 // what gets written to settings.json, don't rename
 public static class Appearances

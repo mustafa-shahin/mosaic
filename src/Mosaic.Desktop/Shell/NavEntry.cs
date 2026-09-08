@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using FluentIcons.Common;
 
-namespace Mosaic.Desktop.ViewModels;
+namespace Mosaic.Desktop.Shell;
 
 public sealed partial class NavEntry(string key, string label, Symbol icon, ObservableObject target)
     : ObservableObject
@@ -16,7 +16,7 @@ public sealed partial class NavEntry(string key, string label, Symbol icon, Obse
     public ObservableObject Target { get; } = target;
 
     [ObservableProperty]
-    private bool _isActive;
+    public partial bool IsActive { get; set; }
 }
 
 public sealed class NavSection(string caption, IReadOnlyList<NavEntry> entries)

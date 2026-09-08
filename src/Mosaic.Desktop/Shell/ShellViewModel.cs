@@ -1,9 +1,11 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FluentIcons.Common;
+using Mosaic.Desktop.Features.Health;
+using Mosaic.Desktop.Features.Settings;
 using Mosaic.Desktop.Localization;
 
-namespace Mosaic.Desktop.ViewModels;
+namespace Mosaic.Desktop.Shell;
 
 // Sidebar, header title and the current page.
 public sealed partial class ShellViewModel : ObservableObject
@@ -32,7 +34,7 @@ public sealed partial class ShellViewModel : ObservableObject
         var opening = _entries.Find(entry => entry.Key == startAt) ?? dashboard;
 
         opening.IsActive = true;
-        _current = opening.Target;
+        Current = opening.Target;
     }
 
     public Localizer Strings { get; }
@@ -43,7 +45,7 @@ public sealed partial class ShellViewModel : ObservableObject
     public string ActiveKey => Active?.Key ?? string.Empty;
 
     [ObservableProperty]
-    private ObservableObject _current;
+    public partial ObservableObject Current { get; set; }
 
     public string Title => Active?.Label ?? string.Empty;
 

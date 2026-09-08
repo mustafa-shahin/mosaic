@@ -1,4 +1,4 @@
-namespace Mosaic.Desktop.ViewModels;
+namespace Mosaic.Desktop.Features.Health;
 
 public enum ConnectionState
 {

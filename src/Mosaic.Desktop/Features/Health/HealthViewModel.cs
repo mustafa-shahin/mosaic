@@ -5,7 +5,7 @@ using Mosaic.Desktop.Controls;
 using Mosaic.Desktop.Localization;
 using Mosaic.Desktop.Services;
 
-namespace Mosaic.Desktop.ViewModels;
+namespace Mosaic.Desktop.Features.Health;
 
 public sealed partial class HealthViewModel : ObservableObject
 {
@@ -26,26 +26,26 @@ public sealed partial class HealthViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsIncompatible))]
     [NotifyPropertyChangedFor(nameof(Status))]
     [NotifyPropertyChangedFor(nameof(StatusText))]
-    private ConnectionState _state = ConnectionState.Checking;
+    public partial ConnectionState State { get; set; } = ConnectionState.Checking;
 
     [ObservableProperty]
-    private string? _service;
+    public partial string? Service { get; set; }
 
     [ObservableProperty]
-    private DateTimeOffset? _serverTimeUtc;
+    public partial DateTimeOffset? ServerTimeUtc { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ErrorMessage))]
-    private string? _errorCode;
+    public partial string? ErrorCode { get; set; }
 
     // placeholder values from the server, see Localizer.TranslateCode
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ErrorMessage))]
-    private IReadOnlyDictionary<string, string>? _errorParams;
+    public partial IReadOnlyDictionary<string, string>? ErrorParams { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ContractSummary))]
-    private string? _serverContract;
+    public partial string? ServerContract { get; set; }
 
     public bool IsChecking => State == ConnectionState.Checking;
     public bool IsReachable => State == ConnectionState.Reachable;

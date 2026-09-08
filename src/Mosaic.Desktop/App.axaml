@@ -1,18 +1,18 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="using:Mosaic.Desktop.ViewModels"
-             xmlns:views="using:Mosaic.Desktop.Views"
+             xmlns:health="using:Mosaic.Desktop.Features.Health"
+             xmlns:settings="using:Mosaic.Desktop.Features.Settings"
              x:Class="Mosaic.Desktop.App"
              RequestedThemeVariant="Default">
              <!-- Overwritten at startup from settings. -->
 
     <!-- no ViewLocator on purpose, this way a missing view is a compile error -->
     <Application.DataTemplates>
-        <DataTemplate DataType="vm:HealthViewModel">
-            <views:HealthView />
+        <DataTemplate DataType="health:HealthViewModel">
+            <health:HealthView />
         </DataTemplate>
-        <DataTemplate DataType="vm:SettingsViewModel">
-            <views:SettingsView />
+        <DataTemplate DataType="settings:SettingsViewModel">
+            <settings:SettingsView />
         </DataTemplate>
     </Application.DataTemplates>
 

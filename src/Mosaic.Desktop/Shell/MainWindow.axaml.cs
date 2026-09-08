@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 
-namespace Mosaic.Desktop;
+namespace Mosaic.Desktop.Shell;
 
 public partial class MainWindow : Window
 {

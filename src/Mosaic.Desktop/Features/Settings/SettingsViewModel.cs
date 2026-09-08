@@ -3,9 +3,9 @@ using Avalonia.Styling;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Mosaic.Desktop.Localization;
-using Mosaic.Desktop.Settings;
+using Mosaic.Desktop.Services;
 
-namespace Mosaic.Desktop.ViewModels;
+namespace Mosaic.Desktop.Features.Settings;
 
 public sealed partial class SettingsViewModel : ObservableObject
 {
@@ -13,14 +13,17 @@ public sealed partial class SettingsViewModel : ObservableObject
     private const string LightKey = "settings.appearance_light";
 
     private readonly SettingsStore _store;
+    private readonly bool _constructed;
 
     public SettingsViewModel(Localizer strings, SettingsStore store)
     {
         Strings = strings;
         _store = store;
 
-        _isDark = Appearances.IsDark(store.Read().Appearance);
-        _selectedLanguage = strings.Language;
+        IsDark = Appearances.IsDark(store.Read().Appearance);
+        SelectedLanguage = strings.Language;
+
+        _constructed = true;
     }
 
     // Handled in App, which rebuilds the whole shell including this instance.
@@ -32,12 +35,12 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     // ComboBox can push null through the binding.
     [ObservableProperty]
-    private LanguageOption? _selectedLanguage;
+    public partial LanguageOption? SelectedLanguage { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(AppearanceName))]
     [NotifyPropertyChangedFor(nameof(AppearanceAction))]
-    private bool _isDark;
+    public partial bool IsDark { get; set; }
 
     public string AppearanceName => Strings.Translate(IsDark ? DarkKey : LightKey);
 
@@ -48,7 +51,8 @@ public sealed partial class SettingsViewModel : ObservableObject
     // Generated setter already skips same-value assignments.
     partial void OnSelectedLanguageChanged(LanguageOption? value)
     {
-        if (value is null)
+        // the constructor assigns through the setter now, and starting up is not choosing
+        if (!_constructed || value is null)
         {
             return;
         }

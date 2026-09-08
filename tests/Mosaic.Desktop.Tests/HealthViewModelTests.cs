@@ -3,7 +3,7 @@ using Mosaic.Contracts;
 using Mosaic.Desktop.Controls;
 using Mosaic.Desktop.Localization;
 using Mosaic.Desktop.Services;
-using Mosaic.Desktop.ViewModels;
+using Mosaic.Desktop.Features.Health;
 
 namespace Mosaic.Desktop.Tests;
 

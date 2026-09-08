@@ -1,8 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using Mosaic.Desktop.Features.Health;
+using Mosaic.Desktop.Features.Settings;
 using Mosaic.Desktop.Localization;
 using Mosaic.Desktop.Services;
-using Mosaic.Desktop.Settings;
-using Mosaic.Desktop.ViewModels;
+using Mosaic.Desktop.Shell;
 
 namespace Mosaic.Desktop.Tests;
 

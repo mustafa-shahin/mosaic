@@ -1,4 +1,4 @@
-using Mosaic.Desktop.Settings;
+using Mosaic.Desktop.Services;
 
 namespace Mosaic.Desktop.Tests;
 

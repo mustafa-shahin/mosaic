@@ -1,10 +1,10 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="using:Mosaic.Desktop.ViewModels"
+             xmlns:vm="using:Mosaic.Desktop.Features.Settings"
              xmlns:loc="using:Mosaic.Desktop.Localization"
              xmlns:fi="using:FluentIcons.Avalonia"
              xmlns:c="using:Mosaic.Desktop.Controls"
-             x:Class="Mosaic.Desktop.Views.SettingsView"
+             x:Class="Mosaic.Desktop.Features.Settings.SettingsView"
              x:DataType="vm:SettingsViewModel">
 
   <StackPanel Spacing="16" Width="{DynamicResource ContentColumnWidth}" HorizontalAlignment="Left">
