@@ -11,7 +11,9 @@ builder.Services.AddInfrastructure(
         + "local one; elsewhere it arrives as the ConnectionStrings__Management variable."));
 
 builder.Services.AddControllers()
-    .AddJsonOptions(options => MosaicJson.ApplyTo(options.JsonSerializerOptions));
+    .AddJsonOptions(options => MosaicJson.ApplyTo(options.JsonSerializerOptions))
+    // otherwise [ApiController] answers a failed model check with ProblemDetails, outside the envelope
+    .ConfigureApiBehaviorOptions(options => options.InvalidModelStateResponseFactory = ModelStateEnvelope.Build);
 
 builder.Services.AddOpenApi();
 builder.Services.AddSingleton(TimeProvider.System);

@@ -4,6 +4,8 @@
   "client.api_timed_out": "لم يستجب الخادم في الوقت المحدد.",
   "client.api_unreachable": "تعذر الوصول إلى الخادم.",
   "client.unexpected_response": "أرسل الخادم استجابة لا يفهمها هذا التطبيق.",
+  "error.invalid_value": "تعذّرت قراءة إحدى القيم.",
+  "error.required": "هذا الحقل مطلوب.",
   "error.unexpected": "حدث خطأ في الخادم.",
   "error.unknown_permission": "هذا الإذن غير موجود.",
   "error.validation_failed": "بعض القيم المُدخلة غير صالحة.",

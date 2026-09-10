@@ -4,6 +4,8 @@
   "client.api_timed_out": "The server did not answer in time.",
   "client.api_unreachable": "The server could not be reached.",
   "client.unexpected_response": "The server sent something this app did not understand.",
+  "error.invalid_value": "A value could not be read.",
+  "error.required": "This is required.",
   "error.unexpected": "Something went wrong on the server.",
   "error.unknown_permission": "That permission does not exist.",
   "error.validation_failed": "Some of the values you entered are not valid.",
