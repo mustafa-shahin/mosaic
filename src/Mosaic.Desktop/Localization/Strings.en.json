@@ -6,6 +6,7 @@
   "client.unexpected_response": "The server sent something this app did not understand.",
   "error.unexpected": "Something went wrong on the server.",
   "error.unknown_permission": "That permission does not exist.",
+  "error.validation_failed": "Some of the values you entered are not valid.",
   "health.check_again": "Check again",
   "health.checking": "Checking the API…",
   "health.contract_mismatch": "This desktop speaks {desktop}. The server speaks {server}.",

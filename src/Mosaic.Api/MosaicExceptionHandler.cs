@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Diagnostics;
 using Mosaic.Contracts;
 using Mosaic.Domain.Errors;
+using Mosaic.Application.Validation;
 
 namespace Mosaic.Api;
 
@@ -38,6 +39,18 @@ public sealed partial class MosaicExceptionHandler(
 
     private ApiError Describe(Exception exception)
     {
+        // must come first: a ValidationException is a MosaicException, and matching that branch
+        // instead would silently drop the field errors
+        if (exception is ValidationException invalid)
+        {
+            LogRefusal(logger, invalid.Code);
+
+            return new ApiError
+            {
+                Code = invalid.Code,
+                FieldErrors = invalid.FieldErrors
+            };
+        }
         if (exception is MosaicException refusal)
         {
             LogRefusal(logger, refusal.Code);

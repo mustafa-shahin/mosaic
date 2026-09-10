@@ -12,9 +12,16 @@ public sealed class ApiResponseTests
             Code = "validation.failed",
             Message = "One or more fields are invalid.",
             Params = new Dictionary<string, string> { ["max"] = "40" },
-            FieldErrors = new Dictionary<string, IReadOnlyList<string>>
+            FieldErrors = new Dictionary<string, IReadOnlyList<FieldError>>
             {
-                ["email"] = ["validation.required"]
+                ["email"] =
+                [
+                    new FieldError
+                    {
+                        Code = "error.too_long",
+                        Params = new Dictionary<string, string> { ["max"] = "254" }
+                    }
+                ]
             }
         };
         var original = ApiResponse.Fail(error);

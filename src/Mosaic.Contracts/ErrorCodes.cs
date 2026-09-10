@@ -5,4 +5,5 @@ public static class ErrorCodes
 {
     public const string Unexpected = "error.unexpected";
     public const string UnknownPermission = "error.unknown_permission";
+    public const string ValidationFailed = "error.validation_failed";
 }
