@@ -7,7 +7,7 @@ using Mosaic.Desktop.Services;
 
 namespace Mosaic.Desktop.Features.Health;
 
-public sealed partial class HealthViewModel : ObservableObject
+public sealed partial class HealthViewModel : ObservableObject, IDisposable
 {
     private readonly ApiClient _api;
 
@@ -76,8 +76,12 @@ public sealed partial class HealthViewModel : ObservableObject
         ["server"] = ServerContract ?? Strings.Translate("health.contract_unknown")
     });
 
-    // AsyncRelayCommand cancels a running execution when Execute is called again, and the cancelled
-    // task then blows up on the dispatcher. Hence the IsRunning check.
+    // The shell disposes the screen it leaves, so a check still in flight is cancelled here rather
+    // than left to finish writing into a view model nobody is bound to.
+    public void Dispose() => CheckCommand.Cancel();
+
+    // AsyncRelayCommand cancels a running execution when Execute is called again, and a second check
+    // would restart the spinner for no new information. Hence the IsRunning check.
     public void CheckIfIdle()
     {
         if (!CheckCommand.IsRunning)
@@ -93,24 +97,31 @@ public sealed partial class HealthViewModel : ObservableObject
         ErrorCode = null;
         ErrorParams = null;
 
-        var response = await _api.GetAsync<HealthResult>("health", cancellationToken);
-
-        if (response.Success && response.Data is { } health)
+        try
         {
-            Service = health.Service;
-            ServerTimeUtc = health.ServerTimeUtc;
-            ServerContract = health.ApiContract;
-            State = ApiContract.IsCompatible(health.ApiContract)
-                ? ConnectionState.Reachable
-                : ConnectionState.Incompatible;
-            return;
-        }
+            var response = await _api.GetAsync<HealthResult>("health", cancellationToken);
 
-        Service = null;
-        ServerTimeUtc = null;
-        ServerContract = null;
-        ErrorCode = response.Error?.Code;
-        ErrorParams = response.Error?.Params;
-        State = ConnectionState.Unreachable;
+            if (response.Success && response.Data is { } health)
+            {
+                Service = health.Service;
+                ServerTimeUtc = health.ServerTimeUtc;
+                ServerContract = health.ApiContract;
+                State = ApiContract.IsCompatible(health.ApiContract)
+                    ? ConnectionState.Reachable
+                    : ConnectionState.Incompatible;
+                return;
+            }
+
+            Service = null;
+            ServerTimeUtc = null;
+            ServerContract = null;
+            ErrorCode = response.Error?.Code;
+            ErrorParams = response.Error?.Params;
+            State = ConnectionState.Unreachable;
+        }
+        // the screen was left mid-check; there is nothing to show and nobody left to show it to
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+        }
     }
 }

@@ -1,40 +1,33 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using FluentIcons.Common;
-using Mosaic.Desktop.Features.Health;
-using Mosaic.Desktop.Features.Settings;
 using Mosaic.Desktop.Localization;
+using Mosaic.Desktop.Shell.Navigation;
 
 namespace Mosaic.Desktop.Shell;
 
-// Sidebar, header title and the current page.
-public sealed partial class ShellViewModel : ObservableObject
+// Sidebar, header title and the current screen. Names no feature: the composition says what exists,
+// the session says what this user may see, and NavBuilder does the work.
+public sealed partial class ShellViewModel : ObservableObject, IDisposable
 {
     private readonly List<NavEntry> _entries;
 
     public ShellViewModel(
-        Localizer strings, HealthViewModel health, SettingsViewModel settings, string? startAt = null)
+       Localizer strings, IDesktopComposition composition, IReadOnlySet<string> visible, string? startAt = null)
     {
         Strings = strings;
+        Sections = NavBuilder.Build(composition, visible, strings);
+        _entries = NavBuilder.Flatten(Sections);
 
-        NavEntry Entry(string key, Symbol icon, ObservableObject target) =>
-            new(key, strings.Translate(key), icon, target);
+        if (_entries.Count == 0)
+        {
+            Current = new NoAccessViewModel(strings);
+            return;
+        }
 
-        var dashboard = Entry("nav.dashboard", Symbol.Board, health);
-        var preferences = Entry("nav.settings", Symbol.Settings, settings);
-
-        _entries = [dashboard, preferences];
-
-        Sections =
-        [
-            new NavSection(strings.Translate("nav.overview"), [dashboard]),
-            new NavSection(strings.Translate("nav.administration"), [preferences])
-        ];
-
-        var opening = _entries.Find(entry => entry.Key == startAt) ?? dashboard;
+        var opening = _entries.Find(entry => entry.Key == startAt) ?? _entries[0];
 
         opening.IsActive = true;
-        Current = opening.Target;
+        Current = opening.Open(strings);
     }
 
     public Localizer Strings { get; }
@@ -51,6 +44,10 @@ public sealed partial class ShellViewModel : ObservableObject
 
     private NavEntry? Active => _entries.Find(entry => entry.IsActive);
 
+    // A language change throws this whole shell away, and the screen standing open would otherwise
+    // keep running with nobody bound to it.
+    public void Dispose() => (Current as IDisposable)?.Dispose();
+
     [RelayCommand]
     private void Go(NavEntry entry)
     {
@@ -64,7 +61,10 @@ public sealed partial class ShellViewModel : ObservableObject
             candidate.IsActive = ReferenceEquals(candidate, entry);
         }
 
-        Current = entry.Target;
+        // a screen that polls or fetches stops here, which is what "only while it is open" means
+        (Current as IDisposable)?.Dispose();
+
+        Current = entry.Open(Strings);
         OnPropertyChanged(nameof(Title));
     }
 }

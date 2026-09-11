@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Mosaic.Desktop.Shell"
+        xmlns:nav="using:Mosaic.Desktop.Shell.Navigation"
         xmlns:fi="using:FluentIcons.Avalonia"
         xmlns:c="using:Mosaic.Desktop.Controls"
         x:Class="Mosaic.Desktop.Shell.MainWindow"
@@ -31,12 +32,12 @@
 
         <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding Sections}">
           <ItemsControl.ItemTemplate>
-            <DataTemplate x:DataType="vm:NavSection">
+            <DataTemplate x:DataType="nav:NavSection">
               <StackPanel Spacing="2">
                 <TextBlock Classes="caption" Text="{Binding Caption}" Margin="10,12,10,6" />
                 <ItemsControl ItemsSource="{Binding Entries}">
                   <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:NavEntry">
+                    <DataTemplate x:DataType="nav:NavEntry">
                       <Panel Margin="0,0,0,2">
                         <Button Classes="nav"
                                 Classes.active="{Binding IsActive}"

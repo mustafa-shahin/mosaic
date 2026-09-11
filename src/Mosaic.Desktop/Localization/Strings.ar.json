@@ -31,5 +31,6 @@
   "settings.appearance_light": "فاتح",
   "settings.language": "اللغة",
   "settings.switch_to_dark": "التبديل إلى الداكن",
-  "settings.switch_to_light": "التبديل إلى الفاتح"
+  "settings.switch_to_light": "التبديل إلى الفاتح",
+  "shell.no_access": "لا يوجد دور لحسابك بعد. اطلب من المالك منحك دورًا."
 }

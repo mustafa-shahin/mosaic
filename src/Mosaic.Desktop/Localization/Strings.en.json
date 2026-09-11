@@ -31,5 +31,6 @@
   "settings.appearance_light": "Light",
   "settings.language": "Language",
   "settings.switch_to_dark": "Switch to dark",
-  "settings.switch_to_light": "Switch to light"
+  "settings.switch_to_light": "Switch to light",
+  "shell.no_access": "Your account has no role yet. Ask an owner to give you one."
 }

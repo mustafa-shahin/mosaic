@@ -31,5 +31,6 @@
   "settings.appearance_light": "Hell",
   "settings.language": "Sprache",
   "settings.switch_to_dark": "Zum dunklen Design wechseln",
-  "settings.switch_to_light": "Zum hellen Design wechseln"
+  "settings.switch_to_light": "Zum hellen Design wechseln",
+  "shell.no_access": "Ihr Konto hat noch keine Rolle. Bitten Sie einen Eigentümer um eine."
 }

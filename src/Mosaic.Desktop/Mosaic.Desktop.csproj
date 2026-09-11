@@ -12,6 +12,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- NavBuilder is internal so pro cannot call it, but its rules are what the tests check -->
+    <InternalsVisibleTo Include="Mosaic.Desktop.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Avalonia" />
     <PackageReference Include="Avalonia.Desktop" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
