@@ -1,5 +1,4 @@
-﻿using System.Net;
-using Mosaic.Contracts;
+﻿using Mosaic.Contracts;
 using Mosaic.Domain.Errors;
 
 namespace Mosaic.Application.Validation;
@@ -10,6 +9,4 @@ public sealed class ValidationException(IReadOnlyDictionary<string, IReadOnlyLis
     : MosaicException(ErrorCodes.ValidationFailed)
 {
     public IReadOnlyDictionary<string, IReadOnlyList<FieldError>> FieldErrors { get; } = fieldErrors;
-
-    public override HttpStatusCode Status => HttpStatusCode.BadRequest;
 }

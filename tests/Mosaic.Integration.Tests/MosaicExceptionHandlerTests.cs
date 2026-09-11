@@ -1,4 +1,3 @@
-using System.Net;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
@@ -7,6 +6,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Mosaic.Api;
+using Mosaic.Application.Validation;
 using Mosaic.Contracts;
 using Mosaic.Domain.Errors;
 
@@ -48,19 +48,27 @@ public sealed class MosaicExceptionHandlerTests
         Assert.Equal("no user 7", body.Error.Message);
     }
 
+    // The kind decides the status and the handler holds the only table, so a kind it has never seen is
+    // answered as unexpected while its code still reaches the client. ExceptionStatusTests is what keeps
+    // a real kind from ever getting here.
     [Fact]
-    public async Task TryHandle_ForARefusalTheHandlerHasNeverSeen_TakesTheStatusFromTheException()
+    public async Task TryHandle_ForARefusalKindWithNoMapping_IsFiveHundredButKeepsTheCode()
     {
         var (status, body) = await Handle(new QuotaExceededException());
 
-        Assert.Equal(StatusCodes.Status429TooManyRequests, status);
+        Assert.Equal(StatusCodes.Status500InternalServerError, status);
         Assert.Equal("quota.exceeded", body.Error!.Code);
     }
 
-    private sealed class QuotaExceededException() : MosaicException("quota.exceeded")
+    [Fact]
+    public async Task TryHandle_ForAValidationRefusal_IsBadRequest()
     {
-        public override HttpStatusCode Status => HttpStatusCode.TooManyRequests;
+        var (status, _) = await Handle(new ValidationException(new Dictionary<string, IReadOnlyList<FieldError>>()));
+
+        Assert.Equal(StatusCodes.Status400BadRequest, status);
     }
+
+    private sealed class QuotaExceededException() : MosaicException("quota.exceeded");
 
     [Fact]
     public async Task TryHandle_ForAnUnmappedException_IsFiveHundredAndSaysNothingAboutItself()
