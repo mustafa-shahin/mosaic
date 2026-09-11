@@ -3,6 +3,8 @@
   "client.api_address_invalid": "عنوان الخادم المهيأ غير صالح.",
   "client.api_timed_out": "لم يستجب الخادم في الوقت المحدد.",
   "client.api_unreachable": "تعذر الوصول إلى الخادم.",
+  "client.not_allowed": "هذا الحساب غير مسموح له بذلك.",
+  "client.not_signed_in": "لم يتم تسجيل الدخول، أو انتهت الجلسة.",
   "client.unexpected_response": "أرسل الخادم استجابة لا يفهمها هذا التطبيق.",
   "error.invalid_value": "تعذّرت قراءة إحدى القيم.",
   "error.required": "هذا الحقل مطلوب.",

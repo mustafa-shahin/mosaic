@@ -3,6 +3,8 @@
   "client.api_address_invalid": "The configured server address is not valid.",
   "client.api_timed_out": "The server did not answer in time.",
   "client.api_unreachable": "The server could not be reached.",
+  "client.not_allowed": "Your account is not allowed to do that.",
+  "client.not_signed_in": "You are not signed in, or the session has expired.",
   "client.unexpected_response": "The server sent something this app did not understand.",
   "error.invalid_value": "A value could not be read.",
   "error.required": "This is required.",
