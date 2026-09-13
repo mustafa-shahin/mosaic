@@ -9,7 +9,8 @@
              x:Class="Mosaic.Desktop.Shell.SidebarView"
              x:DataType="shell:ShellViewModel"
              Name="Root"
-             mc:Ignorable="d" d:DesignWidth="264" d:DesignHeight="600">
+             mc:Ignorable="d" d:DesignWidth="264" d:DesignHeight="600"
+             Design.DataContext="{x:Static shell:ShellDesignData.Default}">
 
   <Border Background="{DynamicResource SurfaceSidebar}"
           BorderBrush="{DynamicResource HairlineFaint}"

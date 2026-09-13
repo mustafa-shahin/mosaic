@@ -6,6 +6,7 @@
         x:Class="Mosaic.Desktop.Shell.MainWindow"
         x:DataType="shell:ShellViewModel"
         mc:Ignorable="d"
+        Design.DataContext="{x:Static shell:ShellDesignData.Default}"
         Title="{Binding Strings[app.title]}"
         Icon="/Assets/mosaic-256.png"
         FlowDirection="{Binding Strings.FlowDirection}"
