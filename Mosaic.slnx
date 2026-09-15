@@ -4,6 +4,7 @@
     <Project Path="src/Mosaic.Application/Mosaic.Application.csproj" />
     <Project Path="src/Mosaic.Contracts/Mosaic.Contracts.csproj" />
     <Project Path="src/Mosaic.Desktop/Mosaic.Desktop.csproj" />
+    <Project Path="src/Mosaic.Desktop.App/Mosaic.Desktop.App.csproj" />
     <Project Path="src/Mosaic.Domain/Mosaic.Domain.csproj" />
     <Project Path="src/Mosaic.Infrastructure/Mosaic.Infrastructure.csproj" />
   </Folder>

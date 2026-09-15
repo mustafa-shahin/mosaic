@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- The brand icon is shared with pro's entry point, so it stays in the library's Assets. -->
+    <ApplicationIcon>..\Mosaic.Desktop\Assets\mosaic.ico</ApplicationIcon>
+    <!-- App is a type in Mosaic.Desktop, and a Mosaic.Desktop.App namespace would be ambiguous with it. -->
+    <RootNamespace>Mosaic.Desktop</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Mosaic.Desktop\Mosaic.Desktop.csproj" />
+  </ItemGroup>
+
+</Project>

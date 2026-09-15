@@ -1,22 +1,16 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Media;
 using Avalonia.Media.Fonts;
-using System;
+using Mosaic.Desktop.Shell.Navigation;
 
 namespace Mosaic.Desktop;
 
-sealed class Program
+// Fonts, platform and logging, shared by every entry point. Pro's Program calls this with its own
+// composition, so the only line that differs between the two exes is which composition is built.
+public static class DesktopHost
 {
-    // Initialization code. Don't use any Avalonia, third-party APIs or any
-    // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
-    // yet and stuff might break.
-    [STAThread]
-    public static void Main(string[] args) => BuildAvaloniaApp()
-        .StartWithClassicDesktopLifetime(args);
-
-    // Avalonia configuration, don't remove; also used by visual designer.
-    public static AppBuilder BuildAvaloniaApp()
-        => AppBuilder.Configure<App>()
+    public static AppBuilder Build(Func<DesktopServices, IDesktopComposition> compose)
+        => AppBuilder.Configure(() => new App(compose))
             .UsePlatformDetect()
 #if DEBUG
             .WithDeveloperTools()

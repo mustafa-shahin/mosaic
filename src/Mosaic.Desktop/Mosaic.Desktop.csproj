@@ -1,20 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
-    <ApplicationIcon>Assets\mosaic.ico</ApplicationIcon>
     <!-- NU1608: FluentIcons.Avalonia wants Common 2.1.339 exactly and we override it, see Directory.Packages.props -->
     <NoWarn>$(NoWarn);NU1608</NoWarn>
     <!-- Avalonia.props defaults this to true and AvaloniaBuildTasks.targets to false. Left unsaid, a
          change in import order would silently drop every binding back to reflection. -->
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
-
-  <ItemGroup>
-    <!-- NavBuilder is internal so pro cannot call it, but its rules are what the tests check -->
-    <InternalsVisibleTo Include="Mosaic.Desktop.Tests" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia" />
@@ -31,6 +23,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- NavBuilder is internal so pro cannot call it, but its rules are what the tests check -->
+    <InternalsVisibleTo Include="Mosaic.Desktop.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Contracts and nothing else: the desktop computes no business fact, and this line enforces it. -->
     <ProjectReference Include="..\Mosaic.Contracts\Mosaic.Contracts.csproj" />
   </ItemGroup>
 
@@ -43,9 +41,9 @@
   <ItemGroup>
     <!-- WithCulture=false, otherwise the SDK treats Strings.de.json as a satellite resource for "de". -->
     <EmbeddedResource Include="Localization\*.json" WithCulture="false" />
-    <!-- .ico is handled by ApplicationIcon above -->
+    <!-- .ico is not listed: Mosaic.Desktop.App points ApplicationIcon straight at the file. -->
     <AvaloniaResource Include="Assets\*.png" />
-    <!-- Arabic fallback for Inter, see Program.cs. -->
+    <!-- Arabic fallback for Inter, see DesktopHost.cs. -->
     <AvaloniaResource Include="Assets\Fonts\*.ttf" />
     <!-- OFL wants the licence text shipped with the font. The ttf is inside the assembly, so copy the file next to the exe. -->
     <Content Include="Assets\Fonts\OFL.txt" CopyToOutputDirectory="PreserveNewest" />
