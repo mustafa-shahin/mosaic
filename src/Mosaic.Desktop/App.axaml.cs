@@ -42,8 +42,11 @@ public partial class App : Application
             // before the window exists, otherwise it flashes
             RequestedThemeVariant = Appearances.IsDark(stored.Appearance) ? ThemeVariant.Dark : ThemeVariant.Light;
 
+            // the pool caches the resolved address, so a connection has to retire before a DNS change lands
+            var handler = new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(5) };
+
             // one HttpClient for the whole app. Auth handlers will go here later.
-            _api = new ApiClient(new HttpClient { BaseAddress = ApiEndpoint.FromEnvironment() });
+            _api = new ApiClient(new HttpClient(handler) { BaseAddress = ApiEndpoint.FromEnvironment() });
 
             // built once: keys, icons, access rules and factories, none of which depend on the language
             _composition = _compose(new DesktopServices(_api, _settings, OnLanguageChosen));
