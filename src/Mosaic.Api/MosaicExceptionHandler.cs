@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Diagnostics;
 using Mosaic.Contracts;
 using Mosaic.Domain.Errors;
+using Mosaic.Application.Validation;
 
 namespace Mosaic.Api;
 
@@ -38,6 +39,18 @@ public sealed partial class MosaicExceptionHandler(
 
     private ApiError Describe(Exception exception)
     {
+        // must come first: a ValidationException is a MosaicException, and matching that branch
+        // instead would silently drop the field errors
+        if (exception is ValidationException invalid)
+        {
+            LogRefusal(logger, invalid.Code);
+
+            return new ApiError
+            {
+                Code = invalid.Code,
+                FieldErrors = invalid.FieldErrors
+            };
+        }
         if (exception is MosaicException refusal)
         {
             LogRefusal(logger, refusal.Code);
@@ -61,10 +74,15 @@ public sealed partial class MosaicExceptionHandler(
         };
     }
 
-    private static int StatusFor(Exception exception) =>
-        exception is MosaicException refusal
-            ? (int)refusal.Status
-            : StatusCodes.Status500InternalServerError;
+    // The domain names the kind of a refusal; which status that is on the wire is decided here and
+    // nowhere else. A new kind gets a line, and ExceptionStatusTests notices when it is forgotten.
+    internal static int StatusFor(Exception exception) => exception switch
+    {
+        ValidationException => StatusCodes.Status400BadRequest,
+        InvalidRequestException => StatusCodes.Status400BadRequest,
+        NotFoundException => StatusCodes.Status404NotFound,
+        _ => StatusCodes.Status500InternalServerError,
+    };
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Request refused with {Code}")]
     private static partial void LogRefusal(ILogger logger, string code);

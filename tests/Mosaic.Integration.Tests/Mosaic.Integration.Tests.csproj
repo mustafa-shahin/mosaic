@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Mosaic.Api\Mosaic.Api.csproj" />
+    <ProjectReference Include="..\..\src\Mosaic.Infrastructure\Mosaic.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,2 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- References nothing at all: the wire format, and the presentation vocabulary the desktop names. -->
+
 </Project>

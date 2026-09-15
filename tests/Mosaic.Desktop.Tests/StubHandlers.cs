@@ -6,13 +6,14 @@ namespace Mosaic.Desktop.Tests;
 // Stand-ins for the network. Testing through the real ApiClient rather than around it means its
 // exception handling is covered too, which is where its only real decisions live.
 
-internal sealed class CannedResponseHandler(HttpStatusCode status, string body) : HttpMessageHandler
+internal sealed class CannedResponseHandler(HttpStatusCode status, string body, string mediaType = "application/json")
+    : HttpMessageHandler
 {
     protected override Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request, CancellationToken cancellationToken) =>
         Task.FromResult(new HttpResponseMessage(status)
         {
-            Content = new StringContent(body, Encoding.UTF8, "application/json")
+            Content = new StringContent(body, Encoding.UTF8, mediaType)
         });
 }
 

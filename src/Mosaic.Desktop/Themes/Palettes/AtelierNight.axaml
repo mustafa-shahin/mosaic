@@ -31,4 +31,7 @@
   <SolidColorBrush x:Key="StatusBadSoft">#1FCE5F55</SolidColorBrush>
   <SolidColorBrush x:Key="StatusInfoSoft">#1F7F9DBB</SolidColorBrush>
 
+  <!-- heavier than the day palette, black barely reads on a dark surface -->
+  <BoxShadows x:Key="CardShadow">0 1 3 0 #66000000</BoxShadows>
+
 </ResourceDictionary>

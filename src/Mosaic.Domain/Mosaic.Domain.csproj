@@ -1,1 +1,5 @@
-<Project Sdk="Microsoft.NET.Sdk" />
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- References nothing. Turning domain facts into wire shapes is Application's job. -->
+
+</Project>

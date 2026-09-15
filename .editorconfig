@@ -1,4 +1,17 @@
 root = true
+
+[*]
+# Visual Studio saves a new file with a BOM unless told otherwise. The repository is UTF-8 without one.
+charset = utf-8
+
+[*.cs]
+# IDE only: the build doesn't check style rules without EnforceCodeStyleInBuild.
+csharp_style_namespace_declarations = file_scoped:warning
+
+# CA1711 reserves the Permission suffix for Code Access Security types, which no longer exist.
+# Only this suffix is allowed; Ex, Impl and the rest still fail.
+dotnet_code_quality.CA1711.allowed_suffixes = Permission
+
 # Test method names read as sentences, so the underscores are deliberate. CA1707 protects the
 # naming of a public API, and a test method is never called by anything.
 [tests/**.cs]

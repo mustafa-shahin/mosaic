@@ -1,6 +1,6 @@
+using Mosaic.Desktop.Features.Settings;
 using Mosaic.Desktop.Localization;
-using Mosaic.Desktop.Settings;
-using Mosaic.Desktop.ViewModels;
+using Mosaic.Desktop.Services;
 
 namespace Mosaic.Desktop.Tests;
 
@@ -31,6 +31,15 @@ public sealed class SettingsViewModelTests : IDisposable
     public void SelectedLanguage_StartsAtTheLanguageInForce()
     {
         Assert.Equal("en", _settings.SelectedLanguage!.Code);
+    }
+
+    // The constructor assigns through the setter, and the setter is what remembers a choice. On a first
+    // run the language in force is the OS's, and writing it would turn that guess into a decision.
+    [Fact]
+    public void Construct_WritesNothing_SinceStartingUpIsNotChoosing()
+    {
+        Assert.Null(Stored().LanguageCode);
+        Assert.False(File.Exists(Path.Combine(_folder, "settings.json")));
     }
 
     [Fact]

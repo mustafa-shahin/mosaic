@@ -1,9 +1,9 @@
 using System.Net;
 using Mosaic.Contracts;
 using Mosaic.Desktop.Controls;
+using Mosaic.Desktop.Features.Health;
 using Mosaic.Desktop.Localization;
 using Mosaic.Desktop.Services;
-using Mosaic.Desktop.ViewModels;
 
 namespace Mosaic.Desktop.Tests;
 
@@ -92,8 +92,10 @@ public sealed class HealthViewModelTests
         Assert.Equal(ConnectionState.Reachable, viewModel.State);
     }
 
+    // ApiClient throws on a deliberate cancellation; the screen is where that stops, because an
+    // exception escaping the command would reach the dispatcher and kill the process.
     [Fact]
-    public async Task Check_WhenTheCallerCancels_ThrowsRatherThanReportingUnreachable()
+    public async Task Check_WhenTheCallerCancels_StopsQuietlyInsteadOfThrowing()
     {
         var viewModel = ViewModelWith(new NeverRespondingHandler());
         using var cancellation = new CancellationTokenSource();
@@ -101,7 +103,28 @@ public sealed class HealthViewModelTests
         var check = viewModel.CheckAsync(cancellation.Token);
         await cancellation.CancelAsync();
 
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => check);
+        await check;
+
+        Assert.Equal(ConnectionState.Checking, viewModel.State);
+        Assert.Null(viewModel.ErrorCode);
+    }
+
+    // What the shell does to the screen it is leaving.
+    [Fact]
+    public async Task Dispose_WhileACheckIsRunning_EndsItWithoutFaulting()
+    {
+        var viewModel = ViewModelWith(new NeverRespondingHandler());
+
+        viewModel.CheckIfIdle();
+
+        var running = viewModel.CheckCommand.ExecutionTask!;
+
+        viewModel.Dispose();
+
+        await running;
+
+        Assert.True(running.IsCompletedSuccessfully);
+        Assert.False(viewModel.CheckCommand.IsRunning);
     }
 
     [Fact]

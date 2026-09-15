@@ -6,17 +6,27 @@ using Avalonia.Styling;
 using Avalonia.Threading;
 using Mosaic.Desktop.Localization;
 using Mosaic.Desktop.Services;
-using Mosaic.Desktop.Settings;
-using Mosaic.Desktop.ViewModels;
+using Mosaic.Desktop.Shell;
+using Mosaic.Desktop.Shell.Navigation;
 
 namespace Mosaic.Desktop;
 
 public partial class App : Application
 {
+    private readonly Func<DesktopServices, IDesktopComposition> _compose;
     private readonly SettingsStore _settings = new();
 
     private ApiClient _api = null!;
+    private IDesktopComposition _composition = null!;
     private MainWindow _window = null!;
+
+    // the previewer and a plain core build both compose the core edition
+    public App() : this(services => new CoreComposition(services))
+    {
+    }
+
+    // pro hands in a composition that wraps core's, which is how core never names pro
+    public App(Func<DesktopServices, IDesktopComposition> compose) => _compose = compose;
 
     public override void Initialize()
     {
@@ -32,8 +42,19 @@ public partial class App : Application
             // before the window exists, otherwise it flashes
             RequestedThemeVariant = Appearances.IsDark(stored.Appearance) ? ThemeVariant.Dark : ThemeVariant.Light;
 
+            // the pool caches the resolved address, so a connection has to retire before a DNS change lands
+            var handler = new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(5) };
+
             // one HttpClient for the whole app. Auth handlers will go here later.
-            _api = new ApiClient(new HttpClient { BaseAddress = ApiEndpoint.FromEnvironment() });
+            _api = new ApiClient(new HttpClient(handler) { BaseAddress = ApiEndpoint.FromEnvironment() });
+
+            // built once: keys, icons, access rules and factories, none of which depend on the language
+            _composition = _compose(new DesktopServices(_api, _settings, OnLanguageChosen));
+
+            foreach (var template in _composition.Templates)
+            {
+                DataTemplates.Add(template);
+            }
 
             // stored preference, else the OS language. English if that isn't shipped.
             var language = LanguageCatalog.Resolve(stored.LanguageCode ?? CultureInfo.CurrentUICulture.Name);
@@ -46,35 +67,30 @@ public partial class App : Application
         base.OnFrameworkInitializationCompleted();
     }
 
-    // Rebuilt on every language change. The window, ApiClient and SettingsStore live longer.
+    // Rebuilt on every language change. The window, the ApiClient and the composition live longer.
+    // Nothing is served until there is a login, so only the local entries show.
     private ShellViewModel BuildShell(LanguageOption language, string? startAt)
-    {
-        var strings = Localizer.Load(language);
-        var settings = new SettingsViewModel(strings, _settings);
-
-        settings.LanguageChosen += OnLanguageChosen;
-
-        return new ShellViewModel(strings, new HealthViewModel(_api, strings), settings, startAt);
-    }
+        => new(Localizer.Load(language), _composition, new HashSet<string>(StringComparer.Ordinal), startAt);
 
     private void OnLanguageChosen(object? sender, LanguageOption language)
     {
-        // unsubscribe, this instance is about to be thrown away
-        if (sender is SettingsViewModel asked)
-        {
-            asked.LanguageChosen -= OnLanguageChosen;
-        }
-
         // we're still inside the ComboBox binding update, don't tear the tree down synchronously
         Dispatcher.UIThread.Post(() =>
         {
+            // Only the screen standing open may ask. A request from one that has since been left or
+            // rebuilt is stale, whatever feature it came from, so App never learns the sender's type.
             if (_window.DataContext is not ShellViewModel standing ||
+                !ReferenceEquals(standing.Current, sender) ||
                 string.Equals(standing.Strings.Language.Code, language.Code, StringComparison.Ordinal))
             {
                 return;
             }
 
+            // swap first, so nothing is ever bound to a shell that has been disposed
             _window.DataContext = BuildShell(language, standing.ActiveKey);
+
+            standing.Dispose();
         });
     }
+    
 }

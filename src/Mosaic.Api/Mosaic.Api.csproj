@@ -5,6 +5,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- ModelStateEnvelopeTests builds an ActionContext directly, no server involved -->
+    <InternalsVisibleTo Include="Mosaic.Integration.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Mosaic.Application\Mosaic.Application.csproj" />
     <ProjectReference Include="..\Mosaic.Infrastructure\Mosaic.Infrastructure.csproj" />
     <ProjectReference Include="..\Mosaic.Contracts\Mosaic.Contracts.csproj" />
