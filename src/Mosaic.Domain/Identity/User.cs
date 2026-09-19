@@ -25,6 +25,9 @@ public sealed class User : SoftDeletableEntity
 
     public string PasswordHash { get; private set; } = null!;
 
+    // Copied onto every session when it starts. A new value ends them all on their next request.
+    public Guid SecurityStamp { get; private set; }
+
     public bool IsOwner { get; private set; }
 
     // Whether the owner has approved the account. Register leaves it false. Unrelated to IsDeleted.
@@ -58,6 +61,7 @@ public sealed class User : SoftDeletableEntity
             FirstName = firstName.Trim(),
             LastName = lastName.Trim(),
             PasswordHash = passwordHash,
+            SecurityStamp = Guid.NewGuid(),
             IsActive = false,
             CreatedByUserId = createdByUserId,
             CreatedAt = now,
@@ -121,21 +125,37 @@ public sealed class User : SoftDeletableEntity
 
     public void RemoveRole(Role role) => _roles.RemoveAll(held => held.Id == role.Id);
 
-    public void ChangePassword(string passwordHash) => PasswordHash = passwordHash;
+    public void ChangePassword(string passwordHash)
+    {
+        PasswordHash = passwordHash;
+        RotateSecurityStamp();
+    }
+
+    // Same password, new cost. Rotating here would sign the person out everywhere for logging in.
+    public void UpgradePasswordHash(string passwordHash) => PasswordHash = passwordHash;
 
     public void SetTotpSecret(string encryptedSecret)
     {
         EncryptedTotpSecret = encryptedSecret;
         TotpEnabled = false;
+        RotateSecurityStamp();
     }
 
-    public void ConfirmTotp() => TotpEnabled = true;
+    public void ConfirmTotp()
+    {
+        TotpEnabled = true;
+        RotateSecurityStamp();
+    }
 
     public void DisableTotp()
     {
         EncryptedTotpSecret = null;
         TotpEnabled = false;
+        RotateSecurityStamp();
     }
+
+    // Sign-out everywhere, and an owner revoking an account they believe is compromised.
+    public void EndAllSessions() => RotateSecurityStamp();
 
     // For key rotation. Returns 1 when there was a secret to rewrap so a rotation job can count them,
     // and leaves TotpEnabled as it is.
@@ -154,4 +174,6 @@ public sealed class User : SoftDeletableEntity
     public void SetOwner(bool isOwner) => IsOwner = isOwner;
 
     public static string Normalize(string email) => email.Trim().ToLowerInvariant();
+
+    private void RotateSecurityStamp() => SecurityStamp = Guid.NewGuid();
 }

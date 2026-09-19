@@ -39,6 +39,114 @@ public sealed class UserTests
     }
 
     [Fact]
+    public void Register_GivesEachUserTheirOwnStamp()
+    {
+        var first = NewUser();
+        var second = NewUser();
+
+        Assert.NotEqual(Guid.Empty, first.SecurityStamp);
+        Assert.NotEqual(first.SecurityStamp, second.SecurityStamp);
+    }
+
+    [Fact]
+    public void CreateOwner_GetsAStampToo()
+    {
+        Assert.NotEqual(Guid.Empty, User.CreateOwner("ada@example.com", "Ada", "Lovelace", "hash", Now).SecurityStamp);
+    }
+
+    [Fact]
+    public void ChangePassword_RotatesTheStamp()
+    {
+        var user = NewUser();
+        var before = user.SecurityStamp;
+
+        user.ChangePassword("new-hash");
+
+        Assert.NotEqual(before, user.SecurityStamp);
+    }
+
+    // a cost upgrade happens at sign-in, so rotating here would end every other session on each login
+    [Fact]
+    public void UpgradePasswordHash_KeepsTheStamp()
+    {
+        var user = NewUser();
+        var before = user.SecurityStamp;
+
+        user.UpgradePasswordHash("stronger-hash");
+
+        Assert.Equal("stronger-hash", user.PasswordHash);
+        Assert.Equal(before, user.SecurityStamp);
+    }
+
+    [Fact]
+    public void SetTotpSecret_RotatesTheStamp()
+    {
+        var user = NewUser();
+        var before = user.SecurityStamp;
+
+        user.SetTotpSecret("secret");
+
+        Assert.NotEqual(before, user.SecurityStamp);
+    }
+
+    [Fact]
+    public void ConfirmTotp_RotatesTheStamp()
+    {
+        var user = NewUser();
+        user.SetTotpSecret("secret");
+        var before = user.SecurityStamp;
+
+        user.ConfirmTotp();
+
+        Assert.NotEqual(before, user.SecurityStamp);
+    }
+
+    [Fact]
+    public void DisableTotp_RotatesTheStamp()
+    {
+        var user = NewUser();
+        user.SetTotpSecret("secret");
+        user.ConfirmTotp();
+        var before = user.SecurityStamp;
+
+        user.DisableTotp();
+
+        Assert.NotEqual(before, user.SecurityStamp);
+    }
+
+    [Fact]
+    public void EndAllSessions_RotatesTheStamp()
+    {
+        var user = NewUser();
+        var before = user.SecurityStamp;
+
+        user.EndAllSessions();
+
+        Assert.NotEqual(before, user.SecurityStamp);
+    }
+
+    // none of these should sign anyone out: approval and roles are re-read on every request
+    [Fact]
+    public void RoutineChanges_KeepTheStamp()
+    {
+        var user = NewUser();
+        var dev = RoleWith("Dev", TestPermissions.Deploy);
+        user.SetTotpSecret("secret");
+        var before = user.SecurityStamp;
+
+        user.RecordLogin(Now);
+        user.RegisterFailedLogin(Now);
+        user.ResetLoginFailures();
+        user.Activate();
+        user.Deactivate();
+        user.AddRole(dev);
+        user.RemoveRole(dev);
+        user.Reencrypt(secret => secret + "-rewrapped");
+
+        Assert.Equal(before, user.SecurityStamp);
+    }
+
+    [Fact]
     public void ResolvePermissions_WithTwoRoles_IsTheUnionOfBoth()
     {
         var user = NewUser();

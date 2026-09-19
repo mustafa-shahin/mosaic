@@ -211,6 +211,10 @@ namespace Mosaic.Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("password_hash");
 
+                    b.Property<Guid>("SecurityStamp")
+                        .HasColumnType("uuid")
+                        .HasColumnName("security_stamp");
+
                     b.Property<bool>("TotpEnabled")
                         .HasColumnType("boolean")
                         .HasColumnName("totp_enabled");
