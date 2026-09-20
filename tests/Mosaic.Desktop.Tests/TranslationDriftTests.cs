@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -110,6 +110,34 @@ public sealed partial class TranslationDriftTests
         }
 
         Assert.True(wrong.Count == 0, $"'{code}' fills the wrong names: {string.Join("; ", wrong)}");
+    }
+
+    // the desktop fills {name} from the parameter of that name, so a name the server never sends stays on screen
+    [Fact]
+    public void EveryServerErrorUsesOnlyParametersTheServerSends()
+    {
+        var english = Strings(LanguageCatalog.DefaultCode);
+        var sent = ConstantsOf(typeof(ErrorParams)).ToHashSet(StringComparer.Ordinal);
+        var unknown = new List<string>();
+
+        foreach (var code in ConstantsOf(typeof(ErrorCodes)))
+        {
+            // a missing sentence is reported by EveryErrorCodeHasAnEnglishSentence
+            if (!english.TryGetValue(code, out var text))
+            {
+                continue;
+            }
+
+            foreach (var name in Placeholders(text))
+            {
+                if (!sent.Contains(name))
+                {
+                    unknown.Add($"'{code}' uses {{{name}}}");
+                }
+            }
+        }
+
+        Assert.True(unknown.Count == 0, $"Not a parameter the server sends: {string.Join("; ", unknown)}");
     }
 
     [Theory]

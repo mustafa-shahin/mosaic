@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Mosaic.Application.Identity;
 using Mosaic.Domain.Identity;
 
 namespace Mosaic.Infrastructure.Persistence.Configurations;
@@ -14,9 +15,9 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
         // erasure request overwrites the address, so it frees itself and is never blocked here.
         builder.HasIndex(user => user.Email).IsUnique();
 
-        builder.Property(user => user.Email).HasMaxLength(254);
-        builder.Property(user => user.FirstName).HasMaxLength(100);
-        builder.Property(user => user.LastName).HasMaxLength(100);
+        builder.Property(user => user.Email).HasMaxLength(UserLimits.EmailLength);
+        builder.Property(user => user.FirstName).HasMaxLength(UserLimits.NameLength);
+        builder.Property(user => user.LastName).HasMaxLength(UserLimits.NameLength);
         builder.Property(user => user.EncryptedTotpSecret).HasMaxLength(500);
         builder.Ignore(user => user.FullName);
 
