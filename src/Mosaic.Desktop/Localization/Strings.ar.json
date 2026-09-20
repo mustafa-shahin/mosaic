@@ -10,6 +10,7 @@
   "error.invalid_value": "تعذّرت قراءة إحدى القيم.",
   "error.required": "هذا الحقل مطلوب.",
   "error.too_long": "الحد الأقصى {limit} حرفًا.",
+  "error.too_short": "الحد الأدنى {limit} حرفًا.",
   "error.unexpected": "حدث خطأ في الخادم.",
   "error.unknown_permission": "هذا الإذن غير موجود.",
   "error.validation_failed": "بعض القيم المُدخلة غير صالحة.",

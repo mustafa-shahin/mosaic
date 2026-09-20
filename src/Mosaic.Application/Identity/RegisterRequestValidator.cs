@@ -1,5 +1,6 @@
 using System.Net.Mail;
 using FluentValidation;
+using Mosaic.Application.Validation;
 using Mosaic.Contracts;
 using Mosaic.Contracts.Identity;
 
@@ -26,7 +27,11 @@ public sealed class RegisterRequestValidator : AbstractValidator<RegisterRequest
             .MaximumLength(UserLimits.NameLength).WithErrorCode(ErrorCodes.TooLong);
 
         RuleFor(request => request.Password)
-            .NotEmpty().WithErrorCode(ErrorCodes.Required);
+            .NotEmpty().WithErrorCode(ErrorCodes.Required)
+            .SetValidator(new CodePointLengthValidator<RegisterRequest>(UserLimits.PasswordMinLength, int.MaxValue))
+            .WithErrorCode(ErrorCodes.TooShort)
+            .SetValidator(new CodePointLengthValidator<RegisterRequest>(0, UserLimits.PasswordMaxLength))
+            .WithErrorCode(ErrorCodes.TooLong);
     }
 
     // the built-in EmailAddress() only looks for a single '@', so "Ada <ada@example.com>" passes it

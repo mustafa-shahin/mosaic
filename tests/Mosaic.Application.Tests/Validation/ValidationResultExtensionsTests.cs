@@ -61,4 +61,17 @@ public sealed class ValidationResultExtensionsTests
         Assert.Equal(ErrorCodes.Required, error.Code);
         Assert.Null(error.Params);
     }
+
+    [Theory]
+    [InlineData(1, ErrorCodes.TooShort, "15")]
+    [InlineData(129, ErrorCodes.TooLong, "128")]
+    public void APasswordOfTheWrongLength_CarriesItsLimit(int length, string code, string limit)
+    {
+        var error = Assert.Single(Thrown(Complete with { Password = new string('x', length) }).FieldErrors["password"]);
+        var parameter = Assert.Single(error.Params!);
+
+        Assert.Equal(code, error.Code);
+        Assert.Equal(ErrorParams.Limit, parameter.Key);
+        Assert.Equal(limit, parameter.Value);
+    }
 }

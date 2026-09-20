@@ -26,12 +26,19 @@ public static class ValidationResultExtensions
         throw new ValidationException(byField);
     }
 
-    // MaximumLength(n) is Length(0, n) underneath, so the failure carries both bounds and only MaxLength is the limit
+    // a length failure carries both bounds, the code says which one is the limit
     private static Dictionary<string, string>? Limit(ValidationFailure failure)
     {
-        if (failure.ErrorCode != ErrorCodes.TooLong
+        var bound = failure.ErrorCode switch
+        {
+            ErrorCodes.TooShort => LengthPlaceholders.Min,
+            ErrorCodes.TooLong => LengthPlaceholders.Max,
+            _ => null,
+        };
+
+        if (bound is null
             || failure.FormattedMessagePlaceholderValues is not { } placeholders
-            || !placeholders.TryGetValue("MaxLength", out var value)
+            || !placeholders.TryGetValue(bound, out var value)
             || value is not int limit)
         {
             return null;

@@ -10,6 +10,7 @@
   "error.invalid_value": "Ein Wert konnte nicht gelesen werden.",
   "error.required": "Diese Angabe ist erforderlich.",
   "error.too_long": "Höchstens {limit} Zeichen erlaubt.",
+  "error.too_short": "Mindestens {limit} Zeichen erforderlich.",
   "error.unexpected": "Auf dem Server ist ein Fehler aufgetreten.",
   "error.unknown_permission": "Diese Berechtigung existiert nicht.",
   "error.validation_failed": "Einige der eingegebenen Werte sind ungültig.",
