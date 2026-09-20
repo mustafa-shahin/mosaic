@@ -1,6 +1,6 @@
 using Mosaic.Domain.Identity;
 
-namespace Mosaic.Domain.Tests;
+namespace Mosaic.Domain.Tests.Identity;
 
 public sealed class RefreshTokenTests
 {

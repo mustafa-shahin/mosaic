@@ -1,8 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
 using Mosaic.Contracts;
+using Mosaic.Contracts.Health;
 
-namespace Mosaic.Integration.Tests;
+namespace Mosaic.Integration.Tests.Health;
 
 public sealed class HealthEndpointTests(ApiFactory factory) : IClassFixture<ApiFactory>
 {

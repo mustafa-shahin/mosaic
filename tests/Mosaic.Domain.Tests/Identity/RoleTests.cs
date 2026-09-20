@@ -1,7 +1,8 @@
 using Mosaic.Domain.Authorization;
 using Mosaic.Domain.Identity;
+using Mosaic.Domain.Tests.Authorization;
 
-namespace Mosaic.Domain.Tests;
+namespace Mosaic.Domain.Tests.Identity;
 
 public sealed class RoleTests
 {

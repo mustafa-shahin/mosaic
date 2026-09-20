@@ -3,9 +3,9 @@ using Mosaic.Contracts;
 using Mosaic.Domain.Authorization;
 using Mosaic.Domain.Errors;
 using Mosaic.Domain.Identity;
-using Mosaic.Infrastructure.Persistence;
+using Mosaic.Infrastructure.Authorization;
 
-namespace Mosaic.Integration.Tests;
+namespace Mosaic.Integration.Tests.Authorization;
 
 // A role row written by a pro build, read by a build that has never heard of pro's keys. That is what
 // an expired licence or a core-only install looks like.

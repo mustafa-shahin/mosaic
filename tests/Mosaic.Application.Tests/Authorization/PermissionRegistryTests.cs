@@ -3,7 +3,7 @@ using Mosaic.Contracts;
 using Mosaic.Domain.Authorization;
 using Mosaic.Domain.Errors;
 
-namespace Mosaic.Application.Tests;
+namespace Mosaic.Application.Tests.Authorization;
 
 public sealed class PermissionRegistryTests
 {

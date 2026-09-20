@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Mosaic.Application.Identity;
 using Mosaic.Domain.Identity;
 
-namespace Mosaic.Infrastructure.Persistence.Configurations;
+namespace Mosaic.Infrastructure.Identity;
 
 internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
 {

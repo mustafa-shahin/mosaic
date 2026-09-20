@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Mosaic.Contracts;
+using Mosaic.Contracts.Health;
 using Mosaic.Desktop.Controls;
 using Mosaic.Desktop.Localization;
 using Mosaic.Desktop.Services;

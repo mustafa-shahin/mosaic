@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Mosaic.Contracts;
+using Mosaic.Contracts.Health;
 
-namespace Mosaic.Api.Controllers;
+namespace Mosaic.Api.Health;
 
 [ApiController]
 [Route("health")]

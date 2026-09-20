@@ -1,6 +1,6 @@
 using Mosaic.Domain.Authorization;
 
-namespace Mosaic.Domain.Tests;
+namespace Mosaic.Domain.Tests.Authorization;
 
 // The domain does not care which keys exist, so its tests never use the real catalogue.
 internal static class TestPermissions

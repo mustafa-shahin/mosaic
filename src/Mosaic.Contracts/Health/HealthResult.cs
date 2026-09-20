@@ -1,4 +1,4 @@
-﻿namespace Mosaic.Contracts;
+﻿namespace Mosaic.Contracts.Health;
 
 public sealed record HealthResult
 {

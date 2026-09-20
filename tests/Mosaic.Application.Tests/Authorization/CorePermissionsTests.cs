@@ -2,7 +2,7 @@ using System.Reflection;
 using Mosaic.Application.Authorization;
 using Mosaic.Domain.Authorization;
 
-namespace Mosaic.Application.Tests;
+namespace Mosaic.Application.Tests.Authorization;
 
 public sealed class CorePermissionsTests
 {
