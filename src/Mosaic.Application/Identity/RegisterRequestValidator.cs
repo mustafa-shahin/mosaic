@@ -31,10 +31,15 @@ public sealed class RegisterRequestValidator : AbstractValidator<RegisterRequest
             .SetValidator(new CodePointLengthValidator<RegisterRequest>(UserLimits.PasswordMinLength, int.MaxValue))
             .WithErrorCode(ErrorCodes.TooShort)
             .SetValidator(new CodePointLengthValidator<RegisterRequest>(0, UserLimits.PasswordMaxLength))
-            .WithErrorCode(ErrorCodes.TooLong);
+            .WithErrorCode(ErrorCodes.TooLong)
+            .Must(NotBeCommon).WithErrorCode(ErrorCodes.CommonPassword);
     }
 
     // the built-in EmailAddress() only looks for a single '@', so "Ada <ada@example.com>" passes it
     private static bool BeASingleAddress(string? value) =>
         MailAddress.TryCreate(value, out var parsed) && parsed.Address == value;
+
+    // this Must overload also passes the request, the check needs its email and names
+    private static bool NotBeCommon(RegisterRequest request, string? password) =>
+        password is null || !CommonPasswords.IsCommon(password, request.Email, request.FirstName, request.LastName);
 }

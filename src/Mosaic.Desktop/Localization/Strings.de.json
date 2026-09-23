@@ -6,6 +6,7 @@
   "client.not_allowed": "Dieses Konto darf das nicht.",
   "client.not_signed_in": "Nicht angemeldet, oder die Sitzung ist abgelaufen.",
   "client.unexpected_response": "Der Server hat eine Antwort gesendet, die diese App nicht versteht.",
+  "error.common_password": "Dieses Passwort ist zu leicht zu erraten. Es ist ein häufig verwendetes Passwort oder nur Ihr Name, Ihre E-Mail-Adresse oder das Wort Mosaic mit Zahlen oder Zeichen davor oder dahinter. Ein Satz aus mehreren Wörtern ist leicht zu merken und schwer zu erraten.",
   "error.invalid_email": "Das ist keine gültige E-Mail-Adresse.",
   "error.invalid_value": "Ein Wert konnte nicht gelesen werden.",
   "error.required": "Diese Angabe ist erforderlich.",

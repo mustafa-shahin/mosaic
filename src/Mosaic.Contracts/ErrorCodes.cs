@@ -3,6 +3,7 @@ namespace Mosaic.Contracts;
 // Don't rename or remove codes once shipped. Older desktops translate them by string.
 public static class ErrorCodes
 {
+    public const string CommonPassword = "error.common_password";
     public const string InvalidEmail = "error.invalid_email";
     public const string InvalidValue = "error.invalid_value";
     public const string Required = "error.required";

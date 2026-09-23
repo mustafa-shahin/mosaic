@@ -6,6 +6,7 @@
   "client.not_allowed": "Your account is not allowed to do that.",
   "client.not_signed_in": "You are not signed in, or the session has expired.",
   "client.unexpected_response": "The server sent something this app did not understand.",
+  "error.common_password": "This password is too easy to guess. It is a common password, or just your name, your email address or the word Mosaic with numbers or symbols before or after it. A phrase of several words is easy to remember and hard to guess.",
   "error.invalid_email": "This is not a valid email address.",
   "error.invalid_value": "A value could not be read.",
   "error.required": "This is required.",

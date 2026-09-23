@@ -17,6 +17,13 @@ public sealed class RegisterRequestValidatorTests
         Password = Passphrase,
     };
 
+    private static readonly RegisterRequest Tom = Complete with
+    {
+        Email = "tom.smith@example.com",
+        FirstName = "Tom",
+        LastName = "Smith",
+    };
+
     private static ValidationResult Validate(RegisterRequest request) => new RegisterRequestValidator().Validate(request);
 
     [Fact]
@@ -112,5 +119,57 @@ public sealed class RegisterRequestValidatorTests
         var errors = Validate(Complete with { Password = string.Concat(Enumerable.Repeat(unit, count)) }).Errors;
 
         Assert.Equal(code, errors.SingleOrDefault()?.ErrorCode);
+    }
+
+    [Theory]
+    [InlineData("passwordpassword")]
+    [InlineData("PasswordPassword")]
+    public void AListedPassword_IsCommonInAnyCase(string password)
+    {
+        var failure = Assert.Single(Validate(Complete with { Password = password }).Errors);
+
+        Assert.Equal(ErrorCodes.CommonPassword, failure.ErrorCode);
+    }
+
+    // alone, or with digits, symbols or spaces before or after it
+    [Theory]
+    [InlineData("ada@example.com")]
+    [InlineData("ada@example.com1")]
+    [InlineData("AdaLovelace1815!")]
+    [InlineData("LovelaceAda1815!")]
+    [InlineData("Ada Lovelace 1815")]
+    [InlineData("Lovelace Ada 1815")]
+    [InlineData("mosaic123456789")]
+    [InlineData("!!Mosaic2026!!!!!")]
+    public void TheNamesTheAddressOrMosaic_AreCommon(string password)
+    {
+        var failure = Assert.Single(Validate(Complete with { Password = password }).Errors);
+
+        Assert.Equal(ErrorCodes.CommonPassword, failure.ErrorCode);
+    }
+
+    [Fact]
+    public void ThePartBeforeTheAt_IsCommon()
+    {
+        var failure = Assert.Single(Validate(Tom with { Password = "tom.smith2026!!!" }).Errors);
+
+        Assert.Equal(ErrorCodes.CommonPassword, failure.ErrorCode);
+    }
+
+    // the whole password is compared, so a name inside a word or a sentence does not count
+    [Theory]
+    [InlineData("tomorrow tomatoes")]
+    [InlineData("Tom loves his dog Max forever")]
+    public void ANameInsideTheText_IsNotCommon(string password)
+    {
+        Assert.True(Validate(Tom with { Password = password }).IsValid);
+    }
+
+    [Fact]
+    public void ADigitsOnlyPassword_IsNotTakenForAMissingName()
+    {
+        var failure = Assert.Single(Validate(Complete with { FirstName = null, Password = "0193847562039485" }).Errors);
+
+        Assert.Equal(nameof(RegisterRequest.FirstName), failure.PropertyName);
     }
 }
