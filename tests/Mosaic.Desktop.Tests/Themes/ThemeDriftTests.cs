@@ -1,6 +1,6 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 
-namespace Mosaic.Desktop.Tests;
+namespace Mosaic.Desktop.Tests.Themes;
 
 // DynamicResource lookups fail silently at runtime, so check the keys here.
 public sealed partial class ThemeDriftTests

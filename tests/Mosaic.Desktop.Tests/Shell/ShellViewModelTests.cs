@@ -5,8 +5,9 @@ using Mosaic.Desktop.Localization;
 using Mosaic.Desktop.Services;
 using Mosaic.Desktop.Shell;
 using Mosaic.Desktop.Shell.Navigation;
+using Mosaic.Desktop.Tests.Shell.Navigation;
 
-namespace Mosaic.Desktop.Tests;
+namespace Mosaic.Desktop.Tests.Shell;
 
 public sealed class ShellViewModelTests : IDisposable
 {

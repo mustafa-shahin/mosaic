@@ -5,8 +5,11 @@ root = true
 charset = utf-8
 
 [*.cs]
-# IDE only: the build doesn't check style rules without EnforceCodeStyleInBuild.
+# EnforceCodeStyleInBuild in Directory.Build.props makes the build check this rule and the next one.
 csharp_style_namespace_declarations = file_scoped:warning
+
+# A namespace that doesn't match its folder fails the build, so a moved file can't keep its old one.
+dotnet_diagnostic.IDE0130.severity = warning
 
 # CA1711 reserves the Permission suffix for Code Access Security types, which no longer exist.
 # Only this suffix is allowed; Ex, Impl and the rest still fail.
@@ -16,3 +19,7 @@ dotnet_code_quality.CA1711.allowed_suffixes = Permission
 # naming of a public API, and a test method is never called by anything.
 [tests/**.cs]
 dotnet_diagnostic.CA1707.severity = none
+
+# dotnet ef migrations add writes these files with block-scoped namespaces, so style rules skip them.
+[src/Mosaic.Infrastructure/Persistence/Migrations/*.cs]
+generated_code = true

@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Mosaic.Domain.Authorization;
 
-namespace Mosaic.Infrastructure.Authorization;
+namespace Mosaic.Infrastructure.Persistence.Configurations.Authorization;
 
 internal static class PermissionListConverter
 {

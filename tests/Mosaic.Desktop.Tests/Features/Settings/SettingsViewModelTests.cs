@@ -2,7 +2,7 @@ using Mosaic.Desktop.Features.Settings;
 using Mosaic.Desktop.Localization;
 using Mosaic.Desktop.Services;
 
-namespace Mosaic.Desktop.Tests;
+namespace Mosaic.Desktop.Tests.Features.Settings;
 
 public sealed class SettingsViewModelTests : IDisposable
 {

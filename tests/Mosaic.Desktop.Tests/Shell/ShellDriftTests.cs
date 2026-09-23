@@ -2,7 +2,7 @@ using Mosaic.Desktop.Localization;
 using Mosaic.Desktop.Services;
 using Mosaic.Desktop.Shell.Navigation;
 
-namespace Mosaic.Desktop.Tests;
+namespace Mosaic.Desktop.Tests.Shell;
 
 // The shell holds the algorithm and the composition holds the data. The day the first of these fails
 // is the day the shell started growing with the number of screens.

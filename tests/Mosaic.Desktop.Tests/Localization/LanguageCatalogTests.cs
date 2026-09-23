@@ -1,6 +1,6 @@
 using Mosaic.Desktop.Localization;
 
-namespace Mosaic.Desktop.Tests;
+namespace Mosaic.Desktop.Tests.Localization;
 
 public sealed class LanguageCatalogTests
 {

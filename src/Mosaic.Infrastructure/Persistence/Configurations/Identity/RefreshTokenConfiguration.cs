@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Mosaic.Domain.Identity;
 
-namespace Mosaic.Infrastructure.Identity;
+namespace Mosaic.Infrastructure.Persistence.Configurations.Identity;
 
 internal sealed class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
 {

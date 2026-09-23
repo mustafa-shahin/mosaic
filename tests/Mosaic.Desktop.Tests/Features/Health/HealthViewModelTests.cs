@@ -5,7 +5,7 @@ using Mosaic.Desktop.Features.Health;
 using Mosaic.Desktop.Localization;
 using Mosaic.Desktop.Services;
 
-namespace Mosaic.Desktop.Tests;
+namespace Mosaic.Desktop.Tests.Features.Health;
 
 public sealed class HealthViewModelTests
 {

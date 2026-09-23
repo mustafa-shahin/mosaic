@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Mosaic.Domain.Identity;
-using Mosaic.Infrastructure.Authorization;
+using Mosaic.Infrastructure.Persistence.Configurations.Authorization;
 
-namespace Mosaic.Infrastructure.Identity;
+namespace Mosaic.Infrastructure.Persistence.Configurations.Identity;
 
 internal sealed class RoleConfiguration : IEntityTypeConfiguration<Role>
 {

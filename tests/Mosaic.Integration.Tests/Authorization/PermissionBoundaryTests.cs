@@ -3,7 +3,7 @@ using Mosaic.Contracts;
 using Mosaic.Domain.Authorization;
 using Mosaic.Domain.Errors;
 using Mosaic.Domain.Identity;
-using Mosaic.Infrastructure.Authorization;
+using Mosaic.Infrastructure.Persistence.Configurations.Authorization;
 
 namespace Mosaic.Integration.Tests.Authorization;
 

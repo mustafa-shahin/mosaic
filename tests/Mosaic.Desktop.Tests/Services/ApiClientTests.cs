@@ -3,7 +3,7 @@ using Mosaic.Contracts;
 using Mosaic.Contracts.Health;
 using Mosaic.Desktop.Services;
 
-namespace Mosaic.Desktop.Tests;
+namespace Mosaic.Desktop.Tests.Services;
 
 public sealed class ApiClientTests
 {

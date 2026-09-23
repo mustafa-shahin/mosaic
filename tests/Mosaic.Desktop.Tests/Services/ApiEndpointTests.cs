@@ -1,6 +1,6 @@
-﻿using Mosaic.Desktop.Services;
+using Mosaic.Desktop.Services;
 
-namespace Mosaic.Desktop.Tests;
+namespace Mosaic.Desktop.Tests.Services;
 
 public sealed class ApiEndpointTests
 {

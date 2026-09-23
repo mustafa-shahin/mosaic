@@ -2,7 +2,7 @@ using Avalonia.Controls.Templates;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Mosaic.Desktop.Shell.Navigation;
 
-namespace Mosaic.Desktop.Tests;
+namespace Mosaic.Desktop.Tests.Shell.Navigation;
 
 // Lets a test declare exactly the entries it needs, including ones core has no example of yet, such
 // as a permission-gated or pro-only screen.
