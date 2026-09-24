@@ -80,6 +80,7 @@ public sealed partial class MosaicExceptionHandler(
     {
         ValidationException => StatusCodes.Status400BadRequest,
         InvalidRequestException => StatusCodes.Status400BadRequest,
+        NotPermittedException => StatusCodes.Status403Forbidden,
         NotFoundException => StatusCodes.Status404NotFound,
         _ => StatusCodes.Status500InternalServerError,
     };

@@ -1,8 +1,9 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Mosaic.Application.Authorization;
+using Mosaic.Application.Identity;
 using Mosaic.Application.Persistence;
+using Mosaic.Application.Security;
 using Mosaic.Infrastructure.Persistence;
 
 namespace Mosaic.Infrastructure;
@@ -25,6 +26,11 @@ public static class DependencyInjection
         });
 
         services.AddScoped<IManagementDbContext>(provider => provider.GetRequiredService<ManagementDbContext>());
+
+        // one hasher for the whole API, because its gate lets only one hash run at a time
+        services.AddSingleton<PasswordHasher>();
+        services.AddSingleton<RegisterRequestValidator>();
+        services.AddScoped<RegisterUser>();
 
         return services;
     }

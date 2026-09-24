@@ -28,3 +28,9 @@ public sealed class InvalidRequestException(
     string? detail = null,
     IReadOnlyDictionary<string, string>? parameters = null)
     : MosaicException(code, detail, parameters);
+
+public sealed class NotPermittedException(
+    string code,
+    string? detail = null,
+    IReadOnlyDictionary<string, string>? parameters = null)
+    : MosaicException(code, detail, parameters);
