@@ -233,6 +233,36 @@ namespace Mosaic.Infrastructure.Persistence.Migrations
                     b.ToTable("users", (string)null);
                 });
 
+            modelBuilder.Entity("Mosaic.Domain.Settings.InstanceSettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("RegistrationPolicy")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("registration_policy");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_instance_settings");
+
+                    b.ToTable("instance_settings", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_instance_settings_registration_policy", "registration_policy IN ('Closed', 'Open')");
+
+                            t.HasCheckConstraint("ck_instance_settings_single_row", "id = 1");
+                        });
+                });
+
             modelBuilder.Entity("RoleUser", b =>
                 {
                     b.Property<Guid>("RolesId")

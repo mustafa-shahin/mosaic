@@ -36,12 +36,12 @@ internal sealed class UpdatedAtInterceptor(TimeProvider clock) : SaveChangesInte
 
         var now = clock.GetUtcNow();
 
-        foreach (var entry in context.ChangeTracker.Entries<Entity>())
+        foreach (var entry in context.ChangeTracker.Entries<Timestamped>())
         {
             if (entry.State == EntityState.Modified)
             {
                 // set through the change tracker so UpdatedAt can keep its private setter
-                entry.Property(nameof(Entity.UpdatedAt)).CurrentValue = now;
+                entry.Property(nameof(Timestamped.UpdatedAt)).CurrentValue = now;
             }
         }
     }

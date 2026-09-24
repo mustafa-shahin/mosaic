@@ -1,12 +1,16 @@
 namespace Mosaic.Domain.Common;
 
-public abstract class Entity
+// the two columns every table has; UpdatedAtInterceptor sets UpdatedAt whenever a save changes the row
+public abstract class Timestamped
 {
-    public Guid Id { get; protected set; }
-
     public DateTimeOffset CreatedAt { get; protected set; }
 
     public DateTimeOffset? UpdatedAt { get; private set; }
+}
+
+public abstract class Entity : Timestamped
+{
+    public Guid Id { get; protected set; }
 }
 
 // Only entities that hide rows instead of removing them derive from this. RefreshToken doesn't:

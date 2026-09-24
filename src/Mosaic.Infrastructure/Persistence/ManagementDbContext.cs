@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Mosaic.Application.Persistence;
 using Mosaic.Domain.Identity;
+using Mosaic.Domain.Settings;
 
 namespace Mosaic.Infrastructure.Persistence;
 
@@ -12,6 +13,8 @@ public sealed class ManagementDbContext(DbContextOptions<ManagementDbContext> op
     public DbSet<Role> Roles => Set<Role>();
 
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+
+    public DbSet<InstanceSettings> InstanceSettings => Set<InstanceSettings>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
         => modelBuilder.ApplyConfigurationsFromAssembly(typeof(ManagementDbContext).Assembly);
