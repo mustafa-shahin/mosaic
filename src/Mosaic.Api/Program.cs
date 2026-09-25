@@ -26,6 +26,7 @@ builder.Services.AddControllers()
 builder.Services.AddOpenApi();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddExceptionHandler<MosaicExceptionHandler>();
+builder.Services.AddRateLimiter(RateLimits.Configure);
 
 // UseExceptionHandler() throws at startup if no fallback is registered. Never actually reached.
 builder.Services.AddProblemDetails();
@@ -33,6 +34,7 @@ builder.Services.AddProblemDetails();
 var app = builder.Build();
 
 app.UseExceptionHandler();
+app.UseRateLimiter();
 
 // don't expose the API description in production
 if (app.Environment.IsDevelopment())

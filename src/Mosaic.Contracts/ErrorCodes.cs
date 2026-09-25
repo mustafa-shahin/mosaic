@@ -9,7 +9,9 @@ public static class ErrorCodes
     public const string InvalidValue = "error.invalid_value";
     public const string RegistrationClosed = "error.registration_closed";
     public const string Required = "error.required";
+    public const string ServerBusy = "error.server_busy";
     public const string TooLong = "error.too_long";
+    public const string TooManyRequests = "error.too_many_requests";
     public const string TooShort = "error.too_short";
     public const string Unexpected = "error.unexpected";
     public const string UnknownPermission = "error.unknown_permission";

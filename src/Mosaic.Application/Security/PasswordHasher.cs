@@ -3,6 +3,8 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using Konscious.Security.Cryptography;
+using Mosaic.Contracts;
+using Mosaic.Domain.Errors;
 
 namespace Mosaic.Application.Security;
 
@@ -44,6 +46,9 @@ public sealed partial class PasswordHasher : IDisposable
 
     // tests pass a cheap cost, the real one is too slow to use in every test
     internal PasswordHasher(int memoryKib, int iterations, int lanes) => _current = new Parameters(memoryKib, iterations, lanes);
+
+    // a flood from many addresses passes every per-address limit, so the queue for the slot needs an end
+    internal TimeSpan SlotWait { get; init; } = TimeSpan.FromSeconds(10);
 
     public void Dispose() => _gate.Dispose();
 
@@ -92,7 +97,10 @@ public sealed partial class PasswordHasher : IDisposable
     // WaitAsync hands the thread back to the pool while the request waits for the slot
     private async Task<byte[]> ComputeAsync(string password, byte[] salt, Parameters parameters, CancellationToken cancellationToken)
     {
-        await _gate.WaitAsync(cancellationToken);
+        if (!await _gate.WaitAsync(SlotWait, cancellationToken))
+        {
+            throw new UnavailableException(ErrorCodes.ServerBusy);
+        }
 
         try
         {

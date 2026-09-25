@@ -1,5 +1,7 @@
 using System.Diagnostics;
 using Mosaic.Application.Security;
+using Mosaic.Contracts;
+using Mosaic.Domain.Errors;
 
 namespace Mosaic.Application.Tests.Security;
 
@@ -181,6 +183,31 @@ public sealed class PasswordHasherTests
         using var hasher = Hasher();
 
         await Assert.ThrowsAsync<ArgumentException>(() => hasher.HashAsync(string.Empty, Token));
+    }
+
+    [Fact]
+    public async Task TwoHashesAtOnce_BothFinish()
+    {
+        using var hasher = Hasher();
+
+        var hashes = await Task.WhenAll(hasher.HashAsync(Password, Token), hasher.HashAsync(Password, Token));
+
+        Assert.All(hashes, hash => Assert.StartsWith("$argon2id$", hash, StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task AHashThatWaitsLongerThanTheSlotWait_IsRefusedAsBusy()
+    {
+        // the real cost at twice the passes, so the first hash still holds the slot when the second gives up
+        using var hasher = new PasswordHasher(65536, 6, 1) { SlotWait = TimeSpan.FromMilliseconds(20) };
+
+        var holding = hasher.HashAsync(Password, Token);
+
+        var refused = await Assert.ThrowsAsync<UnavailableException>(() => hasher.HashAsync(Password, Token));
+
+        Assert.Equal(ErrorCodes.ServerBusy, refused.Code);
+
+        await holding;
     }
 
     // cheap default cost so every test can hash quickly

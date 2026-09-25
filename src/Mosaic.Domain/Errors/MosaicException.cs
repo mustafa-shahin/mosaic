@@ -34,3 +34,10 @@ public sealed class NotPermittedException(
     string? detail = null,
     IReadOnlyDictionary<string, string>? parameters = null)
     : MosaicException(code, detail, parameters);
+
+// the server itself cannot take the request now, nothing about it was wrong
+public sealed class UnavailableException(
+    string code,
+    string? detail = null,
+    IReadOnlyDictionary<string, string>? parameters = null)
+    : MosaicException(code, detail, parameters);
