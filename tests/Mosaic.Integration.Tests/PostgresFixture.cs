@@ -22,7 +22,7 @@ public sealed class PostgresFixture : IAsyncLifetime
         await _container.StartAsync();
 
         _services = new ServiceCollection()
-            .AddInfrastructure(_container.GetConnectionString())
+            .AddInfrastructure(ConnectionString)
             .BuildServiceProvider();
 
         await using var scope = CreateScope();
@@ -30,8 +30,19 @@ public sealed class PostgresFixture : IAsyncLifetime
         await scope.ServiceProvider.GetRequiredService<ManagementDbContext>().Database.MigrateAsync();
     }
 
+    public string ConnectionString => _container.GetConnectionString();
+
     // a new scope means a new context, so reading in one sees the database, not a tracked copy
     public AsyncServiceScope CreateScope() => _services.CreateAsyncScope();
+
+    // the claim is one row for the whole database, so a registration test starts without it and without users
+    public async Task ResetAsync(CancellationToken cancellationToken)
+    {
+        await using var scope = CreateScope();
+
+        await scope.ServiceProvider.GetRequiredService<ManagementDbContext>().Database
+            .ExecuteSqlRawAsync("DELETE FROM users; DELETE FROM instance_settings", cancellationToken);
+    }
 
     public async ValueTask DisposeAsync()
     {

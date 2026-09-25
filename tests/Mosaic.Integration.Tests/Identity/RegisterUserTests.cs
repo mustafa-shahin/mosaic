@@ -239,8 +239,7 @@ public sealed class RegisterUserTests(PostgresFixture postgres)
     // no endpoint changes the policy yet, so the test writes it directly
     private Task Open() => Execute("UPDATE instance_settings SET registration_policy = 'Open'");
 
-    // the claim is one row for the whole database, so each test starts without it and without users
-    private Task Reset() => Execute("DELETE FROM users; DELETE FROM instance_settings");
+    private Task Reset() => postgres.ResetAsync(Token);
 
     private async Task Execute(string sql)
     {
