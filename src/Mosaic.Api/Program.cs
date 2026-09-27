@@ -14,7 +14,9 @@ builder.Services.AddInfrastructure(
     builder.Configuration.GetConnectionString("Management")
     ?? throw new InvalidOperationException(
         "ConnectionStrings:Management is not configured. appsettings.Development.json carries the "
-        + "local one; elsewhere it arrives as the ConnectionStrings__Management variable."));
+        + "local one; elsewhere it arrives as the ConnectionStrings__Management variable."),
+    // the installer points this at a volume, so a recreated container keeps the token the operator copied
+    builder.Configuration["Setup:TokenPath"] ?? Path.Combine(builder.Environment.ContentRootPath, "setup-token"));
 
 builder.Services.AddApiVersioning(options =>
 {

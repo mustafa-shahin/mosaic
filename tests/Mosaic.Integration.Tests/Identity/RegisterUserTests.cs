@@ -38,6 +38,96 @@ public sealed class RegisterUserTests(PostgresFixture postgres)
     }
 
     [Fact]
+    public async Task WithoutAToken_AnUnclaimedInstanceRefusesAndWritesTheFile()
+    {
+        await Reset();
+        File.Delete(postgres.SetupTokenPath);
+
+        var refused = await Assert.ThrowsAsync<NotPermittedException>(() => Register(UniqueEmail(), setupToken: null));
+
+        Assert.Equal(ErrorCodes.SetupTokenRequired, refused.Code);
+        Assert.True(File.Exists(postgres.SetupTokenPath));
+        Assert.Equal(0, await CountUsers());
+    }
+
+    [Fact]
+    public async Task AWrongToken_IsRefusedAndSavesNothing()
+    {
+        await Reset();
+
+        var refused = await Assert.ThrowsAsync<NotPermittedException>(() => Register(UniqueEmail(), setupToken: "guessed"));
+
+        Assert.Equal(ErrorCodes.SetupTokenInvalid, refused.Code);
+        Assert.Equal(0, await CountUsers());
+    }
+
+    // a stranger without the token learns nothing about the rules and never costs a hash
+    [Fact]
+    public async Task TheTokenIsCheckedBeforeTheRequestIsValidated()
+    {
+        await Reset();
+
+        var refused = await Assert.ThrowsAsync<NotPermittedException>(
+            () => Register("not an address", password: "short", setupToken: null));
+
+        Assert.Equal(ErrorCodes.SetupTokenRequired, refused.Code);
+    }
+
+    [Fact]
+    public async Task ATokenPastedWithALineBreak_IsAccepted()
+    {
+        await Reset();
+
+        var result = await Register(UniqueEmail(), setupToken: $" {PostgresFixture.SetupToken}\n");
+
+        Assert.Equal(RegistrationOutcome.Owner, result.Outcome);
+    }
+
+    [Fact]
+    public async Task TheClaim_DeletesTheFile()
+    {
+        await Reset();
+
+        await Register(UniqueEmail());
+
+        Assert.False(File.Exists(postgres.SetupTokenPath));
+    }
+
+    // the file is spent before the save, so a save that fails leaves no token that works again later
+    [Fact]
+    public async Task AClaimWhoseSaveFails_StillLeavesNoFile()
+    {
+        await Reset();
+        await Execute(
+            "CREATE FUNCTION refuse_insert() RETURNS trigger LANGUAGE plpgsql AS 'BEGIN RAISE EXCEPTION ''refused''; END';"
+            + "CREATE TRIGGER refuse_users BEFORE INSERT ON users FOR EACH ROW EXECUTE FUNCTION refuse_insert()");
+
+        try
+        {
+            await Assert.ThrowsAsync<DbUpdateException>(() => Register(UniqueEmail()));
+        }
+        finally
+        {
+            await Execute("DROP TRIGGER refuse_users ON users; DROP FUNCTION refuse_insert()");
+        }
+
+        Assert.False(File.Exists(postgres.SetupTokenPath));
+        Assert.Equal(0, await CountUsers());
+    }
+
+    [Fact]
+    public async Task AClaimedInstance_IgnoresTheToken()
+    {
+        await Reset();
+        await Register(UniqueEmail());
+        await Open();
+
+        var result = await Register(UniqueEmail(), setupToken: null);
+
+        Assert.Equal(RegistrationOutcome.Pending, result.Outcome);
+    }
+
+    [Fact]
     public async Task UnderClosed_ALaterRegistrationIsRefusedAndSavesNothing()
     {
         await Reset();
@@ -213,12 +303,23 @@ public sealed class RegisterUserTests(PostgresFixture postgres)
     }
 
     private async Task<RegisterResult> Register(
-        string email, string firstName = "Ada", string lastName = "Lovelace", string password = Password)
+        string email,
+        string firstName = "Ada",
+        string lastName = "Lovelace",
+        string password = Password,
+        string? setupToken = PostgresFixture.SetupToken)
     {
         await using var scope = postgres.CreateScope();
 
         return await scope.ServiceProvider.GetRequiredService<RegisterUser>().HandleAsync(
-            new RegisterRequest { Email = email, FirstName = firstName, LastName = lastName, Password = password },
+            new RegisterRequest
+            {
+                Email = email,
+                FirstName = firstName,
+                LastName = lastName,
+                Password = password,
+                SetupToken = setupToken,
+            },
             Token);
     }
 

@@ -11,6 +11,12 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
     // connect would fail instead of touching a database.
     public const string ConnectionString = "Host=127.0.0.1;Port=5433;Database=mosaic";
 
+    // the default sits under the content root, which for a test host is the API's source folder
+    public static readonly string SetupTokenPath =
+        Path.Combine(Path.GetTempPath(), $"mosaic-setup-token-{Guid.CreateVersion7():N}");
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
-        => builder.UseSetting("ConnectionStrings:Management", ConnectionString);
+        => builder
+            .UseSetting("ConnectionStrings:Management", ConnectionString)
+            .UseSetting("Setup:TokenPath", SetupTokenPath);
 }

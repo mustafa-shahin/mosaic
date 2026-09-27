@@ -12,6 +12,8 @@ public sealed class PostgresFixture : IAsyncLifetime
     // the image compose.yaml runs, so the tests and development use the same major version
     private const string Image = "postgres:18";
 
+    public const string SetupToken = "setup-token-for-tests";
+
     private readonly PostgreSqlContainer _container = new PostgreSqlBuilder(Image).Build();
 
     // built in InitializeAsync, because the connection string exists only once the container runs
@@ -22,7 +24,8 @@ public sealed class PostgresFixture : IAsyncLifetime
         await _container.StartAsync();
 
         _services = new ServiceCollection()
-            .AddInfrastructure(ConnectionString)
+            .AddLogging()
+            .AddInfrastructure(ConnectionString, SetupTokenPath)
             .BuildServiceProvider();
 
         await using var scope = CreateScope();
@@ -31,6 +34,8 @@ public sealed class PostgresFixture : IAsyncLifetime
     }
 
     public string ConnectionString => _container.GetConnectionString();
+
+    public string SetupTokenPath { get; } = Path.Combine(Path.GetTempPath(), $"mosaic-setup-token-{Guid.CreateVersion7():N}");
 
     // a new scope means a new context, so reading in one sees the database, not a tracked copy
     public AsyncServiceScope CreateScope() => _services.CreateAsyncScope();
@@ -42,6 +47,9 @@ public sealed class PostgresFixture : IAsyncLifetime
 
         await scope.ServiceProvider.GetRequiredService<ManagementDbContext>().Database
             .ExecuteSqlRawAsync("DELETE FROM users; DELETE FROM instance_settings", cancellationToken);
+
+        // a file that exists is read, not replaced, so every request can carry the known token
+        await File.WriteAllTextAsync(SetupTokenPath, SetupToken, cancellationToken);
     }
 
     public async ValueTask DisposeAsync()
@@ -53,6 +61,8 @@ public sealed class PostgresFixture : IAsyncLifetime
         }
 
         await _container.DisposeAsync();
+
+        File.Delete(SetupTokenPath);
     }
 }
 

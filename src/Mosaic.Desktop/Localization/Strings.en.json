@@ -13,6 +13,8 @@
   "error.registration_closed": "This Mosaic does not take new registrations. If you already have an account, sign in. Otherwise ask its owner to invite you.",
   "error.required": "This is required.",
   "error.server_busy": "The server is busy. Wait a moment and try again.",
+  "error.setup_token_invalid": "This is not the setup token on the server. Copy it again from the setup-token file.",
+  "error.setup_token_required": "This Mosaic has no owner yet. Paste the setup token from the setup-token file on the server.",
   "error.too_long": "Use at most {limit} characters.",
   "error.too_many_requests": "Too many attempts from this connection. Wait a minute and try again.",
   "error.too_short": "Use at least {limit} characters.",

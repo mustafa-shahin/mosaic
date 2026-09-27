@@ -49,7 +49,7 @@ public sealed class RegisterEndpointTests(PostgresFixture postgres, ApiFactory f
     {
         await postgres.ResetAsync(Token);
 
-        var request = new { FirstName = "Ada", LastName = "Lovelace", Password = "short" };
+        var request = new { FirstName = "Ada", LastName = "Lovelace", Password = "short", PostgresFixture.SetupToken };
         var response = await Client().PostAsJsonAsync(Path, request, MosaicJson.Options, Token);
         var body = await response.Content.ReadFromJsonAsync<ApiResponse>(MosaicJson.Options, Token);
         var fields = body!.Error!.FieldErrors!;
@@ -63,9 +63,24 @@ public sealed class RegisterEndpointTests(PostgresFixture postgres, ApiFactory f
         Assert.Equal("15", password.Params![ErrorParams.Limit]);
     }
 
+    // the desktop shows the token field when it reads this code, so the code must reach it in the envelope
+    [Fact]
+    public async Task WithoutAToken_AnUnclaimedInstanceIs403WithItsCode()
+    {
+        await postgres.ResetAsync(Token);
+
+        var request = Request(UniqueEmail()) with { SetupToken = null };
+        var response = await Client().PostAsJsonAsync(Path, request, MosaicJson.Options, Token);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponse>(MosaicJson.Options, Token);
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        Assert.Equal(ErrorCodes.SetupTokenRequired, body!.Error!.Code);
+    }
+
     private HttpClient Client() =>
-        factory.WithWebHostBuilder(builder =>
-                builder.UseSetting("ConnectionStrings:Management", postgres.ConnectionString))
+        factory.WithWebHostBuilder(builder => builder
+                .UseSetting("ConnectionStrings:Management", postgres.ConnectionString)
+                .UseSetting("Setup:TokenPath", postgres.SetupTokenPath))
             .CreateClient();
 
     private static RegisterRequest Request(string email) => new()
@@ -74,6 +89,7 @@ public sealed class RegisterEndpointTests(PostgresFixture postgres, ApiFactory f
         FirstName = "Ada",
         LastName = "Lovelace",
         Password = "correct horse battery staple",
+        SetupToken = PostgresFixture.SetupToken,
     };
 
     private static string UniqueEmail() => $"{Guid.CreateVersion7():N}@mosaic.test";

@@ -15,6 +15,7 @@ public sealed class RegisterUser(
     IManagementDbContext database,
     RegisterRequestValidator validator,
     PasswordHasher passwordHasher,
+    ISetupToken setupToken,
     TimeProvider clock)
 {
     public async Task<RegisterResult> HandleAsync(RegisterRequest request, CancellationToken cancellationToken)
@@ -28,6 +29,13 @@ public sealed class RegisterUser(
         }
 
         var trimmed = Trim(request);
+
+        // checked before the rules run, so a stranger on an unclaimed instance never reaches the hasher
+        if (settings is null)
+        {
+            RequireSetupToken(trimmed.SetupToken);
+        }
+
         var result = validator.Validate(trimmed);
 
         // asked only when the address itself passed, so a taken address and a short password come back together
@@ -48,6 +56,9 @@ public sealed class RegisterUser(
         // the owner and the claim are one save, so a second claim fails without leaving half an account
         if (settings is null)
         {
+            // spent before the save, so a crash in between cannot leave a token that works after the next restore
+            setupToken.Discard();
+
             database.Users.Add(User.CreateOwner(trimmed.Email!, trimmed.FirstName!, trimmed.LastName!, passwordHash, now));
             database.InstanceSettings.Add(InstanceSettings.Claim(now));
         }
@@ -59,6 +70,21 @@ public sealed class RegisterUser(
         await database.SaveChangesAsync(cancellationToken);
 
         return new RegisterResult { Outcome = settings is null ? RegistrationOutcome.Owner : RegistrationOutcome.Pending };
+    }
+
+    private void RequireSetupToken(string? supplied)
+    {
+        var verdict = setupToken.Verify(supplied);
+
+        if (verdict == SetupTokenResult.Missing)
+        {
+            throw new NotPermittedException(ErrorCodes.SetupTokenRequired);
+        }
+
+        if (verdict == SetupTokenResult.Invalid)
+        {
+            throw new NotPermittedException(ErrorCodes.SetupTokenInvalid);
+        }
     }
 
     // deleted accounts count too, because the unique index on email is not filtered
@@ -75,5 +101,6 @@ public sealed class RegisterUser(
         Email = request.Email?.Trim(),
         FirstName = request.FirstName?.Trim(),
         LastName = request.LastName?.Trim(),
+        SetupToken = request.SetupToken?.Trim(),
     };
 }

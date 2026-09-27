@@ -483,3 +483,5 @@ $RECYCLE.BIN/
 # Local secrets and environment files — never in the repo, not even ignored-by-accident
 *.env
 appsettings.*.local.json
+# the first-run secret, written next to the API when Setup:TokenPath is not set
+setup-token

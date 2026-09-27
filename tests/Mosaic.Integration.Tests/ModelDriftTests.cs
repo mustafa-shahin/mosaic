@@ -16,7 +16,7 @@ public sealed class ModelDriftTests : IDisposable
     public ModelDriftTests()
     {
         _provider = new ServiceCollection()
-            .AddInfrastructure(ApiFactory.ConnectionString)
+            .AddInfrastructure(ApiFactory.ConnectionString, ApiFactory.SetupTokenPath)
             .BuildServiceProvider();
 
         _context = _provider.GetRequiredService<ManagementDbContext>();

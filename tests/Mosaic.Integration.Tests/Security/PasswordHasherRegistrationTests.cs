@@ -11,7 +11,7 @@ public sealed class PasswordHasherRegistrationTests
     public async Task EveryRequestGetsTheSameHasher()
     {
         await using var provider = new ServiceCollection()
-            .AddInfrastructure(ApiFactory.ConnectionString)
+            .AddInfrastructure(ApiFactory.ConnectionString, ApiFactory.SetupTokenPath)
             .BuildServiceProvider();
 
         await using var first = provider.CreateAsyncScope();
