@@ -35,6 +35,7 @@ public static class DependencyInjection
         services.AddSingleton<ISetupToken>(provider =>
             new SetupTokenFile(setupTokenPath, provider.GetRequiredService<ILogger<SetupTokenFile>>()));
         services.AddScoped<RegisterUser>();
+        services.AddScoped<SignInUser>();
 
         return services;
     }
