@@ -22,57 +22,6 @@ namespace Mosaic.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Mosaic.Domain.Identity.RefreshToken", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<DateTimeOffset>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("expires_at");
-
-                    b.Property<string>("ReplacedByToken")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("replaced_by_token");
-
-                    b.Property<DateTimeOffset?>("RevokedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("revoked_at");
-
-                    b.Property<string>("Token")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("token");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_refresh_tokens");
-
-                    b.HasIndex("Token")
-                        .IsUnique()
-                        .HasDatabaseName("ix_refresh_tokens_token");
-
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("ix_refresh_tokens_user_id");
-
-                    b.ToTable("refresh_tokens", (string)null);
-                });
-
             modelBuilder.Entity("Mosaic.Domain.Identity.Role", b =>
                 {
                     b.Property<Guid>("Id")
@@ -134,6 +83,55 @@ namespace Mosaic.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_roles_seed_key");
 
                     b.ToTable("roles", (string)null);
+                });
+
+            modelBuilder.Entity("Mosaic.Domain.Identity.SessionToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<DateTimeOffset>("LastUsedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_used_at");
+
+                    b.Property<Guid>("SecurityStamp")
+                        .HasColumnType("uuid")
+                        .HasColumnName("security_stamp");
+
+                    b.Property<byte[]>("TokenHash")
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("token_hash");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_session_tokens");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_session_tokens_token_hash");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_session_tokens_user_id");
+
+                    b.ToTable("session_tokens", (string)null);
                 });
 
             modelBuilder.Entity("Mosaic.Domain.Identity.User", b =>
@@ -282,14 +280,14 @@ namespace Mosaic.Infrastructure.Persistence.Migrations
                     b.ToTable("user_roles", (string)null);
                 });
 
-            modelBuilder.Entity("Mosaic.Domain.Identity.RefreshToken", b =>
+            modelBuilder.Entity("Mosaic.Domain.Identity.SessionToken", b =>
                 {
                     b.HasOne("Mosaic.Domain.Identity.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_refresh_tokens_users_user_id");
+                        .HasConstraintName("fk_session_tokens_users_user_id");
                 });
 
             modelBuilder.Entity("RoleUser", b =>

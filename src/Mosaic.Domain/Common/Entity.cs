@@ -13,7 +13,7 @@ public abstract class Entity : Timestamped
     public Guid Id { get; protected set; }
 }
 
-// Only entities that hide rows instead of removing them derive from this. RefreshToken doesn't:
+// Only entities that hide rows instead of removing them derive from this. SessionToken doesn't:
 // its rows are deleted for real.
 public abstract class SoftDeletableEntity : Entity
 {

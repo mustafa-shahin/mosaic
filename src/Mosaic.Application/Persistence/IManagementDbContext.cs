@@ -10,7 +10,7 @@ public interface IManagementDbContext
 
     DbSet<Role> Roles { get; }
 
-    DbSet<RefreshToken> RefreshTokens { get; }
+    DbSet<SessionToken> SessionTokens { get; }
 
     DbSet<InstanceSettings> InstanceSettings { get; }
 

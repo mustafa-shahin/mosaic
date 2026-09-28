@@ -12,7 +12,7 @@ public sealed class ManagementDbContext(DbContextOptions<ManagementDbContext> op
 
     public DbSet<Role> Roles => Set<Role>();
 
-    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<SessionToken> SessionTokens => Set<SessionToken>();
 
     public DbSet<InstanceSettings> InstanceSettings => Set<InstanceSettings>();
 
