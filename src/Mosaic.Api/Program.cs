@@ -1,5 +1,6 @@
 using Asp.Versioning;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Mvc;
 using Mosaic.Api;
 using Mosaic.Contracts;
 using Mosaic.Infrastructure;
@@ -25,7 +26,7 @@ builder.Services.AddApiVersioning(options =>
 })
 .AddMvc();
 
-builder.Services.AddControllers()
+builder.Services.AddControllers(options => options.Filters.Add(new ResponseCacheAttribute { NoStore = true }))
     .AddJsonOptions(options => MosaicJson.ApplyTo(options.JsonSerializerOptions))
     // otherwise [ApiController] answers a failed model check with ProblemDetails, outside the envelope
     .ConfigureApiBehaviorOptions(options => options.InvalidModelStateResponseFactory = ModelStateEnvelope.Build);

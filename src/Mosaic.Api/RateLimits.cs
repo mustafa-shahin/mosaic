@@ -11,6 +11,7 @@ namespace Mosaic.Api;
 internal static partial class RateLimits
 {
     public const string Register = "register";
+    public const string SignIn = "sign-in";
 
     // a starting desktop sends a burst, and an office of desktops shares one address
     private const int AnonymousTokens = 100;
@@ -18,6 +19,10 @@ internal static partial class RateLimits
 
     private const int RegisterTokens = 10;
     private static readonly TimeSpan RegisterRefill = TimeSpan.FromMinutes(1);
+
+    // fifteen people behind one address signing in at once with a typo each, then 100 every 10 minutes
+    private const int SignInTokens = 30;
+    private static readonly TimeSpan SignInRefill = TimeSpan.FromSeconds(6);
 
     // a provider hands out a whole /64, so the full address would give one client unlimited buckets
     private const int IPv6PrefixBytes = 8;
@@ -32,6 +37,9 @@ internal static partial class RateLimits
 
         options.AddPolicy(Register, context =>
             RateLimitPartition.GetTokenBucketLimiter(ClientKey(context), _ => Bucket(RegisterTokens, RegisterRefill)));
+
+        options.AddPolicy(SignIn, context =>
+            RateLimitPartition.GetTokenBucketLimiter(ClientKey(context), _ => Bucket(SignInTokens, SignInRefill)));
 
         // the default is 503, which here means the server is busy, not this client
         options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;

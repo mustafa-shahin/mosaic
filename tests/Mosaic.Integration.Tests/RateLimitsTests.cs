@@ -67,6 +67,22 @@ public sealed class RateLimitsTests(ApiFactory factory) : IClassFixture<ApiFacto
         Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/health", Token)).StatusCode);
     }
 
+    [Fact]
+    public async Task SignIn_AllowsThirtyAttemptsAndThenAsksForSixSeconds()
+    {
+        var client = NewHost();
+
+        for (var attempt = 0; attempt < 30; attempt++)
+        {
+            Assert.Equal(HttpStatusCode.BadRequest, (await client.PostAsync("/v1/auth/sign-in", Unreadable(), Token)).StatusCode);
+        }
+
+        var refused = await client.PostAsync("/v1/auth/sign-in", Unreadable(), Token);
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, refused.StatusCode);
+        Assert.Equal("6", Assert.Single(refused.Headers.GetValues("Retry-After")));
+    }
+
     // each host has its own buckets, so no test spends another's
     private HttpClient NewHost() => factory.WithWebHostBuilder(_ => { }).CreateClient();
 
