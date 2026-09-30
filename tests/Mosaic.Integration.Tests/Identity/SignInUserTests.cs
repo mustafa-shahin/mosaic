@@ -22,14 +22,53 @@ public sealed class SignInUserTests(PostgresFixture postgres) : IDisposable
     private static CancellationToken Token => TestContext.Current.CancellationToken;
 
     [Fact]
-    public async Task TheRightPassword_ReturnsTheUserAndRecordsTheSignIn()
+    public async Task TheRightPassword_ReturnsTheSessionAndRecordsTheSignIn()
     {
         var email = await Seed();
 
-        var user = await SignIn(email, Password);
+        var result = await SignIn(email, Password);
 
-        Assert.Equal(email, user.Email);
+        Assert.Equal(email, result.Session.Email);
+        Assert.Equal("Ada Lovelace", result.Session.FullName);
         Assert.Equal(_clock.Now, (await Find(email)).LastLoginAt);
+    }
+
+    [Fact]
+    public async Task TheRightPassword_StoresASessionForTheReturnedToken()
+    {
+        var email = await Seed();
+
+        var result = await SignIn(email, Password);
+
+        var user = await Find(email);
+        var session = await FindSession(result.Token);
+
+        Assert.Equal(user.Id, result.Session.UserId);
+        Assert.Equal(user.Id, session.UserId);
+        Assert.Equal(user.SecurityStamp, session.SecurityStamp);
+        Assert.Equal(_clock.Now, session.CreatedAt);
+    }
+
+    // this path saves the failure, so a session added before the password check would be saved with it
+    [Fact]
+    public async Task AWrongPassword_StoresNoSession()
+    {
+        var email = await Seed();
+
+        await AssertRefused(ErrorCodes.InvalidCredentials, () => SignIn(email, "wrong horse battery staple"));
+
+        Assert.Equal(0, await CountSessions(email));
+    }
+
+    [Fact]
+    public async Task ASecondSignIn_LeavesTheFirstSessionInPlace()
+    {
+        var email = await Seed();
+
+        await SignIn(email, Password);
+        await SignIn(email, Password);
+
+        Assert.Equal(2, await CountSessions(email));
     }
 
     [Fact]
@@ -164,9 +203,9 @@ public sealed class SignInUserTests(PostgresFixture postgres) : IDisposable
     {
         var email = await Seed();
 
-        var user = await SignIn($"  {email.ToUpperInvariant()} ", Password);
+        var result = await SignIn($"  {email.ToUpperInvariant()} ", Password);
 
-        Assert.Equal(email, user.Email);
+        Assert.Equal(email, result.Session.Email);
     }
 
     [Fact]
@@ -208,7 +247,7 @@ public sealed class SignInUserTests(PostgresFixture postgres) : IDisposable
         return email;
     }
 
-    private async Task<User> SignIn(string email, string? password, PasswordHasher? hasher = null)
+    private async Task<SignInResult> SignIn(string email, string? password, PasswordHasher? hasher = null)
     {
         await using var scope = postgres.CreateScope();
 
@@ -229,6 +268,25 @@ public sealed class SignInUserTests(PostgresFixture postgres) : IDisposable
         await using var scope = postgres.CreateScope();
 
         return await Context(scope).Users.IgnoreQueryFilters().SingleAsync(user => user.Email == email, Token);
+    }
+
+    // found by the hash of the token, the way every signed-in request will find it
+    private async Task<SessionToken> FindSession(string token)
+    {
+        var hash = SessionTokenFormat.HashOf(token);
+
+        await using var scope = postgres.CreateScope();
+
+        return await Context(scope).SessionTokens.SingleAsync(session => session.TokenHash == hash, Token);
+    }
+
+    private async Task<int> CountSessions(string email)
+    {
+        var user = await Find(email);
+
+        await using var scope = postgres.CreateScope();
+
+        return await Context(scope).SessionTokens.CountAsync(session => session.UserId == user.Id, Token);
     }
 
     private static async Task AssertRefused(string code, Func<Task> signIn)

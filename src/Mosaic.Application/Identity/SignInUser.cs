@@ -10,7 +10,7 @@ namespace Mosaic.Application.Identity;
 
 public sealed class SignInUser(IManagementDbContext database, PasswordHasher passwordHasher, TimeProvider clock)
 {
-    public async Task<User> HandleAsync(SignInRequest request, CancellationToken cancellationToken)
+    public async Task<SignInResult> HandleAsync(SignInRequest request, CancellationToken cancellationToken)
     {
         var email = User.Normalize(request.Email ?? string.Empty);
         var password = request.Password ?? string.Empty;
@@ -49,8 +49,22 @@ public sealed class SignInUser(IManagementDbContext database, PasswordHasher pas
         user.ResetLoginFailures();
         user.RecordLogin(now);
 
+        // a sign-in on another machine adds its own row and leaves the others alone
+        var (token, hash) = SessionTokenFormat.Create();
+
+        database.SessionTokens.Add(SessionToken.Issue(user, hash, now));
+
         await database.SaveChangesAsync(cancellationToken);
 
-        return user;
+        return new SignInResult
+        {
+            Token = token,
+            Session = new SessionResult
+            {
+                UserId = user.Id,
+                Email = user.Email,
+                FullName = user.FullName,
+            },
+        };
     }
 }
