@@ -2,7 +2,9 @@ using System.Net;
 using System.Reflection;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Mosaic.Api.Authorization;
+using Mosaic.Api.Controllers.Health;
 
 namespace Mosaic.Integration.Tests;
 
@@ -30,6 +32,25 @@ public sealed class AccessDeclarationTests(ApiFactory factory) : IClassFixture<A
         }
 
         Assert.Empty(undeclared);
+    }
+
+    // health costs no hash and an outside monitor calls it, so the address's bucket is its only limit
+    [Fact]
+    public void EveryAnonymousAction_NamesAStrictLimit()
+    {
+        var unlimited = new List<string>();
+
+        foreach (var action in Actions())
+        {
+            if (action.GetCustomAttribute<AllowAnonymousAttribute>() is not null
+                && action.GetCustomAttribute<EnableRateLimitingAttribute>() is null
+                && action.DeclaringType != typeof(HealthController))
+            {
+                unlimited.Add($"{action.DeclaringType!.Name}.{action.Name}");
+            }
+        }
+
+        Assert.Empty(unlimited);
     }
 
     // [AllowAnonymous] on a controller wins over every rule its actions declare

@@ -1,7 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Security.Claims;
 using System.Text;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.RateLimiting;
 using Mosaic.Api;
 using Mosaic.Contracts;
 
@@ -9,6 +12,8 @@ namespace Mosaic.Integration.Tests;
 
 public sealed class RateLimitsTests(ApiFactory factory) : IClassFixture<ApiFactory>
 {
+    private static readonly IPAddress Office = IPAddress.Parse("203.0.113.7");
+
     private static CancellationToken Token => TestContext.Current.CancellationToken;
 
     [Theory]
@@ -28,6 +33,64 @@ public sealed class RateLimitsTests(ApiFactory factory) : IClassFixture<ApiFacto
     public void RequestsWithNoAddress_ShareOneKey()
     {
         Assert.Equal(RateLimits.ClientKey(new DefaultHttpContext()), RateLimits.ClientKey(new DefaultHttpContext()));
+    }
+
+    [Fact]
+    public void ASignedInRequest_IsKeyedOnItsPerson_AndAnAnonymousOneOnNothing()
+    {
+        var userId = Guid.CreateVersion7();
+
+        Assert.Equal($"person:{userId}", RateLimits.PersonKey(SignedIn(userId, Office)));
+        Assert.Null(RateLimits.PersonKey(Anonymous(Office)));
+    }
+
+    // straight through the limiter, so no refill can land between the 200th and the 201st
+    [Fact]
+    public void ASignedInPerson_Gets200AtOnceAndOneBackEvery200Milliseconds()
+    {
+        var options = new RateLimiterOptions();
+
+        RateLimits.Configure(options);
+
+        using var global = options.GlobalLimiter!;
+        var person = SignedIn(Guid.CreateVersion7(), Office);
+
+        for (var request = 0; request < 200; request++)
+        {
+            using var lease = global.AttemptAcquire(person);
+
+            Assert.True(lease.IsAcquired);
+        }
+
+        using var refused = global.AttemptAcquire(person);
+
+        Assert.False(refused.IsAcquired);
+        Assert.True(refused.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter));
+        Assert.InRange(retryAfter, TimeSpan.FromTicks(1), TimeSpan.FromMilliseconds(200));
+    }
+
+    // an office behind one address shares its anonymous bucket, but each person signed in there has their own
+    [Fact]
+    public void ASignedInPerson_DoesNotShareTheAddressBucket()
+    {
+        var options = new RateLimiterOptions();
+
+        RateLimits.Configure(options);
+
+        using var global = options.GlobalLimiter!;
+
+        for (var request = 0; request < 100; request++)
+        {
+            using var lease = global.AttemptAcquire(Anonymous(Office));
+
+            Assert.True(lease.IsAcquired);
+        }
+
+        using var anonymous = global.AttemptAcquire(Anonymous(Office));
+        using var signedIn = global.AttemptAcquire(SignedIn(Guid.CreateVersion7(), Office));
+
+        Assert.False(anonymous.IsAcquired);
+        Assert.True(signedIn.IsAcquired);
     }
 
     [Fact]
@@ -95,6 +158,25 @@ public sealed class RateLimitsTests(ApiFactory factory) : IClassFixture<ApiFacto
         }
 
         Assert.Equal(HttpStatusCode.TooManyRequests, (await client.GetAsync("/v1/auth/session", Token)).StatusCode);
+    }
+
+    private static DefaultHttpContext Anonymous(IPAddress address)
+    {
+        var context = new DefaultHttpContext();
+
+        context.Connection.RemoteIpAddress = address;
+
+        return context;
+    }
+
+    // the identity the authentication handler builds, without a database behind it
+    private static DefaultHttpContext SignedIn(Guid userId, IPAddress address)
+    {
+        var context = Anonymous(address);
+
+        context.User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, userId.ToString())], "test"));
+
+        return context;
     }
 
     // each host has its own buckets, so no test spends another's

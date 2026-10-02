@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Claims;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
 using Mosaic.Contracts;
@@ -17,6 +18,10 @@ internal static partial class RateLimits
     private const int AnonymousTokens = 100;
     private static readonly TimeSpan AnonymousRefill = TimeSpan.FromSeconds(1);
 
+    // a person's open views poll every second or two, and the web UI and the MCP server use the same bucket
+    private const int PersonTokens = 200;
+    private static readonly TimeSpan PersonRefill = TimeSpan.FromMilliseconds(200);
+
     private const int RegisterTokens = 10;
     private static readonly TimeSpan RegisterRefill = TimeSpan.FromMinutes(1);
 
@@ -30,11 +35,16 @@ internal static partial class RateLimits
     // a test host or a unix socket, limited together rather than not at all
     private const string NoAddress = "no-address";
 
+    private const string PersonKeyPrefix = "person:";
+
     public static void Configure(RateLimiterOptions options)
     {
         options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
-            RateLimitPartition.GetTokenBucketLimiter(ClientKey(context), _ => Bucket(AnonymousTokens, AnonymousRefill)));
+            PersonKey(context) is { } person
+                ? RateLimitPartition.GetTokenBucketLimiter(person, _ => Bucket(PersonTokens, PersonRefill))
+                : RateLimitPartition.GetTokenBucketLimiter(ClientKey(context), _ => Bucket(AnonymousTokens, AnonymousRefill)));
 
+        // keyed on the address even with a token, so holding an account buys no fresh bucket of hashes
         options.AddPolicy(Register, context =>
             RateLimitPartition.GetTokenBucketLimiter(ClientKey(context), _ => Bucket(RegisterTokens, RegisterRefill)));
 
@@ -45,6 +55,10 @@ internal static partial class RateLimits
         options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
         options.OnRejected = RejectAsync;
     }
+
+    // UseAuthentication runs before the limiter, so a signed-in request already carries its person here
+    internal static string? PersonKey(HttpContext context) =>
+        context.User.FindFirstValue(ClaimTypes.NameIdentifier) is { } userId ? PersonKeyPrefix + userId : null;
 
     internal static string ClientKey(HttpContext context)
     {
