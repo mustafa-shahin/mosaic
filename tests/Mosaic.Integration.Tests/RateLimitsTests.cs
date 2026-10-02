@@ -83,6 +83,20 @@ public sealed class RateLimitsTests(ApiFactory factory) : IClassFixture<ApiFacto
         Assert.Equal("6", Assert.Single(refused.Headers.GetValues("Retry-After")));
     }
 
+    // the limiter runs before authorization, so a refused request costs a token like any other
+    [Fact]
+    public async Task RequestsRefusedForLackOfASession_AreCountedToo()
+    {
+        var client = NewHost();
+
+        for (var request = 0; request < 100; request++)
+        {
+            Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/v1/auth/session", Token)).StatusCode);
+        }
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, (await client.GetAsync("/v1/auth/session", Token)).StatusCode);
+    }
+
     // each host has its own buckets, so no test spends another's
     private HttpClient NewHost() => factory.WithWebHostBuilder(_ => { }).CreateClient();
 

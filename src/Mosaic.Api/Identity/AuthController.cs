@@ -1,6 +1,9 @@
+using System.Security.Claims;
 using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Mosaic.Api.Authorization;
 using Mosaic.Application.Identity;
 using Mosaic.Contracts;
 using Mosaic.Contracts.Identity;
@@ -16,6 +19,7 @@ namespace Mosaic.Api.Identity;
 public sealed class AuthController : ControllerBase
 {
     [HttpPost("register")]
+    [AllowAnonymous]
     [EnableRateLimiting(RateLimits.Register)]
     public async Task<ActionResult<ApiResponse<RegisterResult>>> Register(
         RegisterRequest request,
@@ -28,6 +32,7 @@ public sealed class AuthController : ControllerBase
     }
 
     [HttpPost("sign-in")]
+    [AllowAnonymous]
     [EnableRateLimiting(RateLimits.SignIn)]
     public async Task<ApiResponse<SignInResult>> SignIn(
         SignInRequest request,
@@ -35,6 +40,20 @@ public sealed class AuthController : ControllerBase
         CancellationToken cancellationToken)
     {
         var result = await signInUser.HandleAsync(request, cancellationToken);
+
+        return ApiResponse.Ok(result);
+    }
+
+    [HttpGet("session")]
+    [AllowAnySignedIn]
+    public async Task<ApiResponse<SessionResult>> Session(
+        [FromServices] GetSession getSession,
+        CancellationToken cancellationToken)
+    {
+        // the authentication handler put the person's id here once the token passed CheckSession
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+        var result = await getSession.HandleAsync(userId, cancellationToken);
 
         return ApiResponse.Ok(result);
     }

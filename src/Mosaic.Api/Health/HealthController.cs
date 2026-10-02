@@ -1,4 +1,5 @@
 using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Mosaic.Contracts;
 using Mosaic.Contracts.Health;
@@ -14,6 +15,7 @@ public sealed class HealthController(TimeProvider clock) : ControllerBase
     private const string ServiceName = "Mosaic.Api";
 
     [HttpGet]
+    [AllowAnonymous]
     public ApiResponse<HealthResult> Get() =>
         ApiResponse.Ok(new HealthResult
         {

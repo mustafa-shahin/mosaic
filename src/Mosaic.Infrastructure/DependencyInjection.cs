@@ -36,6 +36,8 @@ public static class DependencyInjection
             new SetupTokenFile(setupTokenPath, provider.GetRequiredService<ILogger<SetupTokenFile>>()));
         services.AddScoped<RegisterUser>();
         services.AddScoped<SignInUser>();
+        services.AddScoped<CheckSession>();
+        services.AddScoped<GetSession>();
 
         return services;
     }

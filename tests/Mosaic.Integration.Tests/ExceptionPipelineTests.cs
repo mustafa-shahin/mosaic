@@ -1,7 +1,9 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Mosaic.Application.Security;
 using Mosaic.Contracts;
 
 namespace Mosaic.Integration.Tests;
@@ -28,6 +30,22 @@ public sealed class ExceptionPipelineTests(ApiFactory factory) : IClassFixture<A
         Assert.NotNull(body);
         Assert.False(body.Success);
         Assert.Equal(ErrorCodes.Unexpected, body.Error!.Code);
+    }
+
+    // authentication runs after the exception handler, so a session check that cannot reach its database still answers in the envelope
+    [Fact]
+    public async Task ASessionCheckThatThrows_AnswersWithTheEnvelopeAsJson()
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/v1/auth/session");
+
+        // well formed, so the check queries the database this factory never reaches
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", SessionTokenFormat.Create().Token);
+
+        var response = await factory.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponse>(MosaicJson.Options, TestContext.Current.CancellationToken);
+
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        Assert.Equal(ErrorCodes.Unexpected, body!.Error!.Code);
     }
 
     private sealed class UnavailableClock : TimeProvider

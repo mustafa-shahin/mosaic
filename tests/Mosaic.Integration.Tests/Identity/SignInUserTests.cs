@@ -300,11 +300,4 @@ public sealed class SignInUserTests(PostgresFixture postgres) : IDisposable
         scope.ServiceProvider.GetRequiredService<ManagementDbContext>();
 
     private static string UniqueEmail() => $"{Guid.CreateVersion7():N}@mosaic.test";
-
-    private sealed class Clock(DateTimeOffset now) : TimeProvider
-    {
-        public DateTimeOffset Now { get; set; } = now;
-
-        public override DateTimeOffset GetUtcNow() => Now;
-    }
 }

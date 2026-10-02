@@ -1,7 +1,10 @@
 using Asp.Versioning;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using Mosaic.Api;
+using Mosaic.Api.Identity;
 using Mosaic.Contracts;
 using Mosaic.Infrastructure;
 
@@ -37,6 +40,13 @@ builder.Services.AddExceptionHandler<MosaicExceptionHandler>();
 builder.Services.AddRateLimiter(RateLimits.Configure);
 builder.Services.Configure<ForwardedHeadersOptions>(options => TrustedProxies.Apply(options, trustedNetworks));
 
+builder.Services.AddAuthentication(SessionAuthenticationHandler.SchemeName)
+    .AddScheme<AuthenticationSchemeOptions, SessionAuthenticationHandler>(SessionAuthenticationHandler.SchemeName, configureOptions: null);
+
+// an endpoint that declares no access rule needs a session, so a forgotten attribute never opens it to everyone
+builder.Services.AddAuthorizationBuilder()
+    .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
+
 // UseExceptionHandler() throws at startup if no fallback is registered. Never actually reached.
 builder.Services.AddProblemDetails();
 
@@ -45,12 +55,16 @@ var app = builder.Build();
 // everything after it reads the client's address, the rate limiter first
 app.UseForwardedHeaders();
 app.UseExceptionHandler();
+app.UseAuthentication();
+
+// before authorization, so a request refused for lack of a session is still counted
 app.UseRateLimiter();
+app.UseAuthorization();
 
 // don't expose the API description in production
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.MapOpenApi().AllowAnonymous();
 }
 
 app.MapControllers();

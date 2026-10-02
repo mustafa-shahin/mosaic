@@ -59,12 +59,7 @@ public sealed class SignInUser(IManagementDbContext database, PasswordHasher pas
         return new SignInResult
         {
             Token = token,
-            Session = new SessionResult
-            {
-                UserId = user.Id,
-                Email = user.Email,
-                FullName = user.FullName,
-            },
+            Session = UserMapper.ToSessionResult(user),
         };
     }
 }
