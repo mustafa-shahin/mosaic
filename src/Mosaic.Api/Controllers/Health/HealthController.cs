@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Mosaic.Contracts;
 using Mosaic.Contracts.Health;
 
-namespace Mosaic.Api.Health;
+namespace Mosaic.Api.Controllers.Health;
 
 [ApiController]
 // without it the versioning counts this as a v1 controller and /health answers 404

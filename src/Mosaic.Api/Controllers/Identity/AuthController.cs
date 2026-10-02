@@ -11,7 +11,7 @@ using Mosaic.Contracts.Identity;
 // Microsoft.AspNetCore.Mvc has a SignInResult too, the one ControllerBase.SignIn returns
 using SignInResult = Mosaic.Contracts.Identity.SignInResult;
 
-namespace Mosaic.Api.Identity;
+namespace Mosaic.Api.Controllers.Identity;
 
 [ApiController]
 [ApiVersion(ApiVersions.V1)]
