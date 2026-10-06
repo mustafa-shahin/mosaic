@@ -29,6 +29,8 @@ public sealed class SessionToken : Entity
 
     public DateTimeOffset ExpiresAt { get; private set; }
 
+    public DateTimeOffset? RevokedAt { get; private set; }
+
     public static SessionToken Issue(User user, byte[] tokenHash, DateTimeOffset now)
         => new()
         {
@@ -41,7 +43,7 @@ public sealed class SessionToken : Entity
             ExpiresAt = now.Add(MaximumAge),
         };
 
-    public bool HasEnded(DateTimeOffset now) => ExpiresAt <= now || LastUsedAt.Add(IdleWindow) <= now;
+    public bool HasEnded(DateTimeOffset now) => RevokedAt is not null || ExpiresAt <= now || LastUsedAt.Add(IdleWindow) <= now;
 
     // true only when LastUsedAt moved, so the caller saves only then
     public bool Touch(DateTimeOffset now)
@@ -55,4 +57,7 @@ public sealed class SessionToken : Entity
 
         return true;
     }
+
+    // ends this row alone, so the person's other sessions keep working
+    public void Revoke(DateTimeOffset now) => RevokedAt = now;
 }

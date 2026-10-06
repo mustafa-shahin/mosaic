@@ -64,6 +64,16 @@ public sealed class CheckSessionTests(PostgresFixture postgres)
     }
 
     [Fact]
+    public async Task OnceTheSessionIsRevoked_TheTokenIsRefused()
+    {
+        var signedIn = await SignIn();
+
+        await ChangeSession(signedIn.SessionId, session => session.Revoke(_clock.Now));
+
+        Assert.Null(await Check(signedIn.Token));
+    }
+
+    [Fact]
     public async Task ASessionLeftIdleForAWeek_IsRefused()
     {
         var signedIn = await SignIn();
@@ -131,6 +141,17 @@ public sealed class CheckSessionTests(PostgresFixture postgres)
         var user = await context.Users.SingleAsync(candidate => candidate.Id == userId, Token);
 
         change(user);
+
+        await context.SaveChangesAsync(Token);
+    }
+
+    private async Task ChangeSession(Guid sessionId, Action<SessionToken> change)
+    {
+        await using var scope = postgres.CreateScope();
+        var context = Context(scope);
+        var session = await context.SessionTokens.SingleAsync(candidate => candidate.Id == sessionId, Token);
+
+        change(session);
 
         await context.SaveChangesAsync(Token);
     }

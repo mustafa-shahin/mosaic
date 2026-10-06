@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Mosaic.Api.Authorization;
+using Mosaic.Api.Identity;
 using Mosaic.Application.Identity;
 using Mosaic.Contracts;
 using Mosaic.Contracts.Identity;
@@ -56,5 +57,32 @@ public sealed class AuthController : ControllerBase
         var result = await getSession.HandleAsync(userId, cancellationToken);
 
         return ApiResponse.Ok(result);
+    }
+
+    [HttpPost("sign-out")]
+    [AllowAnySignedIn]
+    public async Task<ApiResponse> SignOut(
+        [FromServices] SignOutUser signOutUser,
+        CancellationToken cancellationToken)
+    {
+        // the id of this token's session row, so the person's other sessions stay signed in
+        var sessionId = Guid.Parse(User.FindFirstValue(SessionAuthenticationHandler.SessionIdClaim)!);
+
+        await signOutUser.HandleAsync(sessionId, cancellationToken);
+
+        return ApiResponse.Ok();
+    }
+
+    [HttpPost("sign-out-everywhere")]
+    [AllowAnySignedIn]
+    public async Task<ApiResponse> SignOutEverywhere(
+        [FromServices] SignOutEverywhere signOutEverywhere,
+        CancellationToken cancellationToken)
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+        await signOutEverywhere.HandleAsync(userId, cancellationToken);
+
+        return ApiResponse.Ok();
     }
 }

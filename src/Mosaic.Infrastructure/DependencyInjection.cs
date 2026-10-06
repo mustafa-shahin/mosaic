@@ -38,6 +38,8 @@ public static class DependencyInjection
         services.AddScoped<SignInUser>();
         services.AddScoped<CheckSession>();
         services.AddScoped<GetSession>();
+        services.AddScoped<SignOutUser>();
+        services.AddScoped<SignOutEverywhere>();
 
         return services;
     }

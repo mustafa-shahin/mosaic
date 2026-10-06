@@ -104,6 +104,10 @@ namespace Mosaic.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_used_at");
 
+                    b.Property<DateTimeOffset?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revoked_at");
+
                     b.Property<Guid>("SecurityStamp")
                         .HasColumnType("uuid")
                         .HasColumnName("security_stamp");

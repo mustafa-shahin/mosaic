@@ -15,6 +15,9 @@ internal sealed class SessionAuthenticationHandler(
 {
     public const string SchemeName = "MosaicSession";
 
+    // the registered claim name for a session id; ClaimTypes.Sid is a Windows security identifier
+    public const string SessionIdClaim = "sid";
+
     private const string BearerPrefix = "Bearer ";
 
     // realm, because a Bearer challenge must carry at least one parameter
@@ -39,7 +42,12 @@ internal sealed class SessionAuthenticationHandler(
             return AuthenticateResult.Fail("The token does not open a live session.");
         }
 
-        var identity = new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, session.UserId.ToString())], SchemeName);
+        var identity = new ClaimsIdentity(
+            [
+                new Claim(ClaimTypes.NameIdentifier, session.UserId.ToString()),
+                new Claim(SessionIdClaim, session.Id.ToString()),
+            ],
+            SchemeName);
 
         return AuthenticateResult.Success(new AuthenticationTicket(new ClaimsPrincipal(identity), SchemeName));
     }

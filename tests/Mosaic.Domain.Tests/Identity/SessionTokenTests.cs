@@ -84,4 +84,24 @@ public sealed class SessionTokenTests
         Assert.True(session.Touch(Now.AddMinutes(5)));
         Assert.Equal(Now.AddMinutes(5), session.LastUsedAt);
     }
+
+    [Fact]
+    public void Revoke_EndsTheSessionAtOnce()
+    {
+        var session = Issued();
+
+        session.Revoke(Now.AddMinutes(1));
+
+        Assert.True(session.HasEnded(Now.AddMinutes(1)));
+    }
+
+    [Fact]
+    public void Revoke_RecordsWhen()
+    {
+        var session = Issued();
+
+        session.Revoke(Now.AddMinutes(1));
+
+        Assert.Equal(Now.AddMinutes(1), session.RevokedAt);
+    }
 }
