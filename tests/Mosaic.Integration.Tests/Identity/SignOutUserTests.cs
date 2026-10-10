@@ -25,7 +25,10 @@ public sealed class SignOutUserTests(PostgresFixture postgres)
 
         await SignOut(sessions.First);
 
-        Assert.Equal(_clock.Now, (await FindSession(sessions.First)).RevokedAt);
+        var saved = await FindSession(sessions.First);
+
+        Assert.Equal(_clock.Now, saved.RevokedAt);
+        Assert.Equal(_clock.Now, saved.ExpiresAt);
     }
 
     [Fact]

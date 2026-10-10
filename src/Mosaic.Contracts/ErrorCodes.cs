@@ -12,6 +12,7 @@ public static class ErrorCodes
     public const string RegistrationClosed = "error.registration_closed";
     public const string Required = "error.required";
     public const string ServerBusy = "error.server_busy";
+    public const string SessionReplayed = "error.session_replayed";
     public const string SetupTokenInvalid = "error.setup_token_invalid";
     public const string SetupTokenRequired = "error.setup_token_required";
     public const string TooLong = "error.too_long";

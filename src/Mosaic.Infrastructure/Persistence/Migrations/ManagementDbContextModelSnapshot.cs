@@ -100,9 +100,17 @@ namespace Mosaic.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("expires_at");
 
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("family_id");
+
                     b.Property<DateTimeOffset>("LastUsedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_used_at");
+
+                    b.Property<Guid?>("ReplacesId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("replaces_id");
 
                     b.Property<DateTimeOffset?>("RevokedAt")
                         .HasColumnType("timestamp with time zone")
@@ -127,6 +135,10 @@ namespace Mosaic.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_session_tokens");
+
+                    b.HasIndex("ReplacesId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_session_tokens_replaces_id");
 
                     b.HasIndex("TokenHash")
                         .IsUnique()
@@ -286,6 +298,11 @@ namespace Mosaic.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Mosaic.Domain.Identity.SessionToken", b =>
                 {
+                    b.HasOne("Mosaic.Domain.Identity.SessionToken", null)
+                        .WithMany()
+                        .HasForeignKey("ReplacesId")
+                        .HasConstraintName("fk_session_tokens_session_tokens_replaces_id");
+
                     b.HasOne("Mosaic.Domain.Identity.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")

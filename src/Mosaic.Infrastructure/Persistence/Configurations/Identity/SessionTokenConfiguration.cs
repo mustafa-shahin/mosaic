@@ -18,5 +18,13 @@ internal sealed class SessionTokenConfiguration : IEntityTypeConfiguration<Sessi
             .WithMany()
             .HasForeignKey(token => token.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // unique, so the second of two rotations of one token fails here even when both read the row first
+        builder.HasIndex(token => token.ReplacesId).IsUnique();
+
+        // no cascade, so a row cannot be deleted while the row that replaced it still names it
+        builder.HasOne<SessionToken>()
+            .WithMany()
+            .HasForeignKey(token => token.ReplacesId);
     }
 }

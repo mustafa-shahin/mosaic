@@ -74,6 +74,30 @@ public sealed class CheckSessionTests(PostgresFixture postgres)
     }
 
     [Fact]
+    public async Task AReplacedTokenInsideItsGrace_IsStillAccepted()
+    {
+        var signedIn = await SignIn();
+
+        await Rotate(signedIn.SessionId);
+
+        _clock.Now = _clock.Now.AddSeconds(29);
+
+        Assert.NotNull(await Check(signedIn.Token));
+    }
+
+    [Fact]
+    public async Task AReplacedTokenAfterItsGrace_IsRefused()
+    {
+        var signedIn = await SignIn();
+
+        await Rotate(signedIn.SessionId);
+
+        _clock.Now = _clock.Now.AddSeconds(30);
+
+        Assert.Null(await Check(signedIn.Token));
+    }
+
+    [Fact]
     public async Task ASessionLeftIdleForAWeek_IsRefused()
     {
         var signedIn = await SignIn();
@@ -152,6 +176,17 @@ public sealed class CheckSessionTests(PostgresFixture postgres)
         var session = await context.SessionTokens.SingleAsync(candidate => candidate.Id == sessionId, Token);
 
         change(session);
+
+        await context.SaveChangesAsync(Token);
+    }
+
+    private async Task Rotate(Guid sessionId)
+    {
+        await using var scope = postgres.CreateScope();
+        var context = Context(scope);
+        var session = await context.SessionTokens.SingleAsync(candidate => candidate.Id == sessionId, Token);
+
+        context.SessionTokens.Add(session.Rotate(SessionTokenFormat.Create().Hash, _clock.Now));
 
         await context.SaveChangesAsync(Token);
     }

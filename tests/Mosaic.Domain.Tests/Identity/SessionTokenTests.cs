@@ -103,5 +103,96 @@ public sealed class SessionTokenTests
         session.Revoke(Now.AddMinutes(1));
 
         Assert.Equal(Now.AddMinutes(1), session.RevokedAt);
+        Assert.Equal(Now.AddMinutes(1), session.ExpiresAt);
+    }
+
+    [Fact]
+    public void Issue_StartsAFamilyOfItsOwn()
+    {
+        var session = Issued();
+
+        Assert.Equal(session.Id, session.FamilyId);
+        Assert.Null(session.ReplacesId);
+    }
+
+    [Fact]
+    public void Rotate_KeepsThePersonTheStampTheFamilyAndTheEnd()
+    {
+        var session = Issued();
+        var newHash = SHA256.HashData("mosaic_next"u8);
+
+        var next = session.Rotate(newHash, Now.AddHours(1));
+
+        Assert.NotEqual(session.Id, next.Id);
+        Assert.Equal(session.UserId, next.UserId);
+        Assert.Equal(session.SecurityStamp, next.SecurityStamp);
+        Assert.Equal(session.FamilyId, next.FamilyId);
+        Assert.Equal(session.ExpiresAt, next.ExpiresAt);
+        Assert.Equal(session.Id, next.ReplacesId);
+        Assert.Equal(newHash, next.TokenHash);
+        Assert.Equal(Now.AddHours(1), next.CreatedAt);
+        Assert.Equal(Now.AddHours(1), next.LastUsedAt);
+    }
+
+    [Fact]
+    public void Rotate_MarksTheOldRowReplaced()
+    {
+        var session = Issued();
+
+        session.Rotate(Hash, Now.AddHours(1));
+
+        Assert.Equal(Now.AddHours(1), session.RevokedAt);
+    }
+
+    // a request that was on its way when the new token was issued still finishes
+    [Fact]
+    public void HasEnded_ForAReplacedRowInsideItsGrace_IsFalse()
+    {
+        var session = Issued();
+
+        session.Rotate(Hash, Now.AddHours(1));
+
+        Assert.False(session.HasEnded(Now.AddHours(1).AddSeconds(29)));
+    }
+
+    [Fact]
+    public void HasEnded_ForAReplacedRowAfterItsGrace_IsTrue()
+    {
+        var session = Issued();
+
+        session.Rotate(Hash, Now.AddHours(1));
+
+        Assert.True(session.HasEnded(Now.AddHours(1).AddSeconds(30)));
+    }
+
+    [Fact]
+    public void CanRotate_ALiveRow_IsTrue()
+    {
+        Assert.True(Issued().CanRotate(Now.AddHours(1)));
+    }
+
+    [Fact]
+    public void CanRotate_AReplacedRowInsideItsGrace_IsFalse()
+    {
+        var session = Issued();
+
+        session.Rotate(Hash, Now.AddHours(1));
+
+        Assert.False(session.CanRotate(Now.AddHours(1).AddSeconds(10)));
+    }
+
+    // only a new sign-in starts a new 30 days, however often the desktop rotates
+    [Fact]
+    public void ATokenRotatedEveryHour_StillEndsThirtyDaysAfterTheSignIn()
+    {
+        var current = Issued();
+
+        for (var hour = 1; hour < 30 * 24; hour++)
+        {
+            current = current.Rotate(Hash, Now.AddHours(hour));
+        }
+
+        Assert.False(current.HasEnded(Now.AddDays(30).AddMinutes(-1)));
+        Assert.True(current.HasEnded(Now.AddDays(30)));
     }
 }

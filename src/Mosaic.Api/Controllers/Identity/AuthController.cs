@@ -59,6 +59,20 @@ public sealed class AuthController : ControllerBase
         return ApiResponse.Ok(result);
     }
 
+    [HttpPost("rotate")]
+    [AllowAnySignedIn]
+    [EnableRateLimiting(RateLimits.Rotate)]
+    public async Task<ApiResponse<RotateResult>> Rotate(
+        [FromServices] RotateSession rotateSession,
+        CancellationToken cancellationToken)
+    {
+        var sessionId = Guid.Parse(User.FindFirstValue(SessionAuthenticationHandler.SessionIdClaim)!);
+
+        var result = await rotateSession.HandleAsync(sessionId, cancellationToken);
+
+        return ApiResponse.Ok(result);
+    }
+
     [HttpPost("sign-out")]
     [AllowAnySignedIn]
     public async Task<ApiResponse> SignOut(

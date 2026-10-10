@@ -51,6 +51,64 @@ public sealed class SessionTokenTableTests(PostgresFixture postgres)
     }
 
     [Fact]
+    public async Task ARotatedSession_ComesBackWithItsFamilyAndTheRowItReplaced()
+    {
+        var user = await SaveUser();
+        var session = SessionToken.Issue(user, RandomNumberGenerator.GetBytes(32), Now);
+
+        await Save(session);
+
+        var next = session.Rotate(RandomNumberGenerator.GetBytes(32), Now.AddHours(1));
+
+        await Save(next);
+
+        await using var scope = postgres.CreateScope();
+        var saved = await Context(scope).SessionTokens.SingleAsync(row => row.Id == next.Id, Token);
+
+        Assert.Equal(session.Id, saved.FamilyId);
+        Assert.Equal(session.Id, saved.ReplacesId);
+        Assert.Equal(Now.AddDays(30), saved.ExpiresAt);
+    }
+
+    // what stops two rotations of one token that both read the row before either saved
+    [Fact]
+    public async Task ASecondRowReplacingTheSameSession_IsRefusedByTheIndex()
+    {
+        var user = await SaveUser();
+        var session = SessionToken.Issue(user, RandomNumberGenerator.GetBytes(32), Now);
+
+        await Save(session);
+        await Save(session.Rotate(RandomNumberGenerator.GetBytes(32), Now.AddHours(1)));
+
+        var refused = await Assert.ThrowsAsync<DbUpdateException>(() => Save(session.Rotate(RandomNumberGenerator.GetBytes(32), Now.AddHours(1))));
+
+        var error = Assert.IsType<PostgresException>(refused.InnerException);
+
+        Assert.Equal(PostgresErrorCodes.UniqueViolation, error.SqlState);
+        Assert.Equal("ix_session_tokens_replaces_id", error.ConstraintName);
+    }
+
+    // the link between rows has no cascade, so this proves one statement can still remove a whole chain
+    [Fact]
+    public async Task DeletingAUser_DeletesARotatedChainToo()
+    {
+        var user = await SaveUser();
+        var session = SessionToken.Issue(user, RandomNumberGenerator.GetBytes(32), Now);
+
+        await Save(session);
+        await Save(session.Rotate(RandomNumberGenerator.GetBytes(32), Now.AddHours(1)));
+
+        await using (var scope = postgres.CreateScope())
+        {
+            await Context(scope).Database.ExecuteSqlAsync($"DELETE FROM users WHERE id = {user.Id}", Token);
+        }
+
+        await using var reread = postgres.CreateScope();
+
+        Assert.False(await Context(reread).SessionTokens.AnyAsync(row => row.UserId == user.Id, Token));
+    }
+
+    [Fact]
     public async Task DeletingAUser_DeletesTheirSessions()
     {
         var user = await SaveUser();
