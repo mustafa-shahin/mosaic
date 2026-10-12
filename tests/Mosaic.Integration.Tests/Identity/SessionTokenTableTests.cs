@@ -88,6 +88,24 @@ public sealed class SessionTokenTableTests(PostgresFixture postgres)
         Assert.Equal("ix_session_tokens_replaces_id", error.ConstraintName);
     }
 
+    // every check reads a family's first row, so it may only go together with the rest of its family
+    [Fact]
+    public async Task TheFirstRowOfAFamily_CannotBeDeletedWhileTheFamilyHasRows()
+    {
+        var user = await SaveUser();
+        var session = SessionToken.Issue(user, RandomNumberGenerator.GetBytes(32), Now);
+
+        await Save(session);
+        await Save(session.Rotate(RandomNumberGenerator.GetBytes(32), Now.AddHours(1)));
+
+        await using var scope = postgres.CreateScope();
+
+        var refused = await Assert.ThrowsAsync<PostgresException>(
+            () => Context(scope).Database.ExecuteSqlAsync($"DELETE FROM session_tokens WHERE id = {session.Id}", Token));
+
+        Assert.Equal(PostgresErrorCodes.ForeignKeyViolation, refused.SqlState);
+    }
+
     // the link between rows has no cascade, so this proves one statement can still remove a whole chain
     [Fact]
     public async Task DeletingAUser_DeletesARotatedChainToo()

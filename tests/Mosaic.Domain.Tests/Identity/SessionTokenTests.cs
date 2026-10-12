@@ -86,27 +86,6 @@ public sealed class SessionTokenTests
     }
 
     [Fact]
-    public void Revoke_EndsTheSessionAtOnce()
-    {
-        var session = Issued();
-
-        session.Revoke(Now.AddMinutes(1));
-
-        Assert.True(session.HasEnded(Now.AddMinutes(1)));
-    }
-
-    [Fact]
-    public void Revoke_RecordsWhen()
-    {
-        var session = Issued();
-
-        session.Revoke(Now.AddMinutes(1));
-
-        Assert.Equal(Now.AddMinutes(1), session.RevokedAt);
-        Assert.Equal(Now.AddMinutes(1), session.ExpiresAt);
-    }
-
-    [Fact]
     public void Issue_StartsAFamilyOfItsOwn()
     {
         var session = Issued();
@@ -179,6 +158,54 @@ public sealed class SessionTokenTests
         session.Rotate(Hash, Now.AddHours(1));
 
         Assert.False(session.CanRotate(Now.AddHours(1).AddSeconds(10)));
+    }
+
+    [Fact]
+    public void IsReplay_ForALiveRow_IsFalse()
+    {
+        Assert.False(Issued().IsReplay(Now.AddHours(1)));
+    }
+
+    // a request that left with the old token just before the rotation is no alarm
+    [Fact]
+    public void IsReplay_ForAReplacedRowInsideItsGrace_IsFalse()
+    {
+        var session = Issued();
+
+        session.Rotate(Hash, Now.AddHours(1));
+
+        Assert.False(session.IsReplay(Now.AddHours(1).AddSeconds(29)));
+    }
+
+    [Fact]
+    public void IsReplay_ForAReplacedRowAfterItsGrace_IsTrue()
+    {
+        var session = Issued();
+
+        session.Rotate(Hash, Now.AddHours(1));
+
+        Assert.True(session.IsReplay(Now.AddHours(1).AddSeconds(30)));
+    }
+
+    // nobody uses a replaced row again, so its idle window has passed by the time a thief tries it
+    [Fact]
+    public void IsReplay_ForAReplacedRowAWeekLater_IsTrue()
+    {
+        var session = Issued();
+
+        session.Rotate(Hash, Now.AddHours(1));
+
+        Assert.True(session.IsReplay(Now.AddDays(8)));
+    }
+
+    [Fact]
+    public void IsReplay_ForAReplacedRowPastItsOwnEnd_IsFalse()
+    {
+        var session = Issued();
+
+        session.Rotate(Hash, Now.AddHours(1));
+
+        Assert.False(session.IsReplay(Now.AddDays(30)));
     }
 
     // only a new sign-in starts a new 30 days, however often the desktop rotates

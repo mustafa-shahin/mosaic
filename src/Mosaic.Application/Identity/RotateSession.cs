@@ -1,5 +1,6 @@
 using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Mosaic.Application.Persistence;
 using Mosaic.Application.Security;
 using Mosaic.Contracts;
@@ -8,7 +9,7 @@ using Mosaic.Domain.Errors;
 
 namespace Mosaic.Application.Identity;
 
-public sealed class RotateSession(IManagementDbContext database, TimeProvider clock)
+public sealed class RotateSession(IManagementDbContext database, TimeProvider clock, ILogger<RotateSession> logger)
 {
     // PostgreSQL's code for a unique violation; DbException carries it, so no Npgsql type is needed here
     private const string UniqueViolation = "23505";
@@ -21,8 +22,11 @@ public sealed class RotateSession(IManagementDbContext database, TimeProvider cl
 
         var now = clock.GetUtcNow();
 
+        // the session check let a replaced token through inside its grace, and rotating it again means a second copy exists
         if (!session.CanRotate(now))
         {
+            await SessionFamily.EndForReuseAsync(database, logger, session, now, cancellationToken);
+
             throw new NotPermittedException(ErrorCodes.SessionReplayed);
         }
 
@@ -37,6 +41,8 @@ public sealed class RotateSession(IManagementDbContext database, TimeProvider cl
         }
         catch (DbUpdateException exception) when (exception.InnerException is DbException { SqlState: UniqueViolation })
         {
+            await SessionFamily.EndForReuseAsync(database, logger, session, now, cancellationToken);
+
             throw new NotPermittedException(ErrorCodes.SessionReplayed);
         }
 

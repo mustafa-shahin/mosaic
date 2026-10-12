@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Mosaic.Application.Security;
 using Mosaic.Contracts;
@@ -46,18 +47,35 @@ public sealed class RotateEndpointTests(PostgresFixture postgres, ApiFactory fac
     }
 
     [Fact]
-    public async Task RotatingTheOldTokenAgain_Is403WithSessionReplayed()
+    public async Task RotatingTheOldTokenAgain_Is403_AndEndsTheNewTokenToo()
     {
         var client = Client();
         var old = await SignedIn();
 
-        await Send(client, HttpMethod.Post, Path, old);
+        var next = await NewToken(await Send(client, HttpMethod.Post, Path, old));
 
         var again = await Send(client, HttpMethod.Post, Path, old);
         var body = await again.Content.ReadFromJsonAsync<ApiResponse>(MosaicJson.Options, Token);
 
         Assert.Equal(HttpStatusCode.Forbidden, again.StatusCode);
         Assert.Equal(ErrorCodes.SessionReplayed, body!.Error!.Code);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await Send(client, HttpMethod.Get, "/v1/auth/session", next)).StatusCode);
+    }
+
+    // the real desktop does not know its token was replaced, so whatever it sends next shows the copy
+    [Fact]
+    public async Task WhenAThiefRotatesFirst_TheRealDesktopsNextRequestEndsTheThiefsToken()
+    {
+        var clock = new Clock(TimeProvider.System.GetUtcNow());
+        var client = Client(clock);
+        var old = await SignedIn(clock.Now);
+
+        var thiefs = await NewToken(await Send(client, HttpMethod.Post, Path, old));
+
+        clock.Now = clock.Now.AddSeconds(30);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, (await Send(client, HttpMethod.Get, "/v1/auth/session", old)).StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await Send(client, HttpMethod.Get, "/v1/auth/session", thiefs)).StatusCode);
     }
 
     // a dead token never reaches the rotation code, so it gets the answer every endpoint gives it
@@ -95,9 +113,10 @@ public sealed class RotateEndpointTests(PostgresFixture postgres, ApiFactory fac
     }
 
     // written straight to the database, so no test here spends the sign-in bucket
-    private async Task<string> SignedIn()
+    private Task<string> SignedIn() => SignedIn(TimeProvider.System.GetUtcNow());
+
+    private async Task<string> SignedIn(DateTimeOffset now)
     {
-        var now = TimeProvider.System.GetUtcNow();
         var user = User.CreateOwner($"{Guid.CreateVersion7():N}@mosaic.test", "Ada", "Lovelace", "unused here", now);
         var (token, hash) = SessionTokenFormat.Create();
 
@@ -129,9 +148,10 @@ public sealed class RotateEndpointTests(PostgresFixture postgres, ApiFactory fac
     }
 
     // a host per test, so each starts with full buckets
-    private HttpClient Client() =>
+    private HttpClient Client(TimeProvider? clock = null) =>
         factory.WithWebHostBuilder(builder => builder
                 .UseSetting("ConnectionStrings:Management", postgres.ConnectionString)
-                .UseSetting("Setup:TokenPath", postgres.SetupTokenPath))
+                .UseSetting("Setup:TokenPath", postgres.SetupTokenPath)
+                .ConfigureTestServices(services => services.AddSingleton(clock ?? TimeProvider.System)))
             .CreateClient();
 }

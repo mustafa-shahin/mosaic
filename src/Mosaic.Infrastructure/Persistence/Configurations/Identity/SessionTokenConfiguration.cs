@@ -26,5 +26,11 @@ internal sealed class SessionTokenConfiguration : IEntityTypeConfiguration<Sessi
         builder.HasOne<SessionToken>()
             .WithMany()
             .HasForeignKey(token => token.ReplacesId);
+
+        // every row names its family's first row, and NoAction keeps that row until the whole family is deleted in one statement
+        builder.HasOne<SessionToken>()
+            .WithMany()
+            .HasForeignKey(token => token.FamilyId)
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }

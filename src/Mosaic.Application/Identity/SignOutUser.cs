@@ -10,8 +10,7 @@ public sealed class SignOutUser(IManagementDbContext database, TimeProvider cloc
         var session = await database.SessionTokens.FindAsync([sessionId], cancellationToken)
             ?? throw new InvalidOperationException($"Session {sessionId} passed the session check but was not found.");
 
-        session.Revoke(clock.GetUtcNow());
-
-        await database.SaveChangesAsync(cancellationToken);
+        // the whole family ends, so a replaced row of this sign-in that is still inside its grace stops too
+        await SessionFamily.EndAsync(database, session.FamilyId, clock.GetUtcNow(), cancellationToken);
     }
 }

@@ -136,6 +136,9 @@ namespace Mosaic.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_session_tokens");
 
+                    b.HasIndex("FamilyId")
+                        .HasDatabaseName("ix_session_tokens_family_id");
+
                     b.HasIndex("ReplacesId")
                         .IsUnique()
                         .HasDatabaseName("ix_session_tokens_replaces_id");
@@ -298,6 +301,13 @@ namespace Mosaic.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Mosaic.Domain.Identity.SessionToken", b =>
                 {
+                    b.HasOne("Mosaic.Domain.Identity.SessionToken", null)
+                        .WithMany()
+                        .HasForeignKey("FamilyId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_session_tokens_session_tokens_family_id");
+
                     b.HasOne("Mosaic.Domain.Identity.SessionToken", null)
                         .WithMany()
                         .HasForeignKey("ReplacesId")

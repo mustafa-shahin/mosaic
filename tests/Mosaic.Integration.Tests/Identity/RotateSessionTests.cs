@@ -16,6 +16,8 @@ public sealed class RotateSessionTests(PostgresFixture postgres)
 {
     private readonly Clock _clock = new(new DateTimeOffset(2026, 10, 16, 12, 0, 0, TimeSpan.Zero));
 
+    private readonly RecordingLogger<RotateSession> _log = new();
+
     private static CancellationToken Token => TestContext.Current.CancellationToken;
 
     [Fact]
@@ -37,18 +39,21 @@ public sealed class RotateSessionTests(PostgresFixture postgres)
     }
 
     [Fact]
-    public async Task ATokenAlreadyReplaced_IsRefusedWithSessionReplayed()
+    public async Task ATokenAlreadyReplaced_IsRefused_AndItsFamilyEnds()
     {
         var sessionId = await SignIn();
 
         await Rotate(sessionId);
 
         await AssertReplayed(() => Rotate(sessionId));
+
+        Assert.Equal(_clock.Now, (await FindById(sessionId)).ExpiresAt);
+        Assert.Single(_log.Entries);
     }
 
     // the second request read the row before the first one saved, so only the index can stop it
     [Fact]
-    public async Task TwoRotationsAtOnce_LeaveOneLiveToken()
+    public async Task TwoRotationsAtOnce_SaveOneNewRow_AndEndTheFamily()
     {
         var sessionId = await SignIn();
 
@@ -59,9 +64,10 @@ public sealed class RotateSessionTests(PostgresFixture postgres)
 
         await Rotate(sessionId);
 
-        await AssertReplayed(() => new RotateSession(lateContext, _clock).HandleAsync(sessionId, Token));
+        await AssertReplayed(() => new RotateSession(lateContext, _clock, _log).HandleAsync(sessionId, Token));
 
-        Assert.Equal(1, await LiveRowsInFamily(sessionId));
+        Assert.Equal(1, await RowsReplacing(sessionId));
+        Assert.Equal(_clock.Now, (await FindById(sessionId)).ExpiresAt);
     }
 
     // the person and the session are written straight to the database, the way sign-in leaves them
@@ -85,7 +91,7 @@ public sealed class RotateSessionTests(PostgresFixture postgres)
     {
         await using var scope = postgres.CreateScope();
 
-        return await new RotateSession(Context(scope), _clock).HandleAsync(sessionId, Token);
+        return await new RotateSession(Context(scope), _clock, _log).HandleAsync(sessionId, Token);
     }
 
     private async Task<SessionToken> FindById(Guid sessionId)
@@ -104,11 +110,11 @@ public sealed class RotateSessionTests(PostgresFixture postgres)
         return await Context(scope).SessionTokens.SingleAsync(session => session.TokenHash == hash, Token);
     }
 
-    private async Task<int> LiveRowsInFamily(Guid familyId)
+    private async Task<int> RowsReplacing(Guid sessionId)
     {
         await using var scope = postgres.CreateScope();
 
-        return await Context(scope).SessionTokens.CountAsync(session => session.FamilyId == familyId && session.RevokedAt == null, Token);
+        return await Context(scope).SessionTokens.CountAsync(session => session.ReplacesId == sessionId, Token);
     }
 
     private static async Task AssertReplayed(Func<Task> rotate)

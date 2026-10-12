@@ -2,7 +2,7 @@ using Mosaic.Domain.Common;
 
 namespace Mosaic.Domain.Identity;
 
-// one row is one session; the token itself lives only on the desktop
+// one row per token that a sign-in or a rotation issued; the token itself lives only on the desktop
 public sealed class SessionToken : Entity
 {
     // a token left on a machine nobody opens any more stops working after this
@@ -57,7 +57,6 @@ public sealed class SessionToken : Entity
         };
     }
 
-    // a sign-out sets ExpiresAt as well, so a revoked row that has not expired was replaced and keeps its grace
     public bool HasEnded(DateTimeOffset now) =>
         ExpiresAt <= now
         || LastUsedAt.Add(IdleWindow) <= now
@@ -65,6 +64,10 @@ public sealed class SessionToken : Entity
 
     // a replaced token passes the session check during its grace, but never rotates again
     public bool CanRotate(DateTimeOffset now) => RevokedAt is null && !HasEnded(now);
+
+    // presented after its grace, a replaced token means a second copy exists, unless its own end has already passed
+    public bool IsReplay(DateTimeOffset now) =>
+        RevokedAt is { } replacedAt && replacedAt.Add(RotationGrace) <= now && ExpiresAt > now;
 
     // the new row keeps the family, the stamp and ExpiresAt, so rotating never stretches a session past its 30 days
     public SessionToken Rotate(byte[] tokenHash, DateTimeOffset now)
@@ -98,12 +101,5 @@ public sealed class SessionToken : Entity
         LastUsedAt = now;
 
         return true;
-    }
-
-    // ends this row alone, so the person's other sessions keep working
-    public void Revoke(DateTimeOffset now)
-    {
-        RevokedAt = now;
-        ExpiresAt = now;
     }
 }
