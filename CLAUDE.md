@@ -176,10 +176,6 @@ anchored left" — use a fixed width with `HorizontalAlignment="Left"`.
 German satellite assembly and moves it out of the main DLL. The build stays clean and the language
 disappears from the picker.
 
-**FluentIcons is pinned and guarded.** `FluentIcons.Common 2.1.339` throws from its own static
-initializer on .NET 10, so the version is overridden and a build target fails the build on any bump, to
-force a re-check.
-
 **A `{DynamicResource}` type mismatch does not crash.** It silently does nothing, and the symptom is a
 control that looks unstyled.
 
