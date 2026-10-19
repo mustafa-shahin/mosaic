@@ -17,7 +17,7 @@
           BorderThickness="0,0,1,0"
           Padding="12,18,12,12">
 
-    <DockPanel LastChildFill="True">
+    <DockPanel LastChildFill="False">
 
       <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="10" Margin="8,0,8,18">
         <c:MosaicMark VerticalAlignment="Center" />
@@ -57,8 +57,26 @@
         </ItemsControl.ItemTemplate>
       </ItemsControl>
 
-      <!-- account section goes here once we have login -->
-      <Panel />
+      <!-- the account chip; its menu opens upwards because the chip sits at the bottom -->
+      <Border DockPanel.Dock="Bottom" BorderBrush="{DynamicResource HairlineFaint}" BorderThickness="0,1,0,0"
+              Padding="0,10,0,0">
+        <Button Name="AccountButton" Classes="account" AutomationProperties.Name="{Binding Name}">
+          <Button.Flyout>
+            <MenuFlyout Placement="TopEdgeAlignedLeft">
+              <MenuItem Header="{Binding Strings[shell.sign_out]}" Command="{Binding SignOutHereCommand}" />
+            </MenuFlyout>
+          </Button.Flyout>
+          <DockPanel>
+            <Border DockPanel.Dock="Left" Classes="initials">
+              <TextBlock Text="{Binding Initials}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Border>
+            <StackPanel Margin="10,0,0,0" Spacing="1" VerticalAlignment="Center">
+              <TextBlock Classes="accountName" Text="{Binding Name}" />
+              <TextBlock Classes="accountEmail" Text="{Binding Email}" />
+            </StackPanel>
+          </DockPanel>
+        </Button>
+      </Border>
 
     </DockPanel>
   </Border>

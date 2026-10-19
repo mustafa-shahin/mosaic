@@ -1,18 +1,17 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Mosaic.Contracts;
-using Mosaic.Contracts.Health;
 using Mosaic.Desktop.Controls;
 using Mosaic.Desktop.Localization;
-using Mosaic.Desktop.Services;
+using Mosaic.Desktop.Services.Health;
 
 namespace Mosaic.Desktop.Features.Health;
 
 public sealed partial class HealthViewModel : ObservableObject, IDisposable
 {
-    private readonly ApiClient _api;
+    private readonly HealthApi _api;
 
-    public HealthViewModel(ApiClient api, Localizer strings)
+    public HealthViewModel(HealthApi api, Localizer strings)
     {
         _api = api;
         Strings = strings;
@@ -81,8 +80,7 @@ public sealed partial class HealthViewModel : ObservableObject, IDisposable
     // than left to finish writing into a view model nobody is bound to.
     public void Dispose() => CheckCommand.Cancel();
 
-    // AsyncRelayCommand cancels a running execution when Execute is called again, and a second check
-    // would restart the spinner for no new information. Hence the IsRunning check.
+    // Execute again would cancel the running check and restart the spinner for no new information.
     public void CheckIfIdle()
     {
         if (!CheckCommand.IsRunning)
@@ -100,7 +98,7 @@ public sealed partial class HealthViewModel : ObservableObject, IDisposable
 
         try
         {
-            var response = await _api.GetAsync<HealthResult>("health", cancellationToken);
+            var response = await _api.GetAsync(cancellationToken);
 
             if (response.Success && response.Data is { } health)
             {
@@ -120,7 +118,7 @@ public sealed partial class HealthViewModel : ObservableObject, IDisposable
             ErrorParams = response.Error?.Params;
             State = ConnectionState.Unreachable;
         }
-        // the screen was left mid-check; there is nothing to show and nobody left to show it to
+        // the screen was left mid-check; if this escaped, the command would rethrow it on the UI thread
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
         }

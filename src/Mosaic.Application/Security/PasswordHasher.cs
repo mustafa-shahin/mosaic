@@ -11,8 +11,7 @@ namespace Mosaic.Application.Security;
 // stored as $argon2id$v=19$m=65536,t=3,p=1$<salt>$<hash>, each row carries the cost it was hashed with
 public sealed partial class PasswordHasher : IDisposable
 {
-    // RFC 9106's second recommended set with 1 lane instead of 4, more lanes spread the same work over more cores
-    // safe to raise, old rows still verify and come back as SuccessRehashNeeded
+    // 1 lane keeps a hash on one core; memory and iterations are safe to raise, old rows come back as SuccessRehashNeeded
     private const int MemoryKib = 65536;
     private const int Iterations = 3;
     private const int Lanes = 1;
@@ -30,8 +29,8 @@ public sealed partial class PasswordHasher : IDisposable
     private const int SaltBytes = 16;
     private const int HashBytes = 32;
 
-    // exactly what Encode writes: no '=' padding, 22 characters of salt (16 bytes), 43 of hash (32 bytes)
-    // \z because $ also matches before a trailing newline
+    // exactly what Encode writes, no '=' padding, 22 characters of salt (16 bytes) and 43 of hash (32 bytes),
+    // closed with \z because $ also matches before a trailing newline
     private const string PhcPattern =
         @"^\$argon2id\$v=" + Version + @"\$m=([1-9][0-9]{0,6}),t=([1-9][0-9]{0,2}),p=([1-9][0-9]?)"
         + @"\$([A-Za-z0-9+/]{22})\$([A-Za-z0-9+/]{43})\z";
@@ -104,8 +103,8 @@ public sealed partial class PasswordHasher : IDisposable
 
         try
         {
-            // ü can arrive as one character or as u + a combining mark, NFC turns both into the same bytes
-            // needs ICU, in invariant globalization mode Normalize returns the string unchanged
+            // ü can arrive as one character or as u + a combining mark, and NFC turns both into the same bytes
+            // only with ICU, since in invariant globalization mode Normalize returns the string unchanged
             using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(password.Normalize(NormalizationForm.FormC)))
             {
                 Salt = salt,
@@ -143,7 +142,7 @@ public sealed partial class PasswordHasher : IDisposable
         var iterations = int.Parse(match.Groups[2].ValueSpan, CultureInfo.InvariantCulture);
         var lanes = int.Parse(match.Groups[3].ValueSpan, CultureInfo.InvariantCulture);
 
-        // RFC 9106 minimum is 8 blocks per lane, Konscious throws below 4
+        // Argon2's minimum is 8 blocks per lane, and Konscious throws below 4
         if (memory < 8 * lanes || memory > MaxMemoryKib || iterations > MaxIterations || lanes > MaxLanes)
         {
             return false;

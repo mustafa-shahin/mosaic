@@ -13,13 +13,12 @@ internal static partial class RateLimits
 {
     public const string Register = "register";
     public const string SignIn = "sign-in";
-    public const string Rotate = "rotate";
 
-    // a starting desktop sends a burst, and an office of desktops shares one address
+    // sized for an office of desktops behind one address, which all share this bucket
     private const int AnonymousTokens = 100;
     private static readonly TimeSpan AnonymousRefill = TimeSpan.FromSeconds(1);
 
-    // a person's open views poll every second or two, and the web UI and the MCP server use the same bucket
+    // one bucket per person, whichever client or address the requests come from
     private const int PersonTokens = 200;
     private static readonly TimeSpan PersonRefill = TimeSpan.FromMilliseconds(200);
 
@@ -29,10 +28,6 @@ internal static partial class RateLimits
     // fifteen people behind one address signing in at once with a typo each, then 100 every 10 minutes
     private const int SignInTokens = 30;
     private static readonly TimeSpan SignInRefill = TimeSpan.FromSeconds(6);
-
-    // every rotation leaves a row for up to 30 days, so a client stuck in a loop is held to about 10 an hour
-    private const int RotateTokens = 10;
-    private static readonly TimeSpan RotateRefill = TimeSpan.FromMinutes(6);
 
     // a provider hands out a whole /64, so the full address would give one client unlimited buckets
     private const int IPv6PrefixBytes = 8;
@@ -49,23 +44,19 @@ internal static partial class RateLimits
                 ? RateLimitPartition.GetTokenBucketLimiter(person, _ => Bucket(PersonTokens, PersonRefill))
                 : RateLimitPartition.GetTokenBucketLimiter(ClientKey(context), _ => Bucket(AnonymousTokens, AnonymousRefill)));
 
-        // keyed on the address even with a token, so holding an account buys no fresh bucket of hashes
         options.AddPolicy(Register, context =>
             RateLimitPartition.GetTokenBucketLimiter(ClientKey(context), _ => Bucket(RegisterTokens, RegisterRefill)));
 
+        // keyed on the address even with a token, so a signed-in person gets no extra attempts at others' passwords
         options.AddPolicy(SignIn, context =>
             RateLimitPartition.GetTokenBucketLimiter(ClientKey(context), _ => Bucket(SignInTokens, SignInRefill)));
-
-        // keyed on the person, so all of one person's clients share the ten
-        options.AddPolicy(Rotate, context =>
-            RateLimitPartition.GetTokenBucketLimiter(PersonKey(context) ?? ClientKey(context), _ => Bucket(RotateTokens, RotateRefill)));
 
         // the default is 503, which here means the server is busy, not this client
         options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
         options.OnRejected = RejectAsync;
     }
 
-    // UseAuthentication runs before the limiter, so a signed-in request already carries its person here
+    // UseAuthentication runs before the limiter, so a request with a session carries its person here; an open endpoint checks no token
     internal static string? PersonKey(HttpContext context) =>
         context.User.FindFirstValue(ClaimTypes.NameIdentifier) is { } userId ? PersonKeyPrefix + userId : null;
 

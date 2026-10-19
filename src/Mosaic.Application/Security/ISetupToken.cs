@@ -13,5 +13,8 @@ public interface ISetupToken
     // writes the token first when there is none, so a refusal always points at a file that exists
     SetupTokenResult Verify(string? supplied);
 
+    // the same file and log line before any register request, for a screen that asks for the token first
+    void Prepare();
+
     void Discard();
 }

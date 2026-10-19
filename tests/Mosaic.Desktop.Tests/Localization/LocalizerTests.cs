@@ -37,7 +37,7 @@ public sealed class LocalizerTests
             localizer.Translate(DesktopErrorCodes.ApiUnreachable),
             localizer.TranslateCode(DesktopErrorCodes.ApiUnreachable));
 
-        // none of the error codes have placeholders yet, so borrow a key that does
+        // TranslateCode treats any known key alike, so this borrows a health key with two placeholders
         var withValues = localizer.TranslateCode("health.contract_mismatch", new Dictionary<string, string>
         {
             ["desktop"] = "1.0",

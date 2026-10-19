@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 using Mosaic.Application.Identity;
 
@@ -27,6 +28,12 @@ internal sealed class SessionAuthenticationHandler(
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
+        // an endpoint open to everyone answers the same with or without a token, so /health never waits on the database
+        if (Context.GetEndpoint()?.Metadata.GetMetadata<IAllowAnonymous>() is not null)
+        {
+            return AuthenticateResult.NoResult();
+        }
+
         string? header = Request.Headers.Authorization;
 
         // no Bearer token was presented, so the endpoint decides whether it needs a session

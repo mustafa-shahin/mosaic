@@ -4,7 +4,6 @@ using Mosaic.Desktop.Shell.Navigation;
 
 namespace Mosaic.Desktop.Tests.Shell.Navigation;
 
-// The filter and grouping rules live only in NavBuilder, so this is the only place that proves them.
 public sealed class NavBuilderTests
 {
     private const string Main = "main";

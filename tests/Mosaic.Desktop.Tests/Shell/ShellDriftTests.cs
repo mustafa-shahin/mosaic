@@ -1,17 +1,15 @@
 using Mosaic.Desktop.Localization;
 using Mosaic.Desktop.Services;
+using Mosaic.Desktop.Services.Identity;
 using Mosaic.Desktop.Shell.Navigation;
 
 namespace Mosaic.Desktop.Tests.Shell;
 
-// The shell holds the algorithm and the composition holds the data. The day the first of these fails
-// is the day the shell started growing with the number of screens.
+// The shell holds the algorithm and the composition holds the data, so adding a screen never changes the shell.
 public sealed class ShellDriftTests
 {
     private const string FeatureNamespace = "Mosaic.Desktop.Features";
 
-    // Two files may name a feature: the composition, which is the list, and App.axaml, which holds the
-    // templates. Everything else in core, the shell included, reaches a screen through those two.
     [Fact]
     public void OnlyTheCompositionAndTheTemplatesNameAFeature()
     {
@@ -32,8 +30,7 @@ public sealed class ShellDriftTests
         Assert.True(offenders.Count == 0, $"Names a feature outside the composition: {string.Join(", ", offenders)}");
     }
 
-    // The translation drift tests only see Translate("literal") and Strings[literal]. A nav key reaches
-    // the Localizer through a variable, so nothing else would notice it had no sentence.
+    // NavBuilder translates nav keys held in variables, so the Translate("literal") check never sees them.
     [Fact]
     public void EveryNavKeyInTheCompositionHasATranslation()
     {
@@ -63,10 +60,11 @@ public sealed class ShellDriftTests
     // Building a composition only records the factories, so no screen and no request is made here.
     private static CoreComposition Composition()
     {
-        var api = new ApiClient(new HttpClient(new ThrowingHandler(new InvalidOperationException("must not be called"))));
+        var session = new CurrentSession();
+        var api = new ApiClient(new HttpClient(), session);
         var store = new SettingsStore(Path.Combine(Path.GetTempPath(), "mosaic-tests"));
 
-        return new CoreComposition(new DesktopServices(api, store, (_, _) => { }));
+        return new CoreComposition(new DesktopServices(api, store, new SignOut(new AuthApi(api), session), (_, _) => { }));
     }
 
     // children too, since a sub-entry needs a sentence just as much as its parent

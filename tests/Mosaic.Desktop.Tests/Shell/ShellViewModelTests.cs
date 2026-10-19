@@ -1,8 +1,11 @@
+using System.Net;
 using FluentIcons.Common;
+using Mosaic.Contracts.Identity;
 using Mosaic.Desktop.Features.Health;
 using Mosaic.Desktop.Features.Settings;
 using Mosaic.Desktop.Localization;
 using Mosaic.Desktop.Services;
+using Mosaic.Desktop.Services.Identity;
 using Mosaic.Desktop.Shell;
 using Mosaic.Desktop.Shell.Navigation;
 using Mosaic.Desktop.Tests.Shell.Navigation;
@@ -17,16 +20,36 @@ public sealed class ShellViewModelTests : IDisposable
 
     private readonly Localizer _strings = Localizer.Load(LanguageCatalog.Resolve("en"));
 
+    private readonly RecordingHandler _network = new(HttpStatusCode.OK, "{}");
+
+    private readonly CurrentSession _session = new();
+
+    private readonly SessionResult _person;
+
+    public ShellViewModelTests()
+    {
+        _person = _session.Start(SignInResults.Ada()).Person;
+    }
+
+    private SignOut SignOutOver(HttpMessageHandler handler) =>
+        new(new AuthApi(new ApiClient(new HttpClient(handler) { BaseAddress = new Uri("http://localhost") }, _session)), _session);
+
     private ShellViewModel Shell(string? startAt = null) => Shell(_strings, startAt);
 
-    // the real composition, so a broken one fails here rather than only at startup
+    // the real composition, so a broken one fails here before a user meets it after signing in
     private ShellViewModel Shell(Localizer strings, string? startAt = null)
     {
-        var api = new ApiClient(new HttpClient(new ThrowingHandler(new InvalidOperationException("must not be called"))));
-        var services = new DesktopServices(api, new SettingsStore(_folder), (_, _) => { });
+        var api = new ApiClient(new HttpClient(_network) { BaseAddress = new Uri("http://localhost") }, _session);
+        var services = new DesktopServices(api, new SettingsStore(_folder), SignOutOver(_network), (_, _) => { });
 
-        return new ShellViewModel(strings, new CoreComposition(services), Nothing, startAt);
+        return new ShellViewModel(strings, new CoreComposition(services), Nothing, _person, SignOutOver(_network), startAt);
     }
+
+    private ShellViewModel ShellOf(IDesktopComposition composition) =>
+        new(_strings, composition, Nothing, _person, SignOutOver(_network));
+
+    private ShellViewModel ShellFor(string fullName) =>
+        new(_strings, new FakeComposition([], []), Nothing, _person with { FullName = fullName }, SignOutOver(_network));
 
     private static NavEntry EntryFor(ShellViewModel shell, string key) =>
         shell.Sections.SelectMany(section => section.Entries).Single(entry => entry.Key == key);
@@ -117,7 +140,7 @@ public sealed class ShellViewModelTests : IDisposable
                 new NavContribution("main", "two", Symbol.Settings, local: true, _ => new FakeScreen())
             ]);
 
-        var shell = new ShellViewModel(_strings, composition, Nothing);
+        var shell = ShellOf(composition);
         var left = opened;
 
         shell.GoCommand.Execute(shell.Sections[0].Entries[1]);
@@ -126,7 +149,7 @@ public sealed class ShellViewModelTests : IDisposable
         Assert.True(left.WasDisposed);
     }
 
-    // What App does to the old shell after a language change.
+    // What MainWindowViewModel does to the old shell after a language change.
     [Fact]
     public void Dispose_DisposesTheScreenThatIsStandingOpen()
     {
@@ -143,7 +166,7 @@ public sealed class ShellViewModelTests : IDisposable
                 })
             ]);
 
-        var shell = new ShellViewModel(_strings, composition, Nothing);
+        var shell = ShellOf(composition);
 
         shell.Dispose();
 
@@ -158,11 +181,59 @@ public sealed class ShellViewModelTests : IDisposable
             [new NavSectionDefinition("main", "nav.overview")],
             [new NavContribution("main", "one", Symbol.Board, local: false, _ => new FakeScreen())]);
 
-        var shell = new ShellViewModel(_strings, composition, Nothing);
+        var shell = ShellOf(composition);
 
         Assert.IsType<NoAccessViewModel>(shell.Current);
         Assert.Empty(shell.Sections);
         Assert.Equal(string.Empty, shell.ActiveKey);
+    }
+
+    [Fact]
+    public void TheChip_ShowsThePersonFromTheSignInAnswer()
+    {
+        var shell = Shell();
+
+        Assert.Equal("Ada Lovelace", shell.Name);
+        Assert.Equal("ada@example.com", shell.Email);
+        Assert.Equal("AL", shell.Initials);
+    }
+
+    [Theory]
+    [InlineData("Ada Lovelace", "AL")]
+    [InlineData("ada lovelace", "AL")]
+    [InlineData("Anna Maria Schmidt", "AS")]
+    [InlineData("Plato", "P")]
+    [InlineData("أحمد علي", "أع")]
+    public void Initials_AreTheFirstLettersOfTheFirstAndTheLastName(string fullName, string initials)
+    {
+        Assert.Equal(initials, ShellFor(fullName).Initials);
+    }
+
+    // U+0301 is the acute accent written as a second character after its letter
+    [Fact]
+    public void Initials_KeepACombiningAccentOnItsLetter()
+    {
+        var accent = (char)0x0301;
+
+        var initials = ShellFor($"e{accent}mile Zola").Initials;
+
+        Assert.Equal($"E{accent}Z", initials);
+    }
+
+    [Fact]
+    public void SignOutHere_EndsTheSessionAtOnceAndThenTellsTheServer()
+    {
+        var server = new RecordingHandler(HttpStatusCode.OK, """{"success":true}""");
+        var shell = new ShellViewModel(_strings, new FakeComposition([], []), Nothing, _person, SignOutOver(server));
+        var ends = new List<SessionEnded>();
+
+        _session.Ended += (_, ended) => ends.Add(ended);
+
+        shell.SignOutHereCommand.Execute(null);
+
+        Assert.Null(_session.Current);
+        Assert.Equal(SessionEndReason.SignedOut, Assert.Single(ends).Reason);
+        Assert.Equal("/v1/auth/sign-out", server.Path);
     }
 
     public void Dispose()
@@ -171,5 +242,8 @@ public sealed class ShellViewModelTests : IDisposable
         {
             Directory.Delete(_folder, recursive: true);
         }
+
+        // a screen calls the network only when its view asks, and no view exists here
+        Assert.True(_network.Calls == 0, $"A screen sent {_network.Method} {_network.Path} before a view asked it to.");
     }
 }

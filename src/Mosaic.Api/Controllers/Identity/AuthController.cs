@@ -16,23 +16,35 @@ namespace Mosaic.Api.Controllers.Identity;
 
 [ApiController]
 [ApiVersion(ApiVersions.V1)]
-[Route("v{version:apiVersion}/auth")]
+[Route(ApiVersions.RouteTemplate + "/" + AuthRoutes.Prefix)]
 public sealed class AuthController : ControllerBase
 {
-    [HttpPost("register")]
+    // only the address's global bucket: it costs no hash and takes no input to guess
+    [HttpGet(AuthRoutes.Rules)]
+    [AllowAnonymous]
+    public async Task<ApiResponse<RulesResult>> Rules(
+        [FromServices] GetRules getRules,
+        CancellationToken cancellationToken)
+    {
+        var result = await getRules.HandleAsync(cancellationToken);
+
+        return ApiResponse.Ok(result);
+    }
+
+    [HttpPost(AuthRoutes.Register)]
     [AllowAnonymous]
     [EnableRateLimiting(RateLimits.Register)]
-    public async Task<ActionResult<ApiResponse<RegisterResult>>> Register(
+    public async Task<ActionResult<ApiResponse>> Register(
         RegisterRequest request,
         [FromServices] RegisterUser registerUser,
         CancellationToken cancellationToken)
     {
-        var result = await registerUser.HandleAsync(request, cancellationToken);
+        await registerUser.HandleAsync(request, cancellationToken);
 
-        return StatusCode(StatusCodes.Status201Created, ApiResponse.Ok(result));
+        return StatusCode(StatusCodes.Status201Created, ApiResponse.Ok());
     }
 
-    [HttpPost("sign-in")]
+    [HttpPost(AuthRoutes.SignIn)]
     [AllowAnonymous]
     [EnableRateLimiting(RateLimits.SignIn)]
     public async Task<ApiResponse<SignInResult>> SignIn(
@@ -45,7 +57,7 @@ public sealed class AuthController : ControllerBase
         return ApiResponse.Ok(result);
     }
 
-    [HttpGet("session")]
+    [HttpGet(AuthRoutes.Session)]
     [AllowAnySignedIn]
     public async Task<ApiResponse<SessionResult>> Session(
         [FromServices] GetSession getSession,
@@ -59,21 +71,7 @@ public sealed class AuthController : ControllerBase
         return ApiResponse.Ok(result);
     }
 
-    [HttpPost("rotate")]
-    [AllowAnySignedIn]
-    [EnableRateLimiting(RateLimits.Rotate)]
-    public async Task<ApiResponse<RotateResult>> Rotate(
-        [FromServices] RotateSession rotateSession,
-        CancellationToken cancellationToken)
-    {
-        var sessionId = Guid.Parse(User.FindFirstValue(SessionAuthenticationHandler.SessionIdClaim)!);
-
-        var result = await rotateSession.HandleAsync(sessionId, cancellationToken);
-
-        return ApiResponse.Ok(result);
-    }
-
-    [HttpPost("sign-out")]
+    [HttpPost(AuthRoutes.SignOut)]
     [AllowAnySignedIn]
     public async Task<ApiResponse> SignOut(
         [FromServices] SignOutUser signOutUser,
@@ -87,7 +85,7 @@ public sealed class AuthController : ControllerBase
         return ApiResponse.Ok();
     }
 
-    [HttpPost("sign-out-everywhere")]
+    [HttpPost(AuthRoutes.SignOutEverywhere)]
     [AllowAnySignedIn]
     public async Task<ApiResponse> SignOutEverywhere(
         [FromServices] SignOutEverywhere signOutEverywhere,

@@ -1,8 +1,6 @@
 namespace Mosaic.Domain.Errors;
 
-// Expected failures as opposed to bugs. The client translates Code itself, Detail is only there
-// for debugging and is never shown to the user.
-// No status code here: which HTTP status a kind maps to is the API's decision, see MosaicExceptionHandler.
+// For expected failures: the client translates Code, and Detail is for debugging and never shown to a user.
 public abstract class MosaicException(
     string code,
     string? detail = null,

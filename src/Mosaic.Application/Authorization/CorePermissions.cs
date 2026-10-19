@@ -2,9 +2,7 @@ using Mosaic.Domain.Authorization;
 
 namespace Mosaic.Application.Authorization;
 
-// The core.* keys. Pro keeps its own list under pro.*.
-// There is no key for user administration (not even listing users), editing roles or wiping the
-// database. Those endpoints check IsOwner instead, so they can never be handed out through a role.
+// No key for user administration (even listing users), editing roles or wiping the database, so no role can grant them.
 public static class CorePermissions
 {
     public static readonly Permission ViewProjects = new("core.projects.view");
@@ -16,8 +14,7 @@ public static class CorePermissions
     public static readonly Permission ViewApps = new("core.apps.view");
     public static readonly Permission ManageApps = new("core.apps.manage");
 
-    // Provision creates the app on a server, Deploy only touches one that exists. Two keys so someone
-    // can deploy without being able to create.
+    // Provision creates an app on a server and Deploy only touches one that exists, so a role can grant deploying alone.
     public static readonly Permission Provision = new("core.apps.provision");
     public static readonly Permission Deploy = new("core.apps.deploy");
     public static readonly Permission PlaceDeploymentLock = new("core.apps.lock");

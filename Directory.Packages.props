@@ -39,14 +39,15 @@
     <PackageVersion Include="Avalonia.Fonts.Inter" Version="12.1.1" />
     <PackageVersion Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-    <!-- FluentIcons.Common 2.1.339 throws in its static ctor on .NET 10, 2.1.339.1 works.
-         FluentIcons.Avalonia still references the broken one, hence the NU1608 suppression in the csproj. -->
+    <!-- FluentIcons.Common 2.1.339 throws in its static ctor on .NET 10, 2.1.339.1 works. -->
     <PackageVersion Include="FluentIcons.Avalonia" Version="$(FluentIconsVersion)" />
     <PackageVersion Include="FluentIcons.Common" Version="$(FluentIconsVersion).1" />
   </ItemGroup>
 
   <ItemGroup Label="Testing">
     <PackageVersion Include="xunit.v3.mtp-v2" Version="3.2.2" />
+    <!-- runs the view tests on Avalonia's dispatcher with no window system, and needs the same Avalonia version -->
+    <PackageVersion Include="Avalonia.Headless.XUnit" Version="12.1.1" />
     <PackageVersion Include="Testcontainers.PostgreSql" Version="4.15.0" />
   </ItemGroup>
 

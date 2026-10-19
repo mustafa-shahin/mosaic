@@ -30,7 +30,7 @@ public sealed class User : SoftDeletableEntity
 
     public bool IsOwner { get; private set; }
 
-    // Whether the owner has approved the account. Register leaves it false. Unrelated to IsDeleted.
+    // Whether the person may sign in and keep using a session. Unrelated to IsDeleted.
     public bool IsActive { get; private set; }
 
     public IReadOnlyList<Role> Roles => _roles;
@@ -47,12 +47,11 @@ public sealed class User : SoftDeletableEntity
 
     public DateTimeOffset? LockoutUntil { get; private set; }
 
-    public static User Register(
+    public static User CreateOwner(
         string email,
         string firstName,
         string lastName,
         string passwordHash,
-        Guid? createdByUserId,
         DateTimeOffset now)
         => new()
         {
@@ -62,25 +61,10 @@ public sealed class User : SoftDeletableEntity
             LastName = lastName.Trim(),
             PasswordHash = passwordHash,
             SecurityStamp = Guid.NewGuid(),
-            IsActive = false,
-            CreatedByUserId = createdByUserId,
+            IsOwner = true,
+            IsActive = true,
             CreatedAt = now,
         };
-
-    public static User CreateOwner(
-        string email,
-        string firstName,
-        string lastName,
-        string passwordHash,
-        DateTimeOffset now)
-    {
-        var user = Register(email, firstName, lastName, passwordHash, null, now);
-
-        user.IsOwner = true;
-        user.IsActive = true;
-
-        return user;
-    }
 
     // The union of the permissions of every role held.
     public PrincipalPermissions ResolvePermissions()
@@ -154,11 +138,9 @@ public sealed class User : SoftDeletableEntity
         RotateSecurityStamp();
     }
 
-    // Sign-out everywhere, and an owner revoking an account they believe is compromised.
     public void EndAllSessions() => RotateSecurityStamp();
 
-    // For key rotation. Returns 1 when there was a secret to rewrap so a rotation job can count them,
-    // and leaves TotpEnabled as it is.
+    // For key rotation: 1 when a secret was rewrapped, so a job can count them; TotpEnabled stays as it is.
     public int Reencrypt(Func<string, string> transform)
     {
         if (EncryptedTotpSecret is not { } secret)

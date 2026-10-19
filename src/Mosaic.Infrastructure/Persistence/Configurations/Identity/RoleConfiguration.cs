@@ -17,9 +17,8 @@ internal sealed class RoleConfiguration : IEntityTypeConfiguration<Role>
         builder.Property(role => role.Name).HasMaxLength(100);
         builder.Property(role => role.Description).HasMaxLength(500);
 
-        // Postgres treats nulls as distinct in a unique index, so every owner-made role can leave it
-        // empty while two rows can never claim the same seed.
-        // Not filtered: a reseeder that forgets IgnoreQueryFilters should fail here, on its first run.
+        // A Postgres unique index allows many nulls, and with no filter a deleted seeded role keeps its key, so a
+        // reseed that cannot see deleted rows fails here instead of adding a second row.
         builder.Property(role => role.SeedKey).HasMaxLength(100);
         builder.HasIndex(role => role.SeedKey).IsUnique();
 

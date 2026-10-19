@@ -8,8 +8,7 @@ public static class ApiEndpoint
 
     public static Uri? FromEnvironment() => Resolve(Environment.GetEnvironmentVariable(OverrideVariable));
 
-    // Null means the configured value cannot be used. A typo in an environment variable is a state
-    // the app has to survive, so this never throws and never falls back to a different server.
+    // Null for an unusable value, since a typo in the variable must neither crash the app nor send it to another server.
     public static Uri? Resolve(string? configured)
     {
         var value = string.IsNullOrWhiteSpace(configured) ? DevelopmentDefault : configured;
@@ -25,7 +24,7 @@ public static class ApiEndpoint
             return null;
         }
 
-        // A base address is a starting point, not a request. A query or fragment on it is a mistake.
+        // A query or fragment on the address is dropped when a relative path is combined, so either one is refused.
         if (address.Query.Length > 0 || address.Fragment.Length > 0)
         {
             return null;

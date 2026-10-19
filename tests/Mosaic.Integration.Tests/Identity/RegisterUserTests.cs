@@ -17,8 +17,6 @@ public sealed class RegisterUserTests(PostgresFixture postgres)
 {
     private const string Password = "correct horse battery staple";
 
-    private static readonly DateTimeOffset Now = new(2026, 9, 24, 12, 0, 0, TimeSpan.Zero);
-
     private static CancellationToken Token => TestContext.Current.CancellationToken;
 
     [Fact]
@@ -26,12 +24,11 @@ public sealed class RegisterUserTests(PostgresFixture postgres)
     {
         await Reset();
 
-        var result = await Register(UniqueEmail());
+        await Register(UniqueEmail());
 
         await using var scope = postgres.CreateScope();
         var user = await Context(scope).Users.SingleAsync(Token);
 
-        Assert.Equal(RegistrationOutcome.Owner, result.Outcome);
         Assert.True(user.IsOwner);
         Assert.True(user.IsActive);
         Assert.Single(await Context(scope).InstanceSettings.ToListAsync(Token));
@@ -61,7 +58,7 @@ public sealed class RegisterUserTests(PostgresFixture postgres)
         Assert.Equal(0, await CountUsers());
     }
 
-    // a stranger without the token learns nothing about the rules and never costs a hash
+    // a stranger without the token gets no field errors and never costs a hash
     [Fact]
     public async Task TheTokenIsCheckedBeforeTheRequestIsValidated()
     {
@@ -78,9 +75,9 @@ public sealed class RegisterUserTests(PostgresFixture postgres)
     {
         await Reset();
 
-        var result = await Register(UniqueEmail(), setupToken: $" {PostgresFixture.SetupToken}\n");
+        await Register(UniqueEmail(), setupToken: $" {PostgresFixture.SetupToken}\n");
 
-        Assert.Equal(RegistrationOutcome.Owner, result.Outcome);
+        Assert.Equal(1, await CountUsers());
     }
 
     [Fact]
@@ -116,19 +113,7 @@ public sealed class RegisterUserTests(PostgresFixture postgres)
     }
 
     [Fact]
-    public async Task AClaimedInstance_IgnoresTheToken()
-    {
-        await Reset();
-        await Register(UniqueEmail());
-        await Open();
-
-        var result = await Register(UniqueEmail(), setupToken: null);
-
-        Assert.Equal(RegistrationOutcome.Pending, result.Outcome);
-    }
-
-    [Fact]
-    public async Task UnderClosed_ALaterRegistrationIsRefusedAndSavesNothing()
+    public async Task OnceClaimed_ALaterRegistrationIsRefusedAndSavesNothing()
     {
         await Reset();
         await Register(UniqueEmail());
@@ -139,92 +124,17 @@ public sealed class RegisterUserTests(PostgresFixture postgres)
         Assert.Equal(1, await CountUsers());
     }
 
-    // nothing in the request is checked first, so even the owner's own address gets this answer
+    // nothing in the request is looked at first, so every address and every mistake gets this one answer
     [Fact]
-    public async Task UnderClosed_TheRefusalComesBeforeTheAddressCheck()
+    public async Task OnceClaimed_TheRefusalComesBeforeTheTokenAndTheRules()
     {
         await Reset();
+        await Register(UniqueEmail());
 
-        var owner = UniqueEmail();
-
-        await Register(owner);
-
-        var refused = await Assert.ThrowsAsync<NotPermittedException>(() => Register(owner));
+        var refused = await Assert.ThrowsAsync<NotPermittedException>(
+            () => Register("not an address", password: "short", setupToken: null));
 
         Assert.Equal(ErrorCodes.RegistrationClosed, refused.Code);
-    }
-
-    [Fact]
-    public async Task UnderOpen_ALaterRegistrationLandsPending()
-    {
-        await Reset();
-        await Register(UniqueEmail());
-        await Open();
-
-        var email = UniqueEmail();
-        var result = await Register(email);
-        var user = await Find(email);
-
-        Assert.Equal(RegistrationOutcome.Pending, result.Outcome);
-        Assert.False(user.IsOwner);
-        Assert.False(user.IsActive);
-    }
-
-    [Fact]
-    public async Task AnAddressAlreadyRegistered_IsAFieldError()
-    {
-        await Reset();
-
-        var email = UniqueEmail();
-
-        await Register(email);
-        await Open();
-
-        var refused = await Assert.ThrowsAsync<ValidationException>(() => Register(email.ToUpperInvariant()));
-
-        Assert.Equal(ErrorCodes.AlreadyTaken, Assert.Single(refused.FieldErrors["email"]).Code);
-    }
-
-    [Fact]
-    public async Task AnAddressHeldByADeletedAccount_IsStillTaken()
-    {
-        await Reset();
-        await Register(UniqueEmail());
-        await Open();
-
-        var email = UniqueEmail();
-
-        await Register(email);
-
-        await using (var scope = postgres.CreateScope())
-        {
-            var context = Context(scope);
-            var user = await context.Users.SingleAsync(candidate => candidate.Email == email, Token);
-
-            user.SoftDelete(Now, null);
-
-            await context.SaveChangesAsync(Token);
-        }
-
-        var refused = await Assert.ThrowsAsync<ValidationException>(() => Register(email));
-
-        Assert.Equal(ErrorCodes.AlreadyTaken, Assert.Single(refused.FieldErrors["email"]).Code);
-    }
-
-    [Fact]
-    public async Task ATakenAddressAndAShortPassword_AreReportedTogether()
-    {
-        await Reset();
-
-        var email = UniqueEmail();
-
-        await Register(email);
-        await Open();
-
-        var refused = await Assert.ThrowsAsync<ValidationException>(() => Register(email, password: "short"));
-
-        Assert.Equal(ErrorCodes.AlreadyTaken, Assert.Single(refused.FieldErrors["email"]).Code);
-        Assert.Equal(ErrorCodes.TooShort, Assert.Single(refused.FieldErrors["password"]).Code);
     }
 
     [Fact]
@@ -273,7 +183,7 @@ public sealed class RegisterUserTests(PostgresFixture postgres)
         Assert.Equal(PasswordVerificationResult.Success, await hasher.VerifyAsync(Password, user.PasswordHash, Token));
     }
 
-    // both requests find no owner before either one saves, and the key lets only one claim through
+    // both requests find no claim before either one saves, and the key lets only one claim through
     [Fact]
     public async Task TwoFirstRegistrationsAtOnce_LeaveExactlyOneOwner()
     {
@@ -302,7 +212,7 @@ public sealed class RegisterUserTests(PostgresFixture postgres)
         Assert.Single(await Context(scope).InstanceSettings.ToListAsync(Token));
     }
 
-    private async Task<RegisterResult> Register(
+    private async Task Register(
         string email,
         string firstName = "Ada",
         string lastName = "Lovelace",
@@ -311,7 +221,7 @@ public sealed class RegisterUserTests(PostgresFixture postgres)
     {
         await using var scope = postgres.CreateScope();
 
-        return await scope.ServiceProvider.GetRequiredService<RegisterUser>().HandleAsync(
+        await scope.ServiceProvider.GetRequiredService<RegisterUser>().HandleAsync(
             new RegisterRequest
             {
                 Email = email,
@@ -336,9 +246,6 @@ public sealed class RegisterUserTests(PostgresFixture postgres)
 
         return await Context(scope).Users.IgnoreQueryFilters().CountAsync(Token);
     }
-
-    // no endpoint changes the policy yet, so the test writes it directly
-    private Task Open() => Execute("UPDATE instance_settings SET registration_policy = 'Open'");
 
     private Task Reset() => postgres.ResetAsync(Token);
 

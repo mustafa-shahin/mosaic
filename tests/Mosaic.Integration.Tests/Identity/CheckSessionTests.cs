@@ -1,6 +1,7 @@
+using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Mosaic.Application.Identity;
 using Mosaic.Application.Security;
 using Mosaic.Domain.Identity;
@@ -13,8 +14,6 @@ namespace Mosaic.Integration.Tests.Identity;
 public sealed class CheckSessionTests(PostgresFixture postgres)
 {
     private readonly Clock _clock = new(new DateTimeOffset(2026, 10, 4, 12, 0, 0, TimeSpan.Zero));
-
-    private readonly RecordingLogger<CheckSession> _log = new();
 
     private static CancellationToken Token => TestContext.Current.CancellationToken;
 
@@ -67,200 +66,63 @@ public sealed class CheckSessionTests(PostgresFixture postgres)
     }
 
     [Fact]
-    public async Task OnceItsFamilyHasEnded_TheTokenIsRefused()
+    public async Task TwelveHoursAfterTheSignIn_TheTokenIsRefused()
     {
         var signedIn = await SignIn();
 
-        await EndFamily(signedIn.SessionId);
+        _clock.Now = _clock.Now.AddHours(12);
 
         Assert.Null(await Check(signedIn.Token));
     }
 
+    // a check only reads, so using the session just before it ends never moves its end
     [Fact]
-    public async Task AReplacedTokenInsideItsGrace_IsStillAccepted()
-    {
-        var signedIn = await SignIn();
-
-        await Rotate(signedIn);
-
-        _clock.Now = _clock.Now.AddSeconds(29);
-
-        Assert.NotNull(await Check(signedIn.Token));
-    }
-
-    // the family ends through its first row, so the newest token of the sign-in stops as well
-    [Fact]
-    public async Task AReplacedTokenAfterItsGrace_EndsItsFamily()
-    {
-        var signedIn = await SignIn();
-        var next = await Rotate(signedIn);
-
-        _clock.Now = _clock.Now.AddSeconds(30);
-
-        Assert.Null(await Check(signedIn.Token));
-        Assert.Null(await Check(next.Token));
-
-        var first = await FindSession(signedIn.SessionId);
-
-        Assert.Equal(_clock.Now, first.ExpiresAt);
-        Assert.Equal(_clock.Now, first.UpdatedAt);
-    }
-
-    [Fact]
-    public async Task AReplacedLaterRow_EndsTheWholeFamily()
-    {
-        var signedIn = await SignIn();
-        var second = await Rotate(signedIn);
-        var third = await Rotate(second);
-
-        _clock.Now = _clock.Now.AddSeconds(30);
-
-        Assert.Null(await Check(second.Token));
-        Assert.Null(await Check(third.Token));
-    }
-
-    [Fact]
-    public async Task AReplacedTokenThreeDaysLater_EndsItsFamily_WhileThePersonsOtherSessionKeepsWorking()
-    {
-        var signedIn = await SignIn();
-        var other = await SignInAgain(signedIn);
-        var next = await Rotate(signedIn);
-
-        _clock.Now = _clock.Now.AddDays(3);
-
-        Assert.Null(await Check(signedIn.Token));
-        Assert.Null(await Check(next.Token));
-        Assert.NotNull(await Check(other.Token));
-    }
-
-    // the thief keeps the new token in use while the replaced one is never used again
-    [Fact]
-    public async Task AReplacedTokenAfterAWeekWithoutRequests_StillEndsItsFamily()
-    {
-        var signedIn = await SignIn();
-        var next = await Rotate(signedIn);
-
-        _clock.Now = _clock.Now.AddDays(4);
-
-        Assert.NotNull(await Check(next.Token));
-
-        _clock.Now = _clock.Now.AddDays(4);
-
-        Assert.Null(await Check(signedIn.Token));
-        Assert.Null(await Check(next.Token));
-    }
-
-    [Fact]
-    public async Task AReplay_WritesOneWarningThatNamesTheFamilyButNotTheToken()
-    {
-        var signedIn = await SignIn();
-
-        await Rotate(signedIn);
-
-        _clock.Now = _clock.Now.AddSeconds(30);
-
-        await Check(signedIn.Token);
-
-        var warning = Assert.Single(_log.Entries);
-
-        Assert.Equal(LogLevel.Warning, warning.Level);
-        Assert.Contains(signedIn.SessionId.ToString(), warning.Message, StringComparison.Ordinal);
-        Assert.DoesNotContain(signedIn.Token, warning.Message, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public async Task AFamilyThatHasEnded_RaisesNoSecondAlarm()
-    {
-        var signedIn = await SignIn();
-        var second = await Rotate(signedIn);
-
-        await Rotate(second);
-
-        _clock.Now = _clock.Now.AddSeconds(30);
-
-        var endedAt = _clock.Now;
-
-        await Check(second.Token);
-
-        _clock.Now = _clock.Now.AddMinutes(10);
-
-        await Check(second.Token);
-
-        Assert.Equal(endedAt, (await FindSession(signedIn.SessionId)).ExpiresAt);
-        Assert.Single(_log.Entries);
-    }
-
-    // the person's own row already ends every session, so there is nothing left to raise an alarm about
-    [Fact]
-    public async Task AReplayAfterTheStampChanged_EndsNothing()
-    {
-        var signedIn = await SignIn();
-        var expiresAt = (await FindSession(signedIn.SessionId)).ExpiresAt;
-
-        await Rotate(signedIn);
-        await ChangeUser(signedIn.UserId, user => user.EndAllSessions());
-
-        _clock.Now = _clock.Now.AddSeconds(30);
-
-        Assert.Null(await Check(signedIn.Token));
-        Assert.Equal(expiresAt, (await FindSession(signedIn.SessionId)).ExpiresAt);
-        Assert.Empty(_log.Entries);
-    }
-
-    // the rotation read its row before the family ended and saved after, so only the first row can stop its token
-    [Fact]
-    public async Task ARotationSavedAfterItsFamilyEnded_OpensNoSession()
-    {
-        var signedIn = await SignIn();
-
-        await using var late = postgres.CreateScope();
-        var lateContext = Context(late);
-        var stale = await lateContext.SessionTokens.SingleAsync(session => session.Id == signedIn.SessionId, Token);
-
-        await EndFamily(signedIn.SessionId);
-
-        var (token, hash) = SessionTokenFormat.Create();
-
-        lateContext.SessionTokens.Add(stale.Rotate(hash, _clock.Now));
-
-        await lateContext.SaveChangesAsync(Token);
-
-        Assert.Null(await Check(token));
-    }
-
-    [Fact]
-    public async Task ASessionLeftIdleForAWeek_IsRefused()
-    {
-        var signedIn = await SignIn();
-
-        _clock.Now = _clock.Now.AddDays(7);
-
-        Assert.Null(await Check(signedIn.Token));
-    }
-
-    [Fact]
-    public async Task WithinFiveMinutes_LastUsedAtStaysWhereItWas()
+    public async Task ASessionUsedLate_StillEndsTwelveHoursAfterTheSignIn()
     {
         var signedIn = await SignIn();
         var signedInAt = _clock.Now;
 
-        _clock.Now = signedInAt.AddMinutes(4);
+        _clock.Now = signedInAt.AddHours(12).AddTicks(-1);
 
-        await Check(signedIn.Token);
+        Assert.NotNull(await Check(signedIn.Token));
 
-        Assert.Equal(signedInAt, (await FindSession(signedIn.SessionId)).LastUsedAt);
+        _clock.Now = signedInAt.AddHours(12);
+
+        Assert.Null(await Check(signedIn.Token));
+    }
+
+    // the check leaves the person tracked, so reading them again in the same request costs no query
+    [Fact]
+    public async Task AfterACheck_ReadingTheSession_SendsNoSecondQuery()
+    {
+        var signedIn = await SignIn();
+        var log = new StatementLog();
+
+        await using var context = Logged(log);
+
+        var session = await new CheckSession(context, _clock).HandleAsync(signedIn.Token, Token);
+
+        await new GetSession(context).HandleAsync(session!.UserId, Token);
+
+        Assert.StartsWith("SELECT", Assert.Single(log.Statements), StringComparison.Ordinal);
     }
 
     [Fact]
-    public async Task AfterFiveMinutes_LastUsedAtIsSaved()
+    public async Task AfterACheck_SigningOutEverywhere_SendsOnlyTheUpdate()
     {
         var signedIn = await SignIn();
+        var log = new StatementLog();
 
-        _clock.Now = _clock.Now.AddMinutes(5);
+        await using var context = Logged(log);
 
-        await Check(signedIn.Token);
+        var session = await new CheckSession(context, _clock).HandleAsync(signedIn.Token, Token);
 
-        Assert.Equal(_clock.Now, (await FindSession(signedIn.SessionId)).LastUsedAt);
+        await new SignOutEverywhere(context).HandleAsync(session!.UserId, Token);
+
+        Assert.Collection(
+            log.Statements,
+            statement => Assert.StartsWith("SELECT", statement, StringComparison.Ordinal),
+            statement => Assert.StartsWith("UPDATE users", statement, StringComparison.Ordinal));
     }
 
     // the person and the session are written straight to the database, the way sign-in leaves them
@@ -281,29 +143,29 @@ public sealed class CheckSessionTests(PostgresFixture postgres)
         return new SignedIn(token, session.Id, user.Id);
     }
 
-    // a second sign-in of the same person, which starts a family of its own
-    private async Task<SignedIn> SignInAgain(SignedIn signedIn)
-    {
-        var (token, hash) = SessionTokenFormat.Create();
-
-        await using var scope = postgres.CreateScope();
-        var context = Context(scope);
-        var user = await context.Users.SingleAsync(candidate => candidate.Id == signedIn.UserId, Token);
-        var session = SessionToken.Issue(user, hash, _clock.Now);
-
-        context.SessionTokens.Add(session);
-
-        await context.SaveChangesAsync(Token);
-
-        return new SignedIn(token, session.Id, user.Id);
-    }
-
-    // a scope per check, so every check reads the database and not a copy an earlier one tracked
+    // every signed-in request runs the check, so each one here may send one SELECT and nothing else, refusals included
     private async Task<SessionToken?> Check(string token)
     {
-        await using var scope = postgres.CreateScope();
+        var log = new StatementLog();
 
-        return await new CheckSession(Context(scope), _clock, _log).HandleAsync(token, Token);
+        await using var context = Logged(log);
+
+        var session = await new CheckSession(context, _clock).HandleAsync(token, Token);
+
+        Assert.StartsWith("SELECT", Assert.Single(log.Statements), StringComparison.Ordinal);
+
+        return session;
+    }
+
+    // a context of its own for every use, so nothing an earlier check tracked can answer for the database
+    private ManagementDbContext Logged(StatementLog log)
+    {
+        var options = new DbContextOptionsBuilder<ManagementDbContext>();
+
+        DatabaseOptions.Configure(options, postgres.ConnectionString);
+        options.AddInterceptors(log);
+
+        return new ManagementDbContext(options.Options);
     }
 
     private async Task ChangeUser(Guid userId, Action<User> change)
@@ -317,38 +179,62 @@ public sealed class CheckSessionTests(PostgresFixture postgres)
         await context.SaveChangesAsync(Token);
     }
 
-    private async Task EndFamily(Guid familyId)
-    {
-        await using var scope = postgres.CreateScope();
-
-        await SessionFamily.EndAsync(Context(scope), familyId, _clock.Now, Token);
-    }
-
-    private async Task<SignedIn> Rotate(SignedIn current)
-    {
-        var (token, hash) = SessionTokenFormat.Create();
-
-        await using var scope = postgres.CreateScope();
-        var context = Context(scope);
-        var session = await context.SessionTokens.SingleAsync(candidate => candidate.Id == current.SessionId, Token);
-        var next = session.Rotate(hash, _clock.Now);
-
-        context.SessionTokens.Add(next);
-
-        await context.SaveChangesAsync(Token);
-
-        return new SignedIn(token, next.Id, current.UserId);
-    }
-
-    private async Task<SessionToken> FindSession(Guid sessionId)
-    {
-        await using var scope = postgres.CreateScope();
-
-        return await Context(scope).SessionTokens.SingleAsync(session => session.Id == sessionId, Token);
-    }
-
     private static ManagementDbContext Context(AsyncServiceScope scope) =>
         scope.ServiceProvider.GetRequiredService<ManagementDbContext>();
 
     private sealed record SignedIn(string Token, Guid SessionId, Guid UserId);
+
+    // both the async and the plain methods, so a write cannot slip past by being synchronous
+    private sealed class StatementLog : DbCommandInterceptor
+    {
+        public List<string> Statements { get; } = [];
+
+        public override InterceptionResult<DbDataReader> ReaderExecuting(
+            DbCommand command, CommandEventData eventData, InterceptionResult<DbDataReader> result)
+        {
+            Statements.Add(command.CommandText);
+
+            return base.ReaderExecuting(command, eventData, result);
+        }
+
+        public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(
+            DbCommand command, CommandEventData eventData, InterceptionResult<DbDataReader> result, CancellationToken cancellationToken = default)
+        {
+            Statements.Add(command.CommandText);
+
+            return base.ReaderExecutingAsync(command, eventData, result, cancellationToken);
+        }
+
+        public override InterceptionResult<int> NonQueryExecuting(
+            DbCommand command, CommandEventData eventData, InterceptionResult<int> result)
+        {
+            Statements.Add(command.CommandText);
+
+            return base.NonQueryExecuting(command, eventData, result);
+        }
+
+        public override ValueTask<InterceptionResult<int>> NonQueryExecutingAsync(
+            DbCommand command, CommandEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
+        {
+            Statements.Add(command.CommandText);
+
+            return base.NonQueryExecutingAsync(command, eventData, result, cancellationToken);
+        }
+
+        public override InterceptionResult<object> ScalarExecuting(
+            DbCommand command, CommandEventData eventData, InterceptionResult<object> result)
+        {
+            Statements.Add(command.CommandText);
+
+            return base.ScalarExecuting(command, eventData, result);
+        }
+
+        public override ValueTask<InterceptionResult<object>> ScalarExecutingAsync(
+            DbCommand command, CommandEventData eventData, InterceptionResult<object> result, CancellationToken cancellationToken = default)
+        {
+            Statements.Add(command.CommandText);
+
+            return base.ScalarExecutingAsync(command, eventData, result, cancellationToken);
+        }
+    }
 }

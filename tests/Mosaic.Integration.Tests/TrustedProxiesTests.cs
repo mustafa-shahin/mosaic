@@ -79,7 +79,7 @@ public sealed class TrustedProxiesTests(ApiFactory factory) : IClassFixture<ApiF
         Assert.Equal(StatusCodes.Status429TooManyRequests, await SendAsync(server, Outsider, "203.0.113.200"));
     }
 
-    // a second entry is read only when the first is inside the network, so the client here sits inside it
+    // Neighbour is inside the network, so only the default forward limit of 1 keeps 10.9.0.x from being read
     [Fact]
     public async Task OnlyTheEntryTheProxyAppended_IsRead()
     {

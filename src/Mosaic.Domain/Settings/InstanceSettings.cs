@@ -14,12 +14,9 @@ public sealed class InstanceSettings : Timestamped
 
     public int Id { get; private set; }
 
-    public RegistrationPolicy RegistrationPolicy { get; private set; }
-
     public static InstanceSettings Claim(DateTimeOffset now) => new()
     {
         Id = SingleRowId,
-        RegistrationPolicy = RegistrationPolicy.Closed,
         CreatedAt = now,
     };
 }

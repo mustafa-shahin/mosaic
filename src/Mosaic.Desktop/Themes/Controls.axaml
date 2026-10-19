@@ -57,7 +57,14 @@
     <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
   </Style>
 
-  <!-- No text-transform in Avalonia. The nav section captions are stored uppercase in the json files instead. -->
+  <!-- a refusal under the field it is about -->
+  <Style Selector=":is(TextBlock).fieldError">
+    <Setter Property="FontSize" Value="{DynamicResource NoteSize}" />
+    <Setter Property="Foreground" Value="{DynamicResource StatusBad}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+
+  <!-- Avalonia has no text-transform, so a caption meant in capitals is stored uppercase in the json files. -->
   <Style Selector=":is(TextBlock).caption">
     <Setter Property="FontSize" Value="{DynamicResource CaptionSize}" />
     <Setter Property="FontWeight" Value="Medium" />
@@ -65,15 +72,28 @@
     <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
   </Style>
 
-  <!-- FactRow value column, see Components.axaml. tnum so times and versions line up down the column.
-       No monospace font is embedded and the system ones differ per OS, so this stays Inter. -->
+  <!-- FactRow value column, see Components.axaml. tnum so times and versions line up down the column. -->
   <Style Selector=":is(TextBlock).value">
     <Setter Property="FontSize" Value="{DynamicResource NoteSize}" />
     <Setter Property="FontFeatures" Value="tnum" />
     <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
   </Style>
 
-  <!-- letter spacing breaks Arabic letter joins, reset it for RTL. Has to come after .title and .caption -->
+  <!-- the wordmark on the start and sign-in screens -->
+  <Style Selector=":is(TextBlock).display">
+    <Setter Property="FontSize" Value="{DynamicResource DisplaySize}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="LetterSpacing" Value="-0.5" />
+  </Style>
+
+  <!-- hosts, image tags and commands -->
+  <Style Selector=":is(TextBlock).mono">
+    <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+    <Setter Property="FontSize" Value="{DynamicResource MonoSize}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+  </Style>
+
+  <!-- letter spacing breaks Arabic letter joins, reset it for RTL. Has to come after every style that sets it -->
   <Style Selector=":is(TextBlock)[FlowDirection=RightToLeft]">
     <Setter Property="LetterSpacing" Value="0" />
   </Style>
@@ -103,7 +123,7 @@
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextPrimary}" />
   </Style>
 
-  <!-- The active indicator bar lives in MainWindow.axaml so it mirrors correctly in RTL. -->
+  <!-- The active indicator bar lives in SidebarView.axaml so it mirrors correctly in RTL. -->
   <Style Selector="Button.nav">
     <Setter Property="Height" Value="{DynamicResource NavRowHeight}" />
     <Setter Property="Padding" Value="10,0" />
@@ -130,6 +150,46 @@
 
   <Style Selector="Button.nav.active /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource AccentSoft}" />
+  </Style>
+
+  <!-- the account chip at the foot of the sidebar -->
+  <Style Selector="Button.account">
+    <Setter Property="Padding" Value="8" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlRadius}" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+  </Style>
+
+  <Style Selector="Button.account:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource SurfaceHover}" />
+  </Style>
+
+  <Style Selector="Border.initials">
+    <Setter Property="Width" Value="32" />
+    <Setter Property="Height" Value="32" />
+    <Setter Property="CornerRadius" Value="{DynamicResource PillRadius}" />
+    <Setter Property="Background" Value="{DynamicResource SurfaceHover}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource HairlineSoft}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+
+  <Style Selector="Border.initials > TextBlock">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
+  </Style>
+
+  <Style Selector=":is(TextBlock).accountName">
+    <Setter Property="FontSize" Value="{DynamicResource NoteSize}" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+  </Style>
+
+  <Style Selector=":is(TextBlock).accountEmail">
+    <Setter Property="FontSize" Value="{DynamicResource CaptionSize}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
   </Style>
 
   <Style Selector="ComboBox">
@@ -175,6 +235,79 @@
   <Style Selector="Button.icon:pointerover /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource SurfaceHover}" />
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource Accent}" />
+  </Style>
+
+  <!-- the one bronze action on a screen -->
+  <Style Selector="Button.primary">
+    <Setter Property="Height" Value="{DynamicResource RowHeight}" />
+    <Setter Property="Padding" Value="16,0" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlRadius}" />
+    <Setter Property="Background" Value="{DynamicResource Accent}" />
+    <Setter Property="Foreground" Value="{DynamicResource OnAccent}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="FontSize" Value="{DynamicResource BodySize}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+
+  <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AccentHover}" />
+    <Setter Property="Foreground" Value="{DynamicResource OnAccent}" />
+  </Style>
+
+  <Style Selector="Button.primary:pressed /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Accent}" />
+    <Setter Property="Foreground" Value="{DynamicResource OnAccent}" />
+  </Style>
+
+  <!-- while its request runs. The theme's grey would read as a different button -->
+  <Style Selector="Button.primary:disabled /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Accent}" />
+    <Setter Property="Foreground" Value="{DynamicResource OnAccent}" />
+    <Setter Property="Opacity" Value="0.6" />
+  </Style>
+
+  <Style Selector="TextBox">
+    <Setter Property="MinHeight" Value="36" />
+    <Setter Property="Padding" Value="12,0" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlRadius}" />
+    <Setter Property="Background" Value="{DynamicResource SurfaceCard}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource HairlineSoft}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+    <Setter Property="CaretBrush" Value="{DynamicResource TextPrimary}" />
+    <Setter Property="SelectionBrush" Value="{DynamicResource Accent}" />
+    <Setter Property="SelectionForegroundBrush" Value="{DynamicResource OnAccent}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodySize}" />
+  </Style>
+
+  <!-- in these states the theme sets the border element itself, and in the system accent while focused -->
+  <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
+    <Setter Property="Background" Value="{DynamicResource SurfaceCard}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource HairlineStrong}" />
+  </Style>
+
+  <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+    <Setter Property="Background" Value="{DynamicResource SurfaceCard}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+
+  <!-- the password eye. Checked, the theme fills it with the system accent, a second accent hue -->
+  <Style Selector="TextBox.revealPasswordButton ToggleButton">
+    <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+  </Style>
+
+  <Style Selector="TextBox.revealPasswordButton ToggleButton:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+  </Style>
+
+  <Style Selector="TextBox.revealPasswordButton ToggleButton:checked /template/ ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource Accent}" />
   </Style>
 
 

@@ -1,10 +1,12 @@
+using Mosaic.Desktop.Services.Health;
+
 namespace Mosaic.Desktop.Features.Health;
 
-// For the previewer only. Named by state, so an unreachable sample can sit beside this one later.
+// For the previewer only.
 internal static class HealthDesignData
 {
     public static HealthViewModel Reachable { get; } =
-        new(DesignContext.Api, DesignContext.Strings)
+        new(new HealthApi(DesignContext.Api), DesignContext.Strings)
         {
             State = ConnectionState.Reachable,
             Service = "mosaic-api",

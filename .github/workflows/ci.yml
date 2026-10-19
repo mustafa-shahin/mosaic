@@ -37,7 +37,7 @@ jobs:
       - name: Build
         run: dotnet build --no-restore --configuration Release
 
-      # Tests that need Docker start a Linux container, which this runner cannot do. The job below runs them.
+      # Tests that need Docker run in the Linux job below.
       - name: Test
         run: dotnet test --no-build --configuration Release --filter-not-trait "Requires=Docker"
 

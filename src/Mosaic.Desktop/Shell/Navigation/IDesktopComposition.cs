@@ -2,8 +2,7 @@ using Avalonia.Controls.Templates;
 
 namespace Mosaic.Desktop.Shell.Navigation;
 
-// Everything an edition adds to the shell. Core's lives next to App; pro's wraps core's and appends.
-// There is no container and no assembly scanning, so the list is written by hand, once per edition.
+// Everything an edition adds to the shell, listed by hand. Pro's composition wraps core's and appends.
 public interface IDesktopComposition
 {
     IReadOnlyList<NavSectionDefinition> Sections { get; }

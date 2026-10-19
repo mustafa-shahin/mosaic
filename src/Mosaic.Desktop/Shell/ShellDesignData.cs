@@ -1,10 +1,18 @@
+using Mosaic.Contracts.Identity;
 using Mosaic.Desktop.Shell.Navigation;
 
 namespace Mosaic.Desktop.Shell;
 
-// Names no feature any more. The previewer is handed the composition the running app is handed.
+// For the previewer only.
 internal static class ShellDesignData
 {
+    private static readonly SessionResult Person = new()
+    {
+        UserId = Guid.Empty,
+        Email = "mara@example.com",
+        FullName = "Mara Halbert"
+    };
+
     public static ShellViewModel Default { get; } =
-        new(DesignContext.Strings, DesignContext.Composition, NavBuilder.Keys(DesignContext.Composition));
+        new(DesignContext.Strings, DesignContext.Composition, NavBuilder.Keys(DesignContext.Composition), Person, DesignContext.SignOut);
 }

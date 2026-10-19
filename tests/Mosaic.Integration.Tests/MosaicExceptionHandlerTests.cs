@@ -48,9 +48,6 @@ public sealed class MosaicExceptionHandlerTests
         Assert.Equal("no user 7", body.Error.Message);
     }
 
-    // The kind decides the status and the handler holds the only table, so a kind it has never seen is
-    // answered as unexpected while its code still reaches the client. ExceptionStatusTests is what keeps
-    // a real kind from ever getting here.
     [Fact]
     public async Task TryHandle_ForARefusalKindWithNoMapping_IsFiveHundredButKeepsTheCode()
     {

@@ -21,7 +21,7 @@ public sealed class SetupTokenFileTests : IDisposable
         Assert.Matches("^[A-Za-z0-9_-]+$", token);
     }
 
-    // the second one finds the file already there, which is the branch two simultaneous requests take
+    // a restarted server keeps the token, which the operator may already have copied
     [Fact]
     public void ASecondInstance_ReadsTheTokenTheFirstWrote()
     {
@@ -30,6 +30,41 @@ public sealed class SetupTokenFileTests : IDisposable
         var token = System.IO.File.ReadAllText(_path);
 
         Assert.Equal(SetupTokenResult.Accepted, File().Verify(token));
+    }
+
+    // one request writes the token while the others look for it, repeated so that an overlap shows
+    [Fact]
+    public async Task RequestsArrivingTogether_AllGetAnAnswerAndLeaveOneWholeToken()
+    {
+        const int rounds = 50;
+        const int requests = 8;
+
+        for (var round = 0; round < rounds; round++)
+        {
+            System.IO.File.Delete(_path);
+
+            var file = File();
+            using var start = new Barrier(requests);
+
+            var answers = Enumerable.Range(0, requests)
+                .Select(_ => Task.Factory.StartNew(
+                    () =>
+                    {
+                        start.SignalAndWait();
+
+                        return file.Verify("guessed");
+                    },
+                    TestContext.Current.CancellationToken,
+                    TaskCreationOptions.LongRunning,
+                    TaskScheduler.Default))
+                .ToArray();
+
+            Assert.All(await Task.WhenAll(answers), answer => Assert.Equal(SetupTokenResult.Invalid, answer));
+            Assert.Equal(43, System.IO.File.ReadAllText(_path).Length);
+        }
+
+        // nothing the requests wrote on the way is left beside the token
+        Assert.Single(Directory.GetFiles(Path.GetTempPath(), $"{Path.GetFileName(_path)}*"));
     }
 
     [Fact]
@@ -64,6 +99,43 @@ public sealed class SetupTokenFileTests : IDisposable
         file.Discard();
 
         Assert.False(System.IO.File.Exists(_path));
+    }
+
+    [Fact]
+    public void Prepare_WritesTheTokenAndLogsWhereItIs()
+    {
+        File().Prepare();
+
+        Assert.Equal(43, System.IO.File.ReadAllText(_path).Length);
+        Assert.Contains(_path, Assert.Single(_logger.Messages), StringComparison.Ordinal);
+    }
+
+    // the operator may be copying it right now, so a second screen must not replace it
+    [Fact]
+    public void Prepare_KeepsATokenThatIsAlreadyThere()
+    {
+        var file = File();
+
+        file.Prepare();
+
+        var token = System.IO.File.ReadAllText(_path);
+
+        file.Prepare();
+
+        Assert.Equal(token, System.IO.File.ReadAllText(_path));
+        Assert.Equal(SetupTokenResult.Accepted, file.Verify(token));
+    }
+
+    // a recreated container starts with an empty log, so every call names the file again
+    [Fact]
+    public void Prepare_LogsThePathEveryTime()
+    {
+        var file = File();
+
+        file.Prepare();
+        file.Prepare();
+
+        Assert.Equal(2, _logger.Messages.Count);
     }
 
     public void Dispose() => System.IO.File.Delete(_path);

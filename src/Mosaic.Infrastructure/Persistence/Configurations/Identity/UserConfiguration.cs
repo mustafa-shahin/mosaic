@@ -11,8 +11,7 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
     {
         builder.HasKey(user => user.Id);
 
-        // Not filtered: someone the owner removed must not sign up again with the same address. An
-        // erasure request overwrites the address, so it frees itself and is never blocked here.
+        // Not filtered, so a removed person's address never gets a second account.
         builder.HasIndex(user => user.Email).IsUnique();
 
         builder.Property(user => user.Email).HasMaxLength(UserLimits.EmailLength);
@@ -21,15 +20,14 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(user => user.EncryptedTotpSecret).HasMaxLength(500);
         builder.Ignore(user => user.FullName);
 
-        // A bare join table. Who assigned a role and when belongs in the audit log.
+        // A bare join table, with no record of who assigned a role or when.
         builder.HasMany(user => user.Roles)
             .WithMany()
             .UsingEntity(join =>
             {
                 join.ToTable("user_roles");
 
-                // WithMany has no navigation to name the key after, so EF falls back to this side's
-                // navigation and the column comes out roles_id next to user_id.
+                // EF names this key after the Roles navigation, so it would come out roles_id next to user_id.
                 join.Property("RolesId").HasColumnName("role_id");
             });
 

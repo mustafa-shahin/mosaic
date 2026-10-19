@@ -23,8 +23,7 @@
   <x:Double x:Key="RowHeight">44</x:Double>
   <x:Double x:Key="NavRowHeight">34</x:Double>
   <x:Double x:Key="ContentColumnWidth">560</x:Double>
-  <!-- Fixed, not Auto. Every FactRow is its own Grid and Avalonia has no SharedSizeGroup, so Auto would
-       size each row to its own label and the values would stop lining up down the column. -->
+  <!-- Fixed: each FactRow is its own Grid, so with Auto the values of different rows would not line up. -->
   <GridLength x:Key="FactLabelWidth">150</GridLength>
 
   <CornerRadius x:Key="CardRadius">12</CornerRadius>
@@ -32,11 +31,15 @@
   <CornerRadius x:Key="PillRadius">999</CornerRadius>
 
   <FontFamily x:Key="TextFont">Inter</FontFamily>
+  <!-- Cascadia Code without its ligatures, so a != in a log line stays two characters -->
+  <FontFamily x:Key="MonoFont">avares://Mosaic.Desktop/Assets/Fonts#Cascadia Mono</FontFamily>
 
+  <x:Double x:Key="DisplaySize">30</x:Double>
   <x:Double x:Key="TitleSize">22</x:Double>
   <x:Double x:Key="CardTitleSize">17</x:Double>
   <x:Double x:Key="BodySize">14</x:Double>
   <x:Double x:Key="NoteSize">13</x:Double>
+  <x:Double x:Key="MonoSize">12.5</x:Double>
   <x:Double x:Key="CaptionSize">11.5</x:Double>
 
 </ResourceDictionary>

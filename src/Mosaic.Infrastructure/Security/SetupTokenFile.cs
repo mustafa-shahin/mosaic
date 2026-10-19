@@ -16,7 +16,7 @@ internal sealed partial class SetupTokenFile(string path, ILogger<SetupTokenFile
 
         if (string.IsNullOrEmpty(supplied))
         {
-            // logged on every refusal, because a recreated container starts with an empty log
+            // logged on every attempt without a token, because a recreated container starts with an empty log
             LogTokenPath(logger, path);
 
             return SetupTokenResult.Missing;
@@ -27,44 +27,72 @@ internal sealed partial class SetupTokenFile(string path, ILogger<SetupTokenFile
             : SetupTokenResult.Invalid;
     }
 
+    public void Prepare()
+    {
+        Ensure();
+
+        LogTokenPath(logger, path);
+    }
+
     // deleting a file that is not there is not an error
     public void Discard() => File.Delete(path);
 
-    private string Ensure()
+    private string Ensure() => File.Exists(path) ? Read() : Create();
+
+    private string Create()
     {
         if (Path.GetDirectoryName(path) is { Length: > 0 } folder)
         {
             Directory.CreateDirectory(folder);
         }
 
+        var token = Base64Url.EncodeToString(RandomNumberGenerator.GetBytes(TokenBytes));
+
+        // written under another name first, so a request arriving meanwhile never opens a file still being written
+        var draft = $"{path}.{Path.GetRandomFileName()}";
+
         try
         {
-            var token = Base64Url.EncodeToString(RandomNumberGenerator.GetBytes(TokenBytes));
-
-            // CreateNew, so two requests arriving together cannot both write a token
-            using (var stream = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            using (var stream = new FileStream(draft, DraftOptions()))
             {
                 stream.Write(Encoding.UTF8.GetBytes(token));
             }
 
-            Restrict();
+            // refuses a file that is already there, so two requests arriving together cannot both place a token
+            File.Move(draft, path, overwrite: false);
 
             return token;
         }
         // a read-only volume has no file to find, so that failure still throws
         catch (IOException) when (File.Exists(path))
         {
-            return File.ReadAllText(path).Trim();
+            return Read();
+        }
+        finally
+        {
+            File.Delete(draft);
         }
     }
 
-    // Windows has no unix file mode and the call throws there
-    private void Restrict()
+    // on Windows the move that just placed the file may still hold it with delete access, so the read has to share that
+    private string Read()
     {
+        using var reader = new StreamReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete));
+
+        return reader.ReadToEnd().Trim();
+    }
+
+    // only its owner can read it from the moment it exists; Windows has no unix file mode and the setter throws there
+    private static FileStreamOptions DraftOptions()
+    {
+        var options = new FileStreamOptions { Mode = FileMode.CreateNew, Access = FileAccess.Write };
+
         if (!OperatingSystem.IsWindows())
         {
-            File.SetUnixFileMode(path, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+            options.UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite;
         }
+
+        return options;
     }
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "The instance has no owner yet. The setup token is in {Path}")]

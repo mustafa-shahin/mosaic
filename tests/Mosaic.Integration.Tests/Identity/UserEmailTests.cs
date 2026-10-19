@@ -17,10 +17,10 @@ public sealed class UserEmailTests(PostgresFixture postgres)
     {
         var email = UniqueEmail();
 
-        await Save(User.Register(email, "Ada", "Lovelace", "hash", null, Now));
+        await Save(User.CreateOwner(email, "Ada", "Lovelace", "hash", Now));
 
         var refused = await Assert.ThrowsAsync<DbUpdateException>(
-            () => Save(User.Register(email, "Grace", "Hopper", "hash", null, Now)));
+            () => Save(User.CreateOwner(email, "Grace", "Hopper", "hash", Now)));
 
         AssertViolates(refused, "ix_users_email");
     }
@@ -29,14 +29,14 @@ public sealed class UserEmailTests(PostgresFixture postgres)
     public async Task ADeletedAccount_StillHoldsItsAddress()
     {
         var email = UniqueEmail();
-        var deleted = User.Register(email, "Ada", "Lovelace", "hash", null, Now);
+        var deleted = User.CreateOwner(email, "Ada", "Lovelace", "hash", Now);
 
         deleted.SoftDelete(Now, null);
 
         await Save(deleted);
 
         var refused = await Assert.ThrowsAsync<DbUpdateException>(
-            () => Save(User.Register(email, "Grace", "Hopper", "hash", null, Now)));
+            () => Save(User.CreateOwner(email, "Grace", "Hopper", "hash", Now)));
 
         AssertViolates(refused, "ix_users_email");
     }

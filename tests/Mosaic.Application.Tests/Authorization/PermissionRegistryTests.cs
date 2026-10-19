@@ -28,7 +28,6 @@ public sealed class PermissionRegistryTests
         Assert.Equal(ErrorCodes.UnknownPermission, refused.Code);
     }
 
-    // e.g. the pro assembly claiming a key that core already owns
     [Fact]
     public void Construct_WithAKeyAnotherEditionAlreadyClaimed_Throws()
     {

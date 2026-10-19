@@ -9,7 +9,7 @@ namespace Mosaic.Api.Controllers.Health;
 [ApiController]
 // without it the versioning counts this as a v1 controller and /health answers 404
 [ApiVersionNeutral]
-[Route("health")]
+[Route(HealthRoutes.Health)]
 public sealed class HealthController(TimeProvider clock) : ControllerBase
 {
     private const string ServiceName = "Mosaic.Api";

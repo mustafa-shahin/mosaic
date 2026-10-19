@@ -1,5 +1,7 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using Mosaic.Application.Security;
 using Mosaic.Contracts;
 using Mosaic.Contracts.Health;
 
@@ -38,5 +40,18 @@ public sealed class HealthEndpointTests(ApiFactory factory) : IClassFixture<ApiF
         Assert.Contains($"\"apiContract\":\"{ApiContract.Version}\"", json);
         Assert.DoesNotContain("\"error\"", json);
         Assert.DoesNotContain("\"traceId\"", json);
+    }
+
+    // a signed-in desktop sends its token here too, and checking it would need the database this factory never reaches
+    [Fact]
+    public async Task Health_WithATokenWhoseCheckCannotReachTheDatabase_StillAnswers()
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/health");
+
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", SessionTokenFormat.Create().Token);
+
+        var response = await factory.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 }

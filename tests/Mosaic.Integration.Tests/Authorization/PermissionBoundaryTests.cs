@@ -7,8 +7,7 @@ using Mosaic.Infrastructure.Persistence.Configurations.Authorization;
 
 namespace Mosaic.Integration.Tests.Authorization;
 
-// A role row written by a pro build, read by a build that has never heard of pro's keys. That is what
-// an expired licence or a core-only install looks like.
+// A role row written by a pro build, read by a build that has never heard of pro's keys.
 public sealed class PermissionBoundaryTests
 {
     private const string ProKey = "pro.tenants.manage";
@@ -35,8 +34,10 @@ public sealed class PermissionBoundaryTests
     [Fact]
     public void AKeyThisBuildDoesNotDeclare_GrantsNothingItCanCheck()
     {
-        var user = User.Register("ada@example.com", "Ada", "Lovelace", "hash", null, Now);
+        var user = User.CreateOwner("ada@example.com", "Ada", "Lovelace", "hash", Now);
 
+        // an owner passes every check, so only a person whose permissions come from roles shows the boundary
+        user.SetOwner(false);
         user.AddRole(Role.Create("Finance", null, ReadBack(ProKey), Now));
 
         var resolved = user.ResolvePermissions();

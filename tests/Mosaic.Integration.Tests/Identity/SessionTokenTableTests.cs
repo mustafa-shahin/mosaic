@@ -29,8 +29,7 @@ public sealed class SessionTokenTableTests(PostgresFixture postgres)
         Assert.Equal(hash, session.TokenHash);
         Assert.Equal(user.SecurityStamp, session.SecurityStamp);
         Assert.Equal(Now, session.CreatedAt);
-        Assert.Equal(Now, session.LastUsedAt);
-        Assert.Equal(Now.AddDays(30), session.ExpiresAt);
+        Assert.Equal(Now.AddHours(12), session.ExpiresAt);
         Assert.Null(session.UpdatedAt);
     }
 
@@ -48,82 +47,6 @@ public sealed class SessionTokenTableTests(PostgresFixture postgres)
 
         Assert.Equal(PostgresErrorCodes.UniqueViolation, error.SqlState);
         Assert.Equal("ix_session_tokens_token_hash", error.ConstraintName);
-    }
-
-    [Fact]
-    public async Task ARotatedSession_ComesBackWithItsFamilyAndTheRowItReplaced()
-    {
-        var user = await SaveUser();
-        var session = SessionToken.Issue(user, RandomNumberGenerator.GetBytes(32), Now);
-
-        await Save(session);
-
-        var next = session.Rotate(RandomNumberGenerator.GetBytes(32), Now.AddHours(1));
-
-        await Save(next);
-
-        await using var scope = postgres.CreateScope();
-        var saved = await Context(scope).SessionTokens.SingleAsync(row => row.Id == next.Id, Token);
-
-        Assert.Equal(session.Id, saved.FamilyId);
-        Assert.Equal(session.Id, saved.ReplacesId);
-        Assert.Equal(Now.AddDays(30), saved.ExpiresAt);
-    }
-
-    // what stops two rotations of one token that both read the row before either saved
-    [Fact]
-    public async Task ASecondRowReplacingTheSameSession_IsRefusedByTheIndex()
-    {
-        var user = await SaveUser();
-        var session = SessionToken.Issue(user, RandomNumberGenerator.GetBytes(32), Now);
-
-        await Save(session);
-        await Save(session.Rotate(RandomNumberGenerator.GetBytes(32), Now.AddHours(1)));
-
-        var refused = await Assert.ThrowsAsync<DbUpdateException>(() => Save(session.Rotate(RandomNumberGenerator.GetBytes(32), Now.AddHours(1))));
-
-        var error = Assert.IsType<PostgresException>(refused.InnerException);
-
-        Assert.Equal(PostgresErrorCodes.UniqueViolation, error.SqlState);
-        Assert.Equal("ix_session_tokens_replaces_id", error.ConstraintName);
-    }
-
-    // every check reads a family's first row, so it may only go together with the rest of its family
-    [Fact]
-    public async Task TheFirstRowOfAFamily_CannotBeDeletedWhileTheFamilyHasRows()
-    {
-        var user = await SaveUser();
-        var session = SessionToken.Issue(user, RandomNumberGenerator.GetBytes(32), Now);
-
-        await Save(session);
-        await Save(session.Rotate(RandomNumberGenerator.GetBytes(32), Now.AddHours(1)));
-
-        await using var scope = postgres.CreateScope();
-
-        var refused = await Assert.ThrowsAsync<PostgresException>(
-            () => Context(scope).Database.ExecuteSqlAsync($"DELETE FROM session_tokens WHERE id = {session.Id}", Token));
-
-        Assert.Equal(PostgresErrorCodes.ForeignKeyViolation, refused.SqlState);
-    }
-
-    // the link between rows has no cascade, so this proves one statement can still remove a whole chain
-    [Fact]
-    public async Task DeletingAUser_DeletesARotatedChainToo()
-    {
-        var user = await SaveUser();
-        var session = SessionToken.Issue(user, RandomNumberGenerator.GetBytes(32), Now);
-
-        await Save(session);
-        await Save(session.Rotate(RandomNumberGenerator.GetBytes(32), Now.AddHours(1)));
-
-        await using (var scope = postgres.CreateScope())
-        {
-            await Context(scope).Database.ExecuteSqlAsync($"DELETE FROM users WHERE id = {user.Id}", Token);
-        }
-
-        await using var reread = postgres.CreateScope();
-
-        Assert.False(await Context(reread).SessionTokens.AnyAsync(row => row.UserId == user.Id, Token));
     }
 
     [Fact]
@@ -146,7 +69,7 @@ public sealed class SessionTokenTableTests(PostgresFixture postgres)
     private async Task<User> SaveUser()
     {
         // the database lives for the whole run, so every test needs an address no other test used
-        var user = User.Register($"{Guid.CreateVersion7():N}@mosaic.test", "Ada", "Lovelace", "hash", null, Now);
+        var user = User.CreateOwner($"{Guid.CreateVersion7():N}@mosaic.test", "Ada", "Lovelace", "hash", Now);
 
         await using var scope = postgres.CreateScope();
         var context = Context(scope);

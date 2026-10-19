@@ -18,11 +18,11 @@ public sealed class SignInUser(IManagementDbContext database, PasswordHasher pas
         // the query filter hides a deleted account, so it is refused like an address nobody has
         var user = await database.Users.SingleOrDefaultAsync(candidate => candidate.Email == email, cancellationToken);
 
-        // runs for an unknown address too, so the time taken does not tell the two apart
+        // runs for an unknown address too, so at today's cost the hash does not tell the two apart
         var verdict = await passwordHasher.VerifyAsync(password, user?.PasswordHash, cancellationToken);
         var now = clock.GetUtcNow();
 
-        // checked after the hash, and the right password counts too, so every refusal does the same work
+        // checked after the hash, and the right password counts too, so the time does not show a lockout or a right guess
         if (user is null || verdict == PasswordVerificationResult.Failed || user.IsLockedOut(now))
         {
             if (user is not null)
@@ -35,7 +35,7 @@ public sealed class SignInUser(IManagementDbContext database, PasswordHasher pas
             throw new NotPermittedException(ErrorCodes.InvalidCredentials);
         }
 
-        // reached only with the right password, so naming the reason tells the caller nothing new
+        // reached only with the right password, so the reason is shown only to someone who knows the password
         if (!user.IsActive)
         {
             throw new NotPermittedException(ErrorCodes.AccountInactive);

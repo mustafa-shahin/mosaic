@@ -1,6 +1,6 @@
 namespace Mosaic.Domain.Common;
 
-// the two columns every table has; UpdatedAtInterceptor sets UpdatedAt whenever a save changes the row
+// the two columns every entity table has; UpdatedAtInterceptor sets UpdatedAt whenever a save changes the row
 public abstract class Timestamped
 {
     public DateTimeOffset CreatedAt { get; protected set; }
@@ -13,8 +13,7 @@ public abstract class Entity : Timestamped
     public Guid Id { get; protected set; }
 }
 
-// Only entities that hide rows instead of removing them derive from this. SessionToken doesn't:
-// its rows are deleted for real.
+// Only for entities that hide a row instead of removing it.
 public abstract class SoftDeletableEntity : Entity
 {
     public bool IsDeleted { get; private set; }

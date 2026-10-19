@@ -4,6 +4,8 @@ using Mosaic.Desktop.Controls;
 using Mosaic.Desktop.Features.Health;
 using Mosaic.Desktop.Localization;
 using Mosaic.Desktop.Services;
+using Mosaic.Desktop.Services.Health;
+using Mosaic.Desktop.Services.Identity;
 
 namespace Mosaic.Desktop.Tests.Features.Health;
 
@@ -18,7 +20,7 @@ public sealed class HealthViewModelTests
     private static Localizer English() => Localizer.Load(LanguageCatalog.Resolve("en"));
 
     private static HealthViewModel ViewModelWith(HttpMessageHandler handler) =>
-        new(new ApiClient(new HttpClient(handler) { BaseAddress = new Uri("http://localhost") }), English());
+        new(new HealthApi(new ApiClient(new HttpClient(handler) { BaseAddress = new Uri("http://localhost") }, new CurrentSession())), English());
 
     [Fact]
     public async Task Check_WhenTheApiAnswers_ReportsReachableAndKeepsTheServiceName()
@@ -131,7 +133,7 @@ public sealed class HealthViewModelTests
     public async Task Check_WhenNoApiAddressIsConfigured_ReportsUnreachableWithoutCallingTheNetwork()
     {
         var viewModel = new HealthViewModel(
-            new ApiClient(new HttpClient(new ThrowingHandler(new InvalidOperationException("must not be called")))),
+            new HealthApi(new ApiClient(new HttpClient(new ThrowingHandler(new InvalidOperationException("must not be called"))), new CurrentSession())),
             English());
 
         await viewModel.CheckAsync(TestContext.Current.CancellationToken);
@@ -165,7 +167,7 @@ public sealed class HealthViewModelTests
         Assert.Equal("tessera", viewModel.ErrorParams!["name"]);
     }
 
-    // Navigating away and back calls this again while the first check may still be running.
+    // HealthView calls this each time its DataContext becomes a HealthViewModel.
     [Fact]
     public void CheckIfIdle_WhileACheckIsRunning_LeavesTheFirstOneAlone()
     {

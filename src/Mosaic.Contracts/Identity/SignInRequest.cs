@@ -1,6 +1,6 @@
 namespace Mosaic.Contracts.Identity;
 
-// no validator: a field error would tell a stranger which half of the pair was wrong
+// no validator: a password rule raised later would refuse everyone whose password no longer meets it
 public sealed record SignInRequest
 {
     public string? Email { get; init; }

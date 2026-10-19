@@ -44,5 +44,14 @@
       </Grid>
     </c:Card>
 
+    <c:Card Title="{Binding Strings[settings.sessions]}" Subtitle="{Binding Strings[settings.sessions_text]}">
+      <StackPanel Spacing="12">
+        <c:ErrorBox IsVisible="{Binding HasError}" Text="{Binding ErrorMessage}" />
+        <Button Classes="secondary" HorizontalAlignment="Left"
+                Content="{Binding Strings[settings.sign_out_everywhere]}"
+                Command="{Binding SignOutEverywhereCommand}" />
+      </StackPanel>
+    </c:Card>
+
   </StackPanel>
 </UserControl>

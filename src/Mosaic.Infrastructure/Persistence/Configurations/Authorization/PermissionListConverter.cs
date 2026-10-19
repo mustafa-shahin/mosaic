@@ -17,9 +17,8 @@ internal static class PermissionListConverter
         permissions => permissions.Aggregate(0, (hash, permission) => HashCode.Combine(hash, permission)),
         permissions => permissions.ToList());
 
-    // A key this build does not declare is kept as it is, not dropped. Pro's keys sit in role rows
-    // while a licence is lapsed, and dropping them would delete them for good the first time an owner
-    // saved that role. Nothing can act on one, because no check asks for a key that is not declared.
+    // A key this build does not declare is kept, because no check asks for it and dropping it would erase it
+    // from the row the next time the role's permissions change.
     private static List<Permission> Read(string[] keys)
     {
         var permissions = new List<Permission>(keys.Length);

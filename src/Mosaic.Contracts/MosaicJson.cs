@@ -11,9 +11,7 @@ public static class MosaicJson
     // ASP.NET already builds its options from JsonSerializerDefaults.Web, so only the deltas apply.
     public static void ApplyTo(JsonSerializerOptions options)
     {
-        //When a property is null, it will be ignored when serializing the object to JSON.
-        //Example: {"error":null,"traceId":null,"success":true} will be serialized as {"success":true}.
-        //It affects writing only, reading is unaffected.
+        // A null property is not written, so {"error":null,"traceId":null,"success":true} goes out as {"success":true}.
         options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
         options.Converters.Add(new JsonStringEnumConverter());
     }

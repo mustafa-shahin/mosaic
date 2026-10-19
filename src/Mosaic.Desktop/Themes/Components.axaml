@@ -32,6 +32,23 @@
     </Setter>
   </ControlTheme>
 
+  <ControlTheme x:Key="{x:Type c:ErrorBox}" TargetType="c:ErrorBox">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border CornerRadius="{DynamicResource ControlRadius}" Padding="12"
+                Background="{DynamicResource StatusBadSoft}"
+                BorderBrush="{DynamicResource StatusBad}" BorderThickness="1">
+          <DockPanel>
+            <Ellipse DockPanel.Dock="Left" Width="6" Height="6" Margin="0,6,10,0" VerticalAlignment="Top"
+                     Fill="{DynamicResource StatusBad}" />
+            <SelectableTextBlock Text="{TemplateBinding Text}" FontSize="{DynamicResource NoteSize}"
+                                 TextWrapping="Wrap" />
+          </DockPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
   <ControlTheme x:Key="{x:Type c:StatusPill}" TargetType="c:StatusPill">
     <Setter Property="Height" Value="22" />
     <Setter Property="VerticalAlignment" Value="Top" />
@@ -53,7 +70,7 @@
     </Setter>
   </ControlTheme>
 
-  <!-- 2x2 tiles, 13 wide with a 2 gutter, on a 32 grid. Same proportions as the app icon. -->
+  <!-- 2x2 tiles, 13 wide with a 2 gutter, on a 32 grid, as in mosaic-256.png -->
   <ControlTheme x:Key="{x:Type c:MosaicMark}" TargetType="c:MosaicMark">
     <Setter Property="Width" Value="26" />
     <Setter Property="Height" Value="26" />

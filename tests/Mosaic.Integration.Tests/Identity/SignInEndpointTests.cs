@@ -83,7 +83,7 @@ public sealed class SignInEndpointTests(PostgresFixture postgres, ApiFactory fac
         return email;
     }
 
-    // found by the hash of the token, the way every signed-in request will find it
+    // found by the hash of the token, the way every signed-in request finds it
     private async Task<SessionToken> FindSession(string token)
     {
         var hash = SessionTokenFormat.HashOf(token);

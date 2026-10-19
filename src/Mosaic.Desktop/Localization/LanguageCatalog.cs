@@ -2,9 +2,8 @@
 
 public sealed record LanguageOption(string Code, string NativeName, bool IsRightToLeft);
 
-// Hand-written, not discovered from the embedded json: GetCultureInfo throws with
-// InvariantGlobalization on, which is how a trimmed build ends up English-only with an empty picker.
-// Order is the picker order. TranslationDriftTests keeps this and the Strings.<code>.json files in sync.
+// Hand-written in picker order: naming languages found in the embedded json would need GetCultureInfo,
+// which throws when InvariantGlobalization is on.
 public static class LanguageCatalog
 {
     public const string DefaultCode = "en";

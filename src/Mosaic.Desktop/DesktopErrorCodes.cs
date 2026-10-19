@@ -9,4 +9,5 @@ public static class DesktopErrorCodes
     public const string ApiAddressInvalid = "client.api_address_invalid";
     public const string NotSignedIn = "client.not_signed_in";
     public const string NotAllowed = "client.not_allowed";
+    public const string PasswordsDiffer = "client.passwords_differ";
 }

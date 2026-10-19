@@ -16,7 +16,6 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, string connectionString, string setupTokenPath)
     {
         services.TryAddSingleton(TimeProvider.System);
-        // AddMosaicPro appends its own source after this call.
         services.AddSingleton<IPermissionSource, CorePermissionSource>();
         services.AddSingleton<PermissionRegistry>();
         services.AddSingleton<UpdatedAtInterceptor>();
@@ -34,11 +33,11 @@ public static class DependencyInjection
         services.AddSingleton<RegisterRequestValidator>();
         services.AddSingleton<ISetupToken>(provider =>
             new SetupTokenFile(setupTokenPath, provider.GetRequiredService<ILogger<SetupTokenFile>>()));
+        services.AddScoped<GetRules>();
         services.AddScoped<RegisterUser>();
         services.AddScoped<SignInUser>();
         services.AddScoped<CheckSession>();
         services.AddScoped<GetSession>();
-        services.AddScoped<RotateSession>();
         services.AddScoped<SignOutUser>();
         services.AddScoped<SignOutEverywhere>();
 

@@ -17,8 +17,7 @@ public sealed class Role : SoftDeletableEntity
 
     public IReadOnlyList<Permission> Permissions => _permissions;
 
-    // Set only on roles that pro seeds. Reseeding finds its rows by this key rather than by name, so an
-    // owner-made role that happens to share the name is left alone.
+    // Set only by pro's seeding, which finds its roles by this key so an owner's role with the same name is left alone.
     public string? SeedKey { get; private set; }
 
     public static Role Create(

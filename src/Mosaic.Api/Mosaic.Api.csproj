@@ -6,7 +6,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- ModelStateEnvelopeTests builds an ActionContext directly, no server involved -->
     <InternalsVisibleTo Include="Mosaic.Integration.Tests" />
   </ItemGroup>
 

@@ -1,16 +1,15 @@
+using Microsoft.EntityFrameworkCore;
 using Mosaic.Application.Persistence;
 
 namespace Mosaic.Application.Identity;
 
-public sealed class SignOutUser(IManagementDbContext database, TimeProvider clock)
+public sealed class SignOutUser(IManagementDbContext database)
 {
     public async Task HandleAsync(Guid sessionId, CancellationToken cancellationToken)
     {
-        // CheckSession loaded this row earlier in the same request, so Find returns it without a query
-        var session = await database.SessionTokens.FindAsync([sessionId], cancellationToken)
-            ?? throw new InvalidOperationException($"Session {sessionId} passed the session check but was not found.");
-
-        // the whole family ends, so a replaced row of this sign-in that is still inside its grace stops too
-        await SessionFamily.EndAsync(database, session.FamilyId, clock.GetUtcNow(), cancellationToken);
+        // a statement that may delete nothing, so a second sign-out at the same moment does not fail
+        await database.SessionTokens
+            .Where(session => session.Id == sessionId)
+            .ExecuteDeleteAsync(cancellationToken);
     }
 }

@@ -4,8 +4,7 @@ using Mosaic.Desktop.Localization;
 
 namespace Mosaic.Desktop.Shell.Navigation;
 
-// What the sidebar binds to. Built by NavBuilder from a contribution this user may see, with the
-// label already translated. It never translates and never holds a screen.
+// What the sidebar binds to, built by NavBuilder with the label already translated.
 public sealed partial class NavEntry(NavContribution contribution, string label, IReadOnlyList<NavEntry> children)
     : ObservableObject
 {

@@ -28,8 +28,7 @@ public sealed partial class TranslationDriftTests
         Assert.Contains(LanguageCatalog.Available, language => language.Code == LanguageCatalog.DefaultCode);
     }
 
-    // The catalog is hand-written now. A json file nobody declared would never reach the picker,
-    // and a declared language with no file would render as bare keys.
+    // an undeclared json file never reaches the picker, and a declared language with no file shows bare keys
     [Fact]
     public void TheEmbeddedFilesAreExactlyTheDeclaredLanguages()
     {
@@ -94,7 +93,7 @@ public sealed partial class TranslationDriftTests
 
         foreach (var (key, text) in Strings(code))
         {
-            // missing keys are reported by EveryLanguageCarriesTheSameKeysAsEnglish
+            // a key English lacks is reported by EveryLanguageCarriesTheSameKeysAsEnglish
             if (!english.TryGetValue(key, out var source))
             {
                 continue;
@@ -204,7 +203,7 @@ public sealed partial class TranslationDriftTests
         Assert.True(missing.Count == 0, $"No translation for: {string.Join("; ", missing)}");
     }
 
-    // the other direction: nothing unused in the json. Also the only check that sees keys referenced through a const.
+    // the reverse check; it matches the quoted key anywhere in src, so a key held in a const counts as asked for
     [Fact]
     public void EveryEnglishKeyIsAskedForSomewhere()
     {

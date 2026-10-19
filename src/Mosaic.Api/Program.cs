@@ -19,7 +19,7 @@ builder.Services.AddInfrastructure(
     ?? throw new InvalidOperationException(
         "ConnectionStrings:Management is not configured. appsettings.Development.json carries the "
         + "local one; elsewhere it arrives as the ConnectionStrings__Management variable."),
-    // the installer points this at a volume, so a recreated container keeps the token the operator copied
+    // the default is next to the API, so a recreated container writes a new token and the copied one stops working
     builder.Configuration["Setup:TokenPath"] ?? Path.Combine(builder.Environment.ContentRootPath, "setup-token"));
 
 builder.Services.AddApiVersioning(options =>
@@ -31,7 +31,6 @@ builder.Services.AddApiVersioning(options =>
 
 builder.Services.AddControllers(options => options.Filters.Add(new ResponseCacheAttribute { NoStore = true }))
     .AddJsonOptions(options => MosaicJson.ApplyTo(options.JsonSerializerOptions))
-    // otherwise [ApiController] answers a failed model check with ProblemDetails, outside the envelope
     .ConfigureApiBehaviorOptions(options => options.InvalidModelStateResponseFactory = ModelStateEnvelope.Build);
 
 builder.Services.AddOpenApi();
@@ -52,7 +51,7 @@ builder.Services.AddProblemDetails();
 
 var app = builder.Build();
 
-// everything after it reads the client's address, the rate limiter first
+// before the rate limiter, which would otherwise count every client behind a proxy as the proxy
 app.UseForwardedHeaders();
 app.UseExceptionHandler();
 app.UseAuthentication();
@@ -61,7 +60,6 @@ app.UseAuthentication();
 app.UseRateLimiter();
 app.UseAuthorization();
 
-// don't expose the API description in production
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi().AllowAnonymous();

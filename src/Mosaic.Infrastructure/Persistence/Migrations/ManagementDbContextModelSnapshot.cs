@@ -100,22 +100,6 @@ namespace Mosaic.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("expires_at");
 
-                    b.Property<Guid>("FamilyId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("family_id");
-
-                    b.Property<DateTimeOffset>("LastUsedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_used_at");
-
-                    b.Property<Guid?>("ReplacesId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("replaces_id");
-
-                    b.Property<DateTimeOffset?>("RevokedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("revoked_at");
-
                     b.Property<Guid>("SecurityStamp")
                         .HasColumnType("uuid")
                         .HasColumnName("security_stamp");
@@ -135,13 +119,6 @@ namespace Mosaic.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_session_tokens");
-
-                    b.HasIndex("FamilyId")
-                        .HasDatabaseName("ix_session_tokens_family_id");
-
-                    b.HasIndex("ReplacesId")
-                        .IsUnique()
-                        .HasDatabaseName("ix_session_tokens_replaces_id");
 
                     b.HasIndex("TokenHash")
                         .IsUnique()
@@ -260,11 +237,6 @@ namespace Mosaic.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<string>("RegistrationPolicy")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("registration_policy");
-
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
@@ -274,8 +246,6 @@ namespace Mosaic.Infrastructure.Persistence.Migrations
 
                     b.ToTable("instance_settings", null, t =>
                         {
-                            t.HasCheckConstraint("ck_instance_settings_registration_policy", "registration_policy IN ('Closed', 'Open')");
-
                             t.HasCheckConstraint("ck_instance_settings_single_row", "id = 1");
                         });
                 });
@@ -301,18 +271,6 @@ namespace Mosaic.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Mosaic.Domain.Identity.SessionToken", b =>
                 {
-                    b.HasOne("Mosaic.Domain.Identity.SessionToken", null)
-                        .WithMany()
-                        .HasForeignKey("FamilyId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("fk_session_tokens_session_tokens_family_id");
-
-                    b.HasOne("Mosaic.Domain.Identity.SessionToken", null)
-                        .WithMany()
-                        .HasForeignKey("ReplacesId")
-                        .HasConstraintName("fk_session_tokens_session_tokens_replaces_id");
-
                     b.HasOne("Mosaic.Domain.Identity.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")

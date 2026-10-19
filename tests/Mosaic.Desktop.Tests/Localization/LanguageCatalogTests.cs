@@ -36,7 +36,6 @@ public sealed class LanguageCatalogTests
         Assert.Equal("en", LanguageCatalog.Resolve(preferred).Code);
     }
 
-    // Runs at startup, must not throw.
     [Fact]
     public void Load_ForALanguageWithNoFileBehindIt_StillLoads()
     {

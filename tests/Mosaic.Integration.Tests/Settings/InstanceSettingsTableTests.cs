@@ -24,7 +24,6 @@ public sealed class InstanceSettingsTableTests(PostgresFixture postgres)
         var settings = await Context(scope).InstanceSettings.SingleAsync(Token);
 
         Assert.Equal(InstanceSettings.SingleRowId, settings.Id);
-        Assert.Equal(RegistrationPolicy.Closed, settings.RegistrationPolicy);
         Assert.Equal(Now, settings.CreatedAt);
         Assert.Null(settings.UpdatedAt);
     }
@@ -46,20 +45,9 @@ public sealed class InstanceSettingsTableTests(PostgresFixture postgres)
         await Empty();
 
         var refused = await Assert.ThrowsAsync<PostgresException>(() => Execute(
-            "INSERT INTO instance_settings (id, registration_policy, created_at) VALUES (2, 'Closed', now())"));
+            "INSERT INTO instance_settings (id, created_at) VALUES (2, now())"));
 
         AssertViolates(refused, PostgresErrorCodes.CheckViolation, "ck_instance_settings_single_row");
-    }
-
-    [Fact]
-    public async Task APolicyThatIsNotAMember_IsRefusedByTheCheck()
-    {
-        await Empty();
-
-        var refused = await Assert.ThrowsAsync<PostgresException>(() => Execute(
-            "INSERT INTO instance_settings (id, registration_policy, created_at) VALUES (1, 'Invited', now())"));
-
-        AssertViolates(refused, PostgresErrorCodes.CheckViolation, "ck_instance_settings_registration_policy");
     }
 
     [Fact]
@@ -74,7 +62,7 @@ public sealed class InstanceSettingsTableTests(PostgresFixture postgres)
             var settings = await context.InstanceSettings.SingleAsync(Token);
 
             // InstanceSettings has no method that changes it, so the change goes through the change tracker
-            context.Entry(settings).Property(row => row.RegistrationPolicy).CurrentValue = RegistrationPolicy.Open;
+            context.Entry(settings).Property(row => row.CreatedAt).CurrentValue = Now.AddMinutes(1);
 
             await context.SaveChangesAsync(Token);
         }

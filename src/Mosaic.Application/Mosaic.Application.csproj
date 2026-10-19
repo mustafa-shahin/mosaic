@@ -7,7 +7,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- PasswordHasherTests and SignInUserTests use the internal cheap-cost constructor -->
     <InternalsVisibleTo Include="Mosaic.Application.Tests" />
     <InternalsVisibleTo Include="Mosaic.Integration.Tests" />
   </ItemGroup>

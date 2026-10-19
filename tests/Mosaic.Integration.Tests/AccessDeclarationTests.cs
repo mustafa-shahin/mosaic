@@ -5,12 +5,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Mosaic.Api.Authorization;
 using Mosaic.Api.Controllers.Health;
+using Mosaic.Api.Controllers.Identity;
 
 namespace Mosaic.Integration.Tests;
 
 public sealed class AccessDeclarationTests(ApiFactory factory) : IClassFixture<ApiFactory>
 {
-    // [RequirePermission] and [RequireOwner] join these when the first action needs them
+    // a rule attribute missing from this list makes every action that uses it fail as undeclared
     private static readonly Type[] AccessRules = [typeof(AllowAnonymousAttribute), typeof(AllowAnySignedInAttribute)];
 
     private static CancellationToken Token => TestContext.Current.CancellationToken;
@@ -34,7 +35,7 @@ public sealed class AccessDeclarationTests(ApiFactory factory) : IClassFixture<A
         Assert.Empty(undeclared);
     }
 
-    // health costs no hash and an outside monitor calls it, so the address's bucket is its only limit
+    // health and the rules cost no hash and take no input to guess, so the address's bucket is their only limit
     [Fact]
     public void EveryAnonymousAction_NamesAStrictLimit()
     {
@@ -44,7 +45,8 @@ public sealed class AccessDeclarationTests(ApiFactory factory) : IClassFixture<A
         {
             if (action.GetCustomAttribute<AllowAnonymousAttribute>() is not null
                 && action.GetCustomAttribute<EnableRateLimitingAttribute>() is null
-                && action.DeclaringType != typeof(HealthController))
+                && action.DeclaringType != typeof(HealthController)
+                && !(action.DeclaringType == typeof(AuthController) && action.Name == nameof(AuthController.Rules)))
             {
                 unlimited.Add($"{action.DeclaringType!.Name}.{action.Name}");
             }

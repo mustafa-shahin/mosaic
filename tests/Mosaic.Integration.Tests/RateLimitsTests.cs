@@ -169,7 +169,7 @@ public sealed class RateLimitsTests(ApiFactory factory) : IClassFixture<ApiFacto
         return context;
     }
 
-    // the identity the authentication handler builds, without a database behind it
+    // only the NameIdentifier claim PersonKey reads, with no session or database behind it
     private static DefaultHttpContext SignedIn(Guid userId, IPAddress address)
     {
         var context = Anonymous(address);

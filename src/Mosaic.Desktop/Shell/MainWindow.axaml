@@ -1,12 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:shell="using:Mosaic.Desktop.Shell"
         x:Class="Mosaic.Desktop.Shell.MainWindow"
-        x:DataType="shell:ShellViewModel"
-        mc:Ignorable="d"
-        Design.DataContext="{x:Static shell:ShellDesignData.Default}"
+        x:DataType="shell:MainWindowViewModel"
         Title="{Binding Strings[app.title]}"
         Icon="/Assets/mosaic-256.png"
         FlowDirection="{Binding Strings.FlowDirection}"
@@ -15,23 +11,6 @@
         MinWidth="960" MinHeight="600"
         WindowStartupLocation="CenterScreen">
 
-  <Grid ColumnDefinitions="264,*">
+  <ContentControl Content="{Binding Current}" />
 
-    <shell:SidebarView Grid.Column="0" />
-
-    <DockPanel Grid.Column="1" LastChildFill="True">
-
-      <Border DockPanel.Dock="Top" Height="{DynamicResource HeaderHeight}"
-              BorderBrush="{DynamicResource HairlineFaint}" BorderThickness="0,0,0,1"
-              Padding="24,0">
-        <SelectableTextBlock Classes="title" Text="{Binding Title}" VerticalAlignment="Center" />
-      </Border>
-
-      <ScrollViewer Padding="24">
-        <ContentControl Content="{Binding Current}" HorizontalAlignment="Stretch" />
-      </ScrollViewer>
-
-    </DockPanel>
-
-  </Grid>
 </Window>

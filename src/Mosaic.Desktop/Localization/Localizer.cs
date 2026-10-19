@@ -5,7 +5,7 @@ using Mosaic.Contracts;
 
 namespace Mosaic.Desktop.Localization;
 
-// One per language, immutable. Switching language rebuilds the shell with a new one (see App).
+// One per language, immutable. Switching language rebuilds the shell with a new one (see MainWindowViewModel).
 public sealed class Localizer
 {
     private static readonly Dictionary<string, string> None = [];
@@ -25,7 +25,7 @@ public sealed class Localizer
 
     public bool Has(string key) => _strings.ContainsKey(key);
 
-    // a missing key shows up as the key itself, TranslationDriftTests should catch that
+    // a missing key shows up as the key itself; the drift tests check only literal keys, error codes and nav keys
     public string Translate(string key, IReadOnlyDictionary<string, string>? parameters = null)
     {
         var text = _strings.TryGetValue(key, out var found) ? found : key;
@@ -33,7 +33,7 @@ public sealed class Localizer
         return parameters is null ? text : Fill(text, parameters);
     }
 
-    // unknown code -> generic message. We never display the server's own message text.
+    // unknown code -> generic message. The server's own message text is never shown.
     public string TranslateCode(string code, IReadOnlyDictionary<string, string>? parameters = null) =>
         Translate(Has(code) ? code : ErrorCodes.Unexpected, parameters);
 

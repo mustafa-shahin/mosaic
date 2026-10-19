@@ -61,7 +61,7 @@ internal static class CommonPasswords
     // the list was built with the same two steps, so it only matches text folded this way
     private static string Fold(string text) => text.Normalize(NormalizationForm.FormC).ToLowerInvariant();
 
-    // digits, symbols and spaces around a word do not hide it, "Mosaic2026!" is still "mosaic"
+    // digits, symbols and spaces around a word do not hide it, "mosaic 2026!" is still "mosaic"
     private static string Core(string text)
     {
         // start is the first character kept and end is one past the last, so at first the whole text is kept

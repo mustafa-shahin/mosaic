@@ -8,26 +8,25 @@ public sealed class UserTests
 {
     private static readonly DateTimeOffset Now = new(2026, 9, 7, 12, 0, 0, TimeSpan.Zero);
 
-    private static User NewUser() => User.Register("ada@example.com", "Ada", "Lovelace", "hash", null, Now);
+    // not an owner, because an owner passes every permission check whatever the roles grant
+    private static User NewUser()
+    {
+        var user = User.CreateOwner("ada@example.com", "Ada", "Lovelace", "hash", Now);
+
+        user.SetOwner(false);
+
+        return user;
+    }
 
     private static Role RoleWith(string name, params Permission[] permissions)
         => Role.Create(name, null, permissions, Now);
 
-    [Fact]
-    public void Register_LandsInactiveAndNotAnOwner()
-    {
-        var user = NewUser();
-
-        Assert.False(user.IsActive);
-        Assert.False(user.IsOwner);
-    }
-
     [Theory]
     [InlineData("  Ada@Example.COM  ", "ada@example.com")]
     [InlineData("ADA@EXAMPLE.COM", "ada@example.com")]
-    public void Register_NormalisesTheEmail(string entered, string stored)
+    public void CreateOwner_NormalisesTheEmail(string entered, string stored)
     {
-        Assert.Equal(stored, User.Register(entered, " Ada ", " Lovelace ", "hash", null, Now).Email);
+        Assert.Equal(stored, User.CreateOwner(entered, " Ada ", " Lovelace ", "hash", Now).Email);
     }
 
     [Fact]
@@ -40,19 +39,13 @@ public sealed class UserTests
     }
 
     [Fact]
-    public void Register_GivesEachUserTheirOwnStamp()
+    public void CreateOwner_GivesEachUserTheirOwnStamp()
     {
-        var first = NewUser();
-        var second = NewUser();
+        var first = User.CreateOwner("ada@example.com", "Ada", "Lovelace", "hash", Now);
+        var second = User.CreateOwner("ada@example.com", "Ada", "Lovelace", "hash", Now);
 
         Assert.NotEqual(Guid.Empty, first.SecurityStamp);
         Assert.NotEqual(first.SecurityStamp, second.SecurityStamp);
-    }
-
-    [Fact]
-    public void CreateOwner_GetsAStampToo()
-    {
-        Assert.NotEqual(Guid.Empty, User.CreateOwner("ada@example.com", "Ada", "Lovelace", "hash", Now).SecurityStamp);
     }
 
     [Fact]
@@ -66,7 +59,6 @@ public sealed class UserTests
         Assert.NotEqual(before, user.SecurityStamp);
     }
 
-    // a cost upgrade happens at sign-in, so rotating here would end every other session on each login
     [Fact]
     public void UpgradePasswordHash_KeepsTheStamp()
     {
@@ -126,7 +118,7 @@ public sealed class UserTests
         Assert.NotEqual(before, user.SecurityStamp);
     }
 
-    // none of these should sign anyone out: approval and roles are re-read on every request
+    // none of these should sign anyone out: every signed-in request reads IsActive, and a session holds no roles
     [Fact]
     public void RoutineChanges_KeepTheStamp()
     {
@@ -318,9 +310,8 @@ public sealed class UserTests
         Assert.Null(user.DeletedByUserId);
     }
 
-    // SoftDelete and Deactivate are independent: a pending registration is inactive but present
     [Fact]
-    public void SoftDelete_DoesNotTouchTheApprovalState()
+    public void SoftDelete_DoesNotTouchIsActive()
     {
         var owner = User.CreateOwner("ada@example.com", "Ada", "Lovelace", "hash", Now);
 

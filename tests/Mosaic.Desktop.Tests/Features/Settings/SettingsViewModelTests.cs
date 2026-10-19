@@ -1,6 +1,9 @@
+using System.Net;
+using Mosaic.Contracts;
 using Mosaic.Desktop.Features.Settings;
 using Mosaic.Desktop.Localization;
 using Mosaic.Desktop.Services;
+using Mosaic.Desktop.Services.Identity;
 
 namespace Mosaic.Desktop.Tests.Features.Settings;
 
@@ -9,15 +12,26 @@ public sealed class SettingsViewModelTests : IDisposable
     private readonly string _folder = Path.Combine(Path.GetTempPath(), "mosaic-tests", Guid.CreateVersion7().ToString());
 
     private readonly Localizer _strings = Localizer.Load(LanguageCatalog.Resolve("en"));
+    private readonly CurrentSession _session = new();
     private readonly SettingsViewModel _settings;
 
     public SettingsViewModelTests()
     {
-        _settings = new SettingsViewModel(_strings, new SettingsStore(_folder));
+        _settings = new SettingsViewModel(_strings, new SettingsStore(_folder), SignOutOver(new NeverRespondingHandler()));
     }
 
+    private SignOut SignOutOver(HttpMessageHandler handler) =>
+        new(new AuthApi(new ApiClient(new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5175/") }, _session)), _session);
+
     // simulates a restart or shell rebuild
-    private SettingsViewModel Reopened() => new(_strings, new SettingsStore(_folder));
+    private SettingsViewModel Reopened() => new(_strings, new SettingsStore(_folder), SignOutOver(new NeverRespondingHandler()));
+
+    private SettingsViewModel SignedInWith(HttpMessageHandler server)
+    {
+        _session.Start(SignInResults.Ada());
+
+        return new SettingsViewModel(_strings, new SettingsStore(_folder), SignOutOver(server));
+    }
 
     private DesktopSettings Stored() => new SettingsStore(_folder).Read();
 
@@ -33,8 +47,7 @@ public sealed class SettingsViewModelTests : IDisposable
         Assert.Equal("en", _settings.SelectedLanguage!.Code);
     }
 
-    // The constructor assigns through the setter, and the setter is what remembers a choice. On a first
-    // run the language in force is the OS's, and writing it would turn that guess into a decision.
+    // While nothing is stored, each start follows the OS language, so building the view model must not store it.
     [Fact]
     public void Construct_WritesNothing_SinceStartingUpIsNotChoosing()
     {
@@ -106,6 +119,53 @@ public sealed class SettingsViewModelTests : IDisposable
 
         Assert.Equal(Appearances.Light, Stored().Appearance);
         Assert.Equal("de", Stored().LanguageCode);
+    }
+
+    [Fact]
+    public async Task SignOutEverywhere_WhenTheServerConfirms_EndsTheSessionAndShowsNoError()
+    {
+        var settings = SignedInWith(new RecordingHandler(HttpStatusCode.OK, """{"success":true}"""));
+
+        await settings.SignOutEverywhereCommand.ExecuteAsync(null);
+
+        Assert.Null(_session.Current);
+        Assert.False(settings.HasError);
+    }
+
+    [Fact]
+    public async Task SignOutEverywhere_WhenTheServerFails_KeepsTheSessionAndShowsWhy()
+    {
+        var settings = SignedInWith(new CannedResponseHandler(HttpStatusCode.InternalServerError, """{"error":{"code":"error.unexpected"}}"""));
+
+        await settings.SignOutEverywhereCommand.ExecuteAsync(null);
+
+        Assert.NotNull(_session.Current);
+        Assert.Equal(ErrorCodes.Unexpected, settings.ErrorCode);
+        Assert.Equal(_strings.Translate(ErrorCodes.Unexpected), settings.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task SignOutEverywhere_ClearsTheReasonOfTheLastAttemptFirst()
+    {
+        var settings = SignedInWith(new RecordingHandler(HttpStatusCode.OK, """{"success":true}"""));
+
+        settings.ErrorCode = DesktopErrorCodes.ApiUnreachable;
+
+        await settings.SignOutEverywhereCommand.ExecuteAsync(null);
+
+        Assert.Null(settings.ErrorCode);
+    }
+
+    // the button is bound to the command, so this is what shows the person that it is still waiting
+    [Fact]
+    public void SignOutEverywhere_WhileTheServerHasNotAnswered_CannotStartASecond()
+    {
+        var settings = SignedInWith(new NeverRespondingHandler());
+
+        settings.SignOutEverywhereCommand.Execute(null);
+
+        Assert.True(settings.SignOutEverywhereCommand.IsRunning);
+        Assert.False(settings.SignOutEverywhereCommand.CanExecute(null));
     }
 
     public void Dispose()

@@ -230,11 +230,11 @@ public sealed class SignInUserTests(PostgresFixture postgres) : IDisposable
     private async Task<string> Seed(bool active = true, PasswordHasher? hasher = null)
     {
         var email = UniqueEmail();
-        var user = User.Register(email, "Ada", "Lovelace", await (hasher ?? _hasher).HashAsync(Password, Token), null, _clock.Now);
+        var user = User.CreateOwner(email, "Ada", "Lovelace", await (hasher ?? _hasher).HashAsync(Password, Token), _clock.Now);
 
-        if (active)
+        if (!active)
         {
-            user.Activate();
+            user.Deactivate();
         }
 
         await using var scope = postgres.CreateScope();
@@ -270,7 +270,7 @@ public sealed class SignInUserTests(PostgresFixture postgres) : IDisposable
         return await Context(scope).Users.IgnoreQueryFilters().SingleAsync(user => user.Email == email, Token);
     }
 
-    // found by the hash of the token, the way every signed-in request will find it
+    // found by the hash of the token, the way every signed-in request finds it
     private async Task<SessionToken> FindSession(string token)
     {
         var hash = SessionTokenFormat.HashOf(token);

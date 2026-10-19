@@ -9,7 +9,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- PermissionBoundaryTests uses the internal PermissionListConverter -->
     <InternalsVisibleTo Include="Mosaic.Integration.Tests" />
   </ItemGroup>
 
