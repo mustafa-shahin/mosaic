@@ -1,8 +1,6 @@
 namespace Mosaic.Domain.Errors;
 
-// Expected failures as opposed to bugs. The client translates Code itself, Detail is only there
-// for debugging and is never shown to the user.
-// No status code here: which HTTP status a kind maps to is the API's decision, see MosaicExceptionHandler.
+// For expected failures: the client translates Code, and Detail is for debugging and never shown to a user.
 public abstract class MosaicException(
     string code,
     string? detail = null,
@@ -24,6 +22,19 @@ public sealed class NotFoundException(
     : MosaicException(code, detail, parameters);
 
 public sealed class InvalidRequestException(
+    string code,
+    string? detail = null,
+    IReadOnlyDictionary<string, string>? parameters = null)
+    : MosaicException(code, detail, parameters);
+
+public sealed class NotPermittedException(
+    string code,
+    string? detail = null,
+    IReadOnlyDictionary<string, string>? parameters = null)
+    : MosaicException(code, detail, parameters);
+
+// the server itself cannot take the request now, nothing about it was wrong
+public sealed class UnavailableException(
     string code,
     string? detail = null,
     IReadOnlyDictionary<string, string>? parameters = null)

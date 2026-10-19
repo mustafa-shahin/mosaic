@@ -1,0 +1,83 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Mosaic.Desktop.Shell.FirstRun"
+             xmlns:c="using:Mosaic.Desktop.Controls"
+             x:Class="Mosaic.Desktop.Shell.FirstRun.FirstRunView"
+             x:DataType="vm:FirstRunViewModel"
+             mc:Ignorable="d" d:DesignWidth="1360" d:DesignHeight="816"
+             Design.DataContext="{x:Static vm:FirstRunDesignData.Refused}">
+
+  <Panel>
+
+    <!-- taller than the smallest window, and the presenter still centres it when it fits -->
+    <ScrollViewer Name="Scroller">
+      <StackPanel Width="400" Spacing="24" Margin="0,32" HorizontalAlignment="Center" VerticalAlignment="Center">
+
+        <StackPanel Spacing="10" HorizontalAlignment="Center">
+          <c:MosaicMark Width="30" Height="30" HorizontalAlignment="Center" />
+          <TextBlock Classes="title" Text="{Binding Strings[first_run.title]}" HorizontalAlignment="Center" />
+          <TextBlock Classes="note" Text="{Binding Strings[first_run.owner_note]}" TextAlignment="Center" />
+        </StackPanel>
+
+        <StackPanel Spacing="16">
+
+          <c:ErrorBox IsVisible="{Binding HasError}" Text="{Binding ErrorMessage}" />
+
+          <StackPanel Spacing="6">
+            <TextBlock Classes="caption" Text="{Binding Strings[first_run.setup_token]}" />
+            <TextBox Name="SetupTokenBox" FontFamily="{DynamicResource MonoFont}" Text="{Binding SetupToken.Value}" />
+            <TextBlock Classes="note" IsVisible="{Binding !SetupToken.HasError}"
+                       Text="{Binding Strings[first_run.setup_token_help]}" />
+            <TextBlock Classes="fieldError" IsVisible="{Binding SetupToken.HasError}" Text="{Binding SetupToken.Error}" />
+          </StackPanel>
+
+          <StackPanel Spacing="6">
+            <TextBlock Classes="caption" Text="{Binding Strings[first_run.email]}" />
+            <TextBox Name="EmailBox" Text="{Binding Email.Value}" />
+            <TextBlock Classes="fieldError" IsVisible="{Binding Email.HasError}" Text="{Binding Email.Error}" />
+          </StackPanel>
+
+          <Grid ColumnDefinitions="*,12,*">
+            <StackPanel Grid.Column="0" Spacing="6">
+              <TextBlock Classes="caption" Text="{Binding Strings[first_run.first_name]}" />
+              <TextBox Name="FirstNameBox" Text="{Binding FirstName.Value}" />
+              <TextBlock Classes="fieldError" IsVisible="{Binding FirstName.HasError}" Text="{Binding FirstName.Error}" />
+            </StackPanel>
+            <StackPanel Grid.Column="2" Spacing="6">
+              <TextBlock Classes="caption" Text="{Binding Strings[first_run.last_name]}" />
+              <TextBox Name="LastNameBox" Text="{Binding LastName.Value}" />
+              <TextBlock Classes="fieldError" IsVisible="{Binding LastName.HasError}" Text="{Binding LastName.Error}" />
+            </StackPanel>
+          </Grid>
+
+          <StackPanel Spacing="6">
+            <TextBlock Classes="caption" Text="{Binding Strings[first_run.password]}" />
+            <TextBox Name="PasswordBox" Classes="revealPasswordButton" PasswordChar="•"
+                     Text="{Binding Password.Value}" />
+            <TextBlock Classes="note" IsVisible="{Binding !Password.HasError}" Text="{Binding PasswordGuidance}" />
+            <TextBlock Classes="fieldError" IsVisible="{Binding Password.HasError}" Text="{Binding Password.Error}" />
+          </StackPanel>
+
+          <StackPanel Spacing="6">
+            <TextBlock Classes="caption" Text="{Binding Strings[first_run.repeat_password]}" />
+            <TextBox Name="RepeatPasswordBox" Classes="revealPasswordButton" PasswordChar="•"
+                     Text="{Binding RepeatPassword.Value}" />
+            <TextBlock Classes="fieldError" IsVisible="{Binding RepeatPassword.HasError}"
+                       Text="{Binding RepeatPassword.Error}" />
+          </StackPanel>
+
+          <Button Classes="primary" Margin="0,4,0,0" HorizontalAlignment="Stretch"
+                  Content="{Binding Strings[first_run.submit]}"
+                  Command="{Binding CreateCommand}" IsDefault="True" />
+
+        </StackPanel>
+      </StackPanel>
+    </ScrollViewer>
+
+    <SelectableTextBlock Classes="mono" Text="{Binding Server}" Margin="24,0,0,20"
+                         HorizontalAlignment="Left" VerticalAlignment="Bottom" />
+
+  </Panel>
+</UserControl>

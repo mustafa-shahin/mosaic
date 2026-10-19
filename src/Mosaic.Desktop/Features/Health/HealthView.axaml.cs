@@ -9,9 +9,8 @@ public partial class HealthView : UserControl
         InitializeComponent();
     }
 
-    // Off the DataContext rather than Loaded: the content presenter recycles a view whose template
-    // still matches, so a fresh view model can arrive in a view that is already loaded. This fires
-    // for a new view and again for a recycled one, and a check already running is left alone.
+    // On DataContext and not on Loaded: the content presenter reuses a view whose template still matches,
+    // so a new view model can arrive in an already loaded view, where Loaded does not fire again.
     protected override void OnDataContextChanged(EventArgs e)
     {
         base.OnDataContextChanged(e);

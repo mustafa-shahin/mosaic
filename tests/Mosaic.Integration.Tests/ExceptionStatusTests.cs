@@ -6,8 +6,7 @@ using Mosaic.Domain.Errors;
 
 namespace Mosaic.Integration.Tests;
 
-// The domain names the kind of a refusal and the handler alone decides the status, so a new kind
-// with no line in StatusFor would answer 500 and look like a bug. This walks both assemblies.
+// A refusal kind with no line in StatusFor would answer 500 and look like a server bug.
 public sealed class ExceptionStatusTests
 {
     [Fact]

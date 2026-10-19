@@ -1,10 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- NU1608: FluentIcons.Avalonia wants Common 2.1.339 exactly and we override it, see Directory.Packages.props -->
+    <!-- NU1608: FluentIcons.Avalonia wants Common 2.1.339 exactly and Directory.Packages.props overrides it -->
     <NoWarn>$(NoWarn);NU1608</NoWarn>
-    <!-- Avalonia.props defaults this to true and AvaloniaBuildTasks.targets to false. Left unsaid, a
-         change in import order would silently drop every binding back to reflection. -->
+    <!-- Avalonia.props defaults this to true and AvaloniaBuildTasks.targets to false, so without this line
+         a change in import order would drop every binding back to reflection without a warning. -->
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
 
@@ -23,19 +23,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- NavBuilder is internal so pro cannot call it, but its rules are what the tests check -->
+    <!-- NavBuilder is internal so pro cannot call it; the tests check it and the internal design data -->
     <InternalsVisibleTo Include="Mosaic.Desktop.Tests" />
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Contracts and nothing else: the desktop computes no business fact, and this line enforces it. -->
+    <!-- Contracts and nothing else, so the desktop cannot call Domain or Application code. -->
     <ProjectReference Include="..\Mosaic.Contracts\Mosaic.Contracts.csproj" />
   </ItemGroup>
 
   <!-- breaks the build on a FluentIcons bump so the Common override gets re-checked -->
   <Target Name="FluentIconsOverrideStillNeeded" BeforeTargets="Build">
-    <Error Condition="'$(FluentIconsVersion)' != '2.1.339'"
-           Text="FluentIcons moved off 2.1.339. Check whether FluentIcons.Common still throws from its static initializer on .NET 10. If it is fixed, drop the .1 suffix on its PackageVersion and the NU1608 suppression above." />
+    <Error Condition="'$(FluentIconsVersion)' != '2.1.339'" Text="FluentIcons moved off 2.1.339. Check whether FluentIcons.Common still throws from its static initializer on .NET 10. If it is fixed, drop the .1 suffix on its PackageVersion and the NU1608 suppression above." />
   </Target>
 
   <ItemGroup>
@@ -43,9 +42,9 @@
     <EmbeddedResource Include="Localization\*.json" WithCulture="false" />
     <!-- .ico is not listed: Mosaic.Desktop.App points ApplicationIcon straight at the file. -->
     <AvaloniaResource Include="Assets\*.png" />
-    <!-- Arabic fallback for Inter, see DesktopHost.cs. -->
+    <!-- Noto is the Arabic fallback for Inter, see DesktopHost.cs. Cascadia Mono is MonoFont in Atelier.axaml. -->
     <AvaloniaResource Include="Assets\Fonts\*.ttf" />
-    <!-- OFL wants the licence text shipped with the font. The ttf is inside the assembly, so copy the file next to the exe. -->
+    <!-- OFL wants the licence text shipped with the fonts. The ttf files are inside the assembly, so copy the file next to the exe. -->
     <Content Include="Assets\Fonts\OFL.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

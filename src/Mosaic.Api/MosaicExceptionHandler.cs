@@ -63,7 +63,7 @@ public sealed partial class MosaicExceptionHandler(
             };
         }
 
-        // the middleware doesn't log exceptions we report as handled, so we have to
+        // the middleware logs no exception that a handler reports as handled
         LogUnhandled(logger, exception);
 
         return new ApiError
@@ -74,13 +74,14 @@ public sealed partial class MosaicExceptionHandler(
         };
     }
 
-    // The domain names the kind of a refusal; which status that is on the wire is decided here and
-    // nowhere else. A new kind gets a line, and ExceptionStatusTests notices when it is forgotten.
+    // a MosaicException kind with no line here answers 500, and ExceptionStatusTests fails on it
     internal static int StatusFor(Exception exception) => exception switch
     {
         ValidationException => StatusCodes.Status400BadRequest,
         InvalidRequestException => StatusCodes.Status400BadRequest,
+        NotPermittedException => StatusCodes.Status403Forbidden,
         NotFoundException => StatusCodes.Status404NotFound,
+        UnavailableException => StatusCodes.Status503ServiceUnavailable,
         _ => StatusCodes.Status500InternalServerError,
     };
 

@@ -20,6 +20,7 @@
   <SolidColorBrush x:Key="Accent">#CFA96C</SolidColorBrush>
   <SolidColorBrush x:Key="AccentHover">#E6C892</SolidColorBrush>
   <SolidColorBrush x:Key="AccentSoft">#1FCFA96C</SolidColorBrush>
+  <SolidColorBrush x:Key="OnAccent">#221C10</SolidColorBrush>
 
   <SolidColorBrush x:Key="StatusOk">#86B97F</SolidColorBrush>
   <SolidColorBrush x:Key="StatusWarn">#D9973F</SolidColorBrush>

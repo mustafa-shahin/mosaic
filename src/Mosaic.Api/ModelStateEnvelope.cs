@@ -6,8 +6,7 @@ using Mosaic.Contracts;
 
 namespace Mosaic.Api;
 
-// [ApiController] answers a failed model check with its own ValidationProblemDetails, which the
-// desktop read as an envelope reporting success. Same shape as ValidationException instead.
+// Replaces [ApiController]'s ValidationProblemDetails, so field errors reach the desktop as codes it can translate.
 internal static class ModelStateEnvelope
 {
     // An attribute names its code; anything else in ModelState is the binder's English.
@@ -46,7 +45,7 @@ internal static class ModelStateEnvelope
         return new BadRequestObjectResult(response);
     }
 
-    // ErrorMessage is null when the entry carries an Exception instead, which is the binder failing.
+    // ErrorMessage is empty, never null, when the entry carries an Exception, which is the binder failing.
     private static string CodeOf(ModelError error) =>
         error.ErrorMessage is { } message && message.StartsWith(CodePrefix, StringComparison.Ordinal)
             ? message

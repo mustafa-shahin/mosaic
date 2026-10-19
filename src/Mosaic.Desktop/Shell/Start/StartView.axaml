@@ -1,0 +1,39 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Mosaic.Desktop.Shell.Start"
+             xmlns:c="using:Mosaic.Desktop.Controls"
+             x:Class="Mosaic.Desktop.Shell.Start.StartView"
+             x:DataType="vm:StartViewModel"
+             mc:Ignorable="d" d:DesignWidth="1360" d:DesignHeight="816"
+             Design.DataContext="{x:Static vm:StartDesignData.Unreachable}">
+
+  <Panel>
+
+    <StackPanel Width="400" Spacing="28" HorizontalAlignment="Center" VerticalAlignment="Center">
+
+      <StackPanel Spacing="10" HorizontalAlignment="Center">
+        <c:MosaicMark Width="30" Height="30" HorizontalAlignment="Center" />
+        <TextBlock Classes="display" Text="Mosaic" HorizontalAlignment="Center" />
+        <TextBlock Classes="caption" Text="{Binding Strings[sign_in.tagline]}" HorizontalAlignment="Center" />
+      </StackPanel>
+
+      <TextBlock Classes="note" IsVisible="{Binding !HasError}" Text="{Binding Strings[start.connecting]}"
+                 HorizontalAlignment="Center" />
+
+      <StackPanel Spacing="16" IsVisible="{Binding HasError}">
+        <c:ErrorBox Text="{Binding ErrorMessage}" />
+
+        <Button Classes="primary" HorizontalAlignment="Stretch"
+                Content="{Binding Strings[start.try_again]}"
+                Command="{Binding CheckCommand}" IsDefault="True" />
+      </StackPanel>
+
+    </StackPanel>
+
+    <SelectableTextBlock Classes="mono" Text="{Binding Server}" Margin="24,0,0,20"
+                         HorizontalAlignment="Left" VerticalAlignment="Bottom" />
+
+  </Panel>
+</UserControl>

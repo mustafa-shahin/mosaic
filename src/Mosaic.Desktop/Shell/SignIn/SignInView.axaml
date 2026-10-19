@@ -1,0 +1,51 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Mosaic.Desktop.Shell.SignIn"
+             xmlns:c="using:Mosaic.Desktop.Controls"
+             x:Class="Mosaic.Desktop.Shell.SignIn.SignInView"
+             x:DataType="vm:SignInViewModel"
+             mc:Ignorable="d" d:DesignWidth="1360" d:DesignHeight="816"
+             Design.DataContext="{x:Static vm:SignInDesignData.Refused}">
+
+  <Panel>
+
+    <StackPanel Width="400" Spacing="28" HorizontalAlignment="Center" VerticalAlignment="Center">
+
+      <StackPanel Spacing="10" HorizontalAlignment="Center">
+        <c:MosaicMark Width="30" Height="30" HorizontalAlignment="Center" />
+        <TextBlock Classes="display" Text="Mosaic" HorizontalAlignment="Center" />
+        <TextBlock Classes="caption" Text="{Binding Strings[sign_in.tagline]}" HorizontalAlignment="Center" />
+      </StackPanel>
+
+      <StackPanel Spacing="16">
+
+        <TextBlock Classes="note" IsVisible="{Binding HasNote}" Text="{Binding NoteText}"
+                   HorizontalAlignment="Center" />
+
+        <c:ErrorBox IsVisible="{Binding HasError}" Text="{Binding ErrorMessage}" />
+
+        <StackPanel Spacing="6">
+          <TextBlock Classes="caption" Text="{Binding Strings[sign_in.email]}" />
+          <TextBox Name="EmailBox" Text="{Binding Email}" />
+        </StackPanel>
+
+        <StackPanel Spacing="6">
+          <TextBlock Classes="caption" Text="{Binding Strings[sign_in.password]}" />
+          <TextBox Name="PasswordBox" Classes="revealPasswordButton" PasswordChar="•"
+                   Text="{Binding Password}" />
+        </StackPanel>
+
+        <Button Classes="primary" Margin="0,4,0,0" HorizontalAlignment="Stretch"
+                Content="{Binding Strings[sign_in.submit]}"
+                Command="{Binding SignInCommand}" IsDefault="True" />
+
+      </StackPanel>
+    </StackPanel>
+
+    <SelectableTextBlock Classes="mono" Text="{Binding Server}" Margin="24,0,0,20"
+                         HorizontalAlignment="Left" VerticalAlignment="Bottom" />
+
+  </Panel>
+</UserControl>

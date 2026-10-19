@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup Label="ASP.NET Core">
+    <PackageVersion Include="Asp.Versioning.Mvc" Version="10.2.1" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.10" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
     <!-- pinned forward: Microsoft.AspNetCore.OpenApi asks for 2.0.0, vulnerable to GHSA-v5pm-xwqc-g5wc -->
@@ -23,6 +24,14 @@
     <PackageVersion Include="EFCore.NamingConventions" Version="10.0.1" />
   </ItemGroup>
 
+  <ItemGroup Label="Security">
+    <PackageVersion Include="Konscious.Security.Cryptography.Argon2" Version="1.3.1" />
+  </ItemGroup>
+
+  <ItemGroup Label="Validation">
+    <PackageVersion Include="FluentValidation" Version="12.1.1" />
+  </ItemGroup>
+
   <ItemGroup Label="Desktop">
     <PackageVersion Include="Avalonia" Version="12.1.1" />
     <PackageVersion Include="Avalonia.Desktop" Version="12.1.1" />
@@ -30,14 +39,16 @@
     <PackageVersion Include="Avalonia.Fonts.Inter" Version="12.1.1" />
     <PackageVersion Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-    <!-- FluentIcons.Common 2.1.339 throws in its static ctor on .NET 10, 2.1.339.1 works.
-         FluentIcons.Avalonia still references the broken one, hence the NU1608 suppression in the csproj. -->
+    <!-- FluentIcons.Common 2.1.339 throws in its static ctor on .NET 10, 2.1.339.1 works. -->
     <PackageVersion Include="FluentIcons.Avalonia" Version="$(FluentIconsVersion)" />
     <PackageVersion Include="FluentIcons.Common" Version="$(FluentIconsVersion).1" />
   </ItemGroup>
 
   <ItemGroup Label="Testing">
     <PackageVersion Include="xunit.v3.mtp-v2" Version="3.2.2" />
+    <!-- runs the view tests on Avalonia's dispatcher with no window system, and needs the same Avalonia version -->
+    <PackageVersion Include="Avalonia.Headless.XUnit" Version="12.1.1" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.15.0" />
   </ItemGroup>
 
 </Project>

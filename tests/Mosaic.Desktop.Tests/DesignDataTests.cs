@@ -3,11 +3,13 @@ using System.Text.RegularExpressions;
 using Mosaic.Desktop.Features.Health;
 using Mosaic.Desktop.Features.Settings;
 using Mosaic.Desktop.Shell;
+using Mosaic.Desktop.Shell.FirstRun;
+using Mosaic.Desktop.Shell.SignIn;
+using Mosaic.Desktop.Shell.Start;
 
 namespace Mosaic.Desktop.Tests;
 
-// Only the XAML previewer builds these, so a break in them appears as a broken preview pane in Visual
-// Studio and nowhere else. Nothing at runtime touches them, so nothing else would ever notice.
+// Only the XAML previewer builds these, so a break in them would show only as a broken preview pane.
 public sealed partial class DesignDataTests
 {
     [Fact]
@@ -27,7 +29,38 @@ public sealed partial class DesignDataTests
         Assert.NotEmpty(SettingsDesignData.Default.Languages);
     }
 
-    // The previewed sidebar is only worth looking at if it is the one the app builds.
+    [Fact]
+    public void TheSignInSampleShowsTheNoteARefusalAndTheServer()
+    {
+        var signIn = SignInDesignData.Refused;
+
+        Assert.Equal(SignInNote.AccountReady, signIn.Note);
+        Assert.False(string.IsNullOrWhiteSpace(signIn.NoteText));
+        Assert.True(signIn.HasError);
+        Assert.False(string.IsNullOrWhiteSpace(signIn.ErrorMessage));
+        Assert.False(string.IsNullOrWhiteSpace(signIn.Server));
+    }
+
+    [Fact]
+    public void TheStartSampleShowsAFailedCheckAndTheServer()
+    {
+        var start = StartDesignData.Unreachable;
+
+        Assert.True(start.HasError);
+        Assert.False(string.IsNullOrWhiteSpace(start.ErrorMessage));
+        Assert.False(string.IsNullOrWhiteSpace(start.Server));
+    }
+
+    [Fact]
+    public void TheFirstRunSampleShowsARefusedTokenAndTheGuidance()
+    {
+        var firstRun = FirstRunDesignData.Refused;
+
+        Assert.True(firstRun.SetupToken.HasError);
+        Assert.False(string.IsNullOrWhiteSpace(firstRun.PasswordGuidance));
+        Assert.False(string.IsNullOrWhiteSpace(firstRun.Server));
+    }
+
     [Fact]
     public void TheShellSampleIsBuiltFromTheRealComposition()
     {
@@ -36,11 +69,11 @@ public sealed partial class DesignDataTests
         Assert.Equal(2, shell.Sections.Count);
         Assert.IsType<HealthViewModel>(shell.Current);
         Assert.Equal("nav.dashboard", shell.ActiveKey);
+        Assert.False(string.IsNullOrWhiteSpace(shell.Initials));
+        Assert.False(string.IsNullOrWhiteSpace(shell.Email));
     }
 
-    // The runtime build strips Design.* before it resolves anything, so a view whose Design.DataContext
-    // points at a member that does not exist still compiles clean. Only the previewer would notice, and
-    // this stands in for it: every reference is followed to a static member that yields a value.
+    // Compiled XAML drops Design.* before resolving it, so a Design.DataContext naming a missing member still compiles.
     [Fact]
     public void EveryDesignDataContextInTheXamlResolves()
     {

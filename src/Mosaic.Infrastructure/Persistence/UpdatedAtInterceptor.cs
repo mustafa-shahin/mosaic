@@ -4,8 +4,7 @@ using Mosaic.Domain.Common;
 
 namespace Mosaic.Infrastructure.Persistence;
 
-// Sets UpdatedAt on every modified entity. Deletes pass through untouched: soft deletion happens in
-// the domain, see SoftDeletableEntity.SoftDelete.
+// A delete passes through untouched; soft deletion is an update the domain makes, see SoftDeletableEntity.SoftDelete.
 internal sealed class UpdatedAtInterceptor(TimeProvider clock) : SaveChangesInterceptor
 {
     public override InterceptionResult<int> SavingChanges(
@@ -36,12 +35,12 @@ internal sealed class UpdatedAtInterceptor(TimeProvider clock) : SaveChangesInte
 
         var now = clock.GetUtcNow();
 
-        foreach (var entry in context.ChangeTracker.Entries<Entity>())
+        foreach (var entry in context.ChangeTracker.Entries<Timestamped>())
         {
             if (entry.State == EntityState.Modified)
             {
                 // set through the change tracker so UpdatedAt can keep its private setter
-                entry.Property(nameof(Entity.UpdatedAt)).CurrentValue = now;
+                entry.Property(nameof(Timestamped.UpdatedAt)).CurrentValue = now;
             }
         }
     }

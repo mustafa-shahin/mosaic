@@ -11,12 +11,11 @@ public sealed class ModelDriftTests : IDisposable
     private readonly ServiceProvider _provider;
     private readonly ManagementDbContext _context;
 
-    // Built through AddInfrastructure so the naming convention is the one the application uses.
-    // Nothing here opens a connection, so neither test needs a database.
+    // Built through AddInfrastructure for the application's naming convention, and neither test opens a connection.
     public ModelDriftTests()
     {
         _provider = new ServiceCollection()
-            .AddInfrastructure(ApiFactory.ConnectionString)
+            .AddInfrastructure(ApiFactory.ConnectionString, ApiFactory.SetupTokenPath)
             .BuildServiceProvider();
 
         _context = _provider.GetRequiredService<ManagementDbContext>();

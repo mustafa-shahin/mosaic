@@ -6,6 +6,7 @@ using Avalonia.Styling;
 using Avalonia.Threading;
 using Mosaic.Desktop.Localization;
 using Mosaic.Desktop.Services;
+using Mosaic.Desktop.Services.Identity;
 using Mosaic.Desktop.Shell;
 using Mosaic.Desktop.Shell.Navigation;
 
@@ -16,11 +17,9 @@ public partial class App : Application
     private readonly Func<DesktopServices, IDesktopComposition> _compose;
     private readonly SettingsStore _settings = new();
 
-    private ApiClient _api = null!;
-    private IDesktopComposition _composition = null!;
-    private MainWindow _window = null!;
+    private MainWindowViewModel _main = null!;
 
-    // the previewer and a plain core build both compose the core edition
+    // for the headless tests, which create App from its type
     public App() : this(services => new CoreComposition(services))
     {
     }
@@ -42,16 +41,21 @@ public partial class App : Application
             // before the window exists, otherwise it flashes
             RequestedThemeVariant = Appearances.IsDark(stored.Appearance) ? ThemeVariant.Dark : ThemeVariant.Light;
 
-            // the pool caches the resolved address, so a connection has to retire before a DNS change lands
+            // a pooled connection stays on the address it connected to, so it has to retire before a DNS change lands
             var handler = new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(5) };
 
-            // one HttpClient for the whole app. Auth handlers will go here later.
-            _api = new ApiClient(new HttpClient(handler) { BaseAddress = ApiEndpoint.FromEnvironment() });
+            // the token lives here from sign-in until sign-out, in memory only
+            var session = new CurrentSession();
+
+            // one HttpClient for the whole app
+            var api = new ApiClient(new HttpClient(handler) { BaseAddress = ApiEndpoint.FromEnvironment() }, session);
+            var auth = new AuthApi(api);
+            var signOut = new SignOut(auth, session);
 
             // built once: keys, icons, access rules and factories, none of which depend on the language
-            _composition = _compose(new DesktopServices(_api, _settings, OnLanguageChosen));
+            var composition = _compose(new DesktopServices(api, _settings, signOut, OnLanguageChosen));
 
-            foreach (var template in _composition.Templates)
+            foreach (var template in composition.Templates)
             {
                 DataTemplates.Add(template);
             }
@@ -59,38 +63,15 @@ public partial class App : Application
             // stored preference, else the OS language. English if that isn't shipped.
             var language = LanguageCatalog.Resolve(stored.LanguageCode ?? CultureInfo.CurrentUICulture.Name);
 
-            _window = new MainWindow { DataContext = BuildShell(language, startAt: null) };
+            _main = new MainWindowViewModel(auth, session, signOut, composition, language);
 
-            desktop.MainWindow = _window;
+            desktop.MainWindow = new MainWindow { DataContext = _main };
         }
 
         base.OnFrameworkInitializationCompleted();
     }
 
-    // Rebuilt on every language change. The window, the ApiClient and the composition live longer.
-    // Nothing is served until there is a login, so only the local entries show.
-    private ShellViewModel BuildShell(LanguageOption language, string? startAt)
-        => new(Localizer.Load(language), _composition, new HashSet<string>(StringComparer.Ordinal), startAt);
-
-    private void OnLanguageChosen(object? sender, LanguageOption language)
-    {
-        // we're still inside the ComboBox binding update, don't tear the tree down synchronously
-        Dispatcher.UIThread.Post(() =>
-        {
-            // Only the screen standing open may ask. A request from one that has since been left or
-            // rebuilt is stale, whatever feature it came from, so App never learns the sender's type.
-            if (_window.DataContext is not ShellViewModel standing ||
-                !ReferenceEquals(standing.Current, sender) ||
-                string.Equals(standing.Strings.Language.Code, language.Code, StringComparison.Ordinal))
-            {
-                return;
-            }
-
-            // swap first, so nothing is ever bound to a shell that has been disposed
-            _window.DataContext = BuildShell(language, standing.ActiveKey);
-
-            standing.Dispose();
-        });
-    }
-    
+    // still inside the ComboBox binding update here, so the tree must not be torn down synchronously
+    private void OnLanguageChosen(object? sender, LanguageOption language) =>
+        Dispatcher.UIThread.Post(() => _main.ChooseLanguage(sender, language));
 }

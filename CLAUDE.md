@@ -162,8 +162,8 @@ SignalR, and a DI container in the desktop.
 - No view locator. `App.axaml` registers a `DataTemplate` per screen, so a missing view is a compile
   error rather than a blank rectangle at runtime. A missing template renders `ToString()` silently.
 - **The shell names no feature.** Only the composition and `App.axaml` may, and a test enforces it.
-- `Localizer` is immutable. Choosing a language builds a new one and a new shell, and the window's
-  `DataContext` is swapped. Nothing re-translates itself in place.
+- `Localizer` is immutable. Choosing a language builds a new one and a new shell, and
+  `MainWindowViewModel` swaps the shell in. Nothing re-translates itself in place.
 - Colours live only in the palette files, and a test fails the build on a literal anywhere else.
 
 ## Traps that have already cost hours
