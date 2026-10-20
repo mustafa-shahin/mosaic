@@ -1,7 +1,9 @@
 using System.Net;
 using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
 using Avalonia.Headless;
 using Avalonia.Input;
+using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Mosaic.Contracts.Identity;
@@ -17,7 +19,7 @@ public sealed class FirstRunViewTests
     private static (Window Window, FirstRunView View) Show(FirstRunViewModel viewModel, double height = 848)
     {
         var view = new FirstRunView { DataContext = viewModel };
-        var window = new Window { Width = 1360, Height = height, Content = view };
+        var window = new Window { Width = 1360, Height = height, FlowDirection = viewModel.Strings.FlowDirection, Content = view };
 
         window.Show();
         Dispatcher.UIThread.RunJobs();
@@ -25,9 +27,9 @@ public sealed class FirstRunViewTests
         return (window, view);
     }
 
-    private static FirstRunViewModel ViewModelWith(HttpMessageHandler handler) =>
+    private static FirstRunViewModel ViewModelWith(HttpMessageHandler handler, string language = "en") =>
         new(new AuthApi(new ApiClient(new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5175/") }, new CurrentSession())),
-            Localizer.Load(LanguageCatalog.Resolve("en")),
+            Localizer.Load(LanguageCatalog.Resolve(language)),
             new PasswordRule { MinLength = 15, MaxLength = 128 });
 
     private static TextBox Box(FirstRunView view, string name) => view.FindControl<TextBox>(name)!;
@@ -176,5 +178,46 @@ public sealed class FirstRunViewTests
             .Single(block => block.Classes.Contains("mono"));
 
         Assert.Equal("localhost:5175", footer.Text);
+    }
+
+    [Theory]
+    [InlineData("SetupTokenBox", "-9fK2pQx7LmN4vB8rT1yW6hJ3cZ5sE0uGdAoYiRkVw_")]
+    [InlineData("EmailBox", "123@abc.com")]
+    [InlineData("PasswordBox", "correct horse battery staple")]
+    [InlineData("RepeatPasswordBox", "correct horse battery staple")]
+    public void InArabic_LatinTextStaysInTheOrderItWasTyped(string name, string typed)
+    {
+        var (window, view) = Show(ViewModelWith(new NeverRespondingHandler(), "ar"));
+        var box = Box(view, name);
+
+        Type(window, box, typed);
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.True(TextOrder.IsLeftToRight(box));
+    }
+
+    // a name may be written in Arabic, so these boxes follow the language
+    [Theory]
+    [InlineData("FirstNameBox")]
+    [InlineData("LastNameBox")]
+    public void InArabic_TheNamesKeepTheWindowsDirection(string name)
+    {
+        var (_, view) = Show(ViewModelWith(new NeverRespondingHandler(), "ar"));
+
+        var presenter = Box(view, name).GetVisualDescendants().OfType<TextPresenter>().Single();
+
+        Assert.Equal(FlowDirection.RightToLeft, presenter.FlowDirection);
+    }
+
+    [Fact]
+    public void InArabic_TheServerAddressReadsLeftToRight()
+    {
+        var (_, view) = Show(ViewModelWith(new NeverRespondingHandler(), "ar"));
+
+        var footer = view.GetVisualDescendants()
+            .OfType<SelectableTextBlock>()
+            .Single(block => block.Classes.Contains("mono"));
+
+        Assert.Equal(FlowDirection.LeftToRight, footer.FlowDirection);
     }
 }

@@ -310,5 +310,24 @@
     <Setter Property="Foreground" Value="{DynamicResource Accent}" />
   </Style>
 
+  <!-- addresses, tokens and passwords run left to right in Arabic too. Only the text turns, the eye and the menu stay mirrored -->
+  <Style Selector="TextBox.ltr /template/ TextPresenter#PART_TextPresenter">
+    <Setter Property="FlowDirection" Value="LeftToRight" />
+  </Style>
+
+  <!-- the default Start would follow the turned text and put it on the left, away from its label -->
+  <Style Selector="TextBox.ltr[FlowDirection=RightToLeft]">
+    <Setter Property="TextAlignment" Value="Right" />
+  </Style>
+
+  <!-- a text block has no template part for its text, so the whole block turns, and only the window still knows the language -->
+  <Style Selector=":is(TextBlock).ltr">
+    <Setter Property="FlowDirection" Value="LeftToRight" />
+  </Style>
+
+  <Style Selector="Window[FlowDirection=RightToLeft] :is(TextBlock).ltr">
+    <Setter Property="TextAlignment" Value="Right" />
+  </Style>
+
 
 </Styles>

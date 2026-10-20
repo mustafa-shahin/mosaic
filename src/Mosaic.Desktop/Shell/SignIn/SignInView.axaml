@@ -28,12 +28,12 @@
 
         <StackPanel Spacing="6">
           <TextBlock Classes="caption" Text="{Binding Strings[sign_in.email]}" />
-          <TextBox Name="EmailBox" Text="{Binding Email}" />
+          <TextBox Name="EmailBox" Classes="ltr" Text="{Binding Email}" />
         </StackPanel>
 
         <StackPanel Spacing="6">
           <TextBlock Classes="caption" Text="{Binding Strings[sign_in.password]}" />
-          <TextBox Name="PasswordBox" Classes="revealPasswordButton" PasswordChar="•"
+          <TextBox Name="PasswordBox" Classes="revealPasswordButton ltr" PasswordChar="•"
                    Text="{Binding Password}" />
         </StackPanel>
 
@@ -44,7 +44,7 @@
       </StackPanel>
     </StackPanel>
 
-    <SelectableTextBlock Classes="mono" Text="{Binding Server}" Margin="24,0,0,20"
+    <SelectableTextBlock Classes="mono ltr" Text="{Binding Server}" Margin="24,0,0,20"
                          HorizontalAlignment="Left" VerticalAlignment="Bottom" />
 
   </Panel>

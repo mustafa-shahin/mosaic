@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Input;
+using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Mosaic.Contracts;
@@ -18,7 +19,7 @@ public sealed class StartViewTests
     private static (Window Window, StartView View) Show(StartViewModel viewModel)
     {
         var view = new StartView { DataContext = viewModel };
-        var window = new Window { Width = 1360, Height = 848, Content = view };
+        var window = new Window { Width = 1360, Height = 848, FlowDirection = viewModel.Strings.FlowDirection, Content = view };
 
         window.Show();
         Dispatcher.UIThread.RunJobs();
@@ -26,9 +27,9 @@ public sealed class StartViewTests
         return (window, view);
     }
 
-    private static StartViewModel ViewModelWith(HttpMessageHandler handler) =>
+    private static StartViewModel ViewModelWith(HttpMessageHandler handler, string language = "en") =>
         new(new AuthApi(new ApiClient(new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5175/") }, new CurrentSession())),
-            Localizer.Load(LanguageCatalog.Resolve("en")));
+            Localizer.Load(LanguageCatalog.Resolve(language)));
 
     private static void Click(Window window, Visual target)
     {
@@ -99,5 +100,17 @@ public sealed class StartViewTests
             .Single(block => block.Classes.Contains("mono"));
 
         Assert.Equal("localhost:5175", footer.Text);
+    }
+
+    [Fact]
+    public void InArabic_TheServerAddressReadsLeftToRight()
+    {
+        var (_, view) = Show(ViewModelWith(new NeverRespondingHandler(), "ar"));
+
+        var footer = view.GetVisualDescendants()
+            .OfType<SelectableTextBlock>()
+            .Single(block => block.Classes.Contains("mono"));
+
+        Assert.Equal(FlowDirection.LeftToRight, footer.FlowDirection);
     }
 }

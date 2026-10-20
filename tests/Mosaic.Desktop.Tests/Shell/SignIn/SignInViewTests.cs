@@ -5,6 +5,7 @@ using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
 using Avalonia.Input;
+using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Mosaic.Desktop.Controls;
@@ -20,7 +21,7 @@ public sealed class SignInViewTests
     private static (Window Window, SignInView View) Show(SignInViewModel viewModel)
     {
         var view = new SignInView { DataContext = viewModel };
-        var window = new Window { Width = 1360, Height = 848, Content = view };
+        var window = new Window { Width = 1360, Height = 848, FlowDirection = viewModel.Strings.FlowDirection, Content = view };
 
         window.Show();
         Dispatcher.UIThread.RunJobs();
@@ -28,9 +29,9 @@ public sealed class SignInViewTests
         return (window, view);
     }
 
-    private static SignInViewModel ViewModelWith(HttpMessageHandler handler) =>
+    private static SignInViewModel ViewModelWith(HttpMessageHandler handler, string language = "en") =>
         new(new AuthApi(new ApiClient(new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5175/") }, new CurrentSession())),
-            Localizer.Load(LanguageCatalog.Resolve("en")));
+            Localizer.Load(LanguageCatalog.Resolve(language)));
 
     private static void Click(Window window, Visual target)
     {
@@ -224,5 +225,87 @@ public sealed class SignInViewTests
 
         Assert.Same(accent, presenter.Foreground);
         Assert.Equal(Avalonia.Media.Brushes.Transparent, presenter.Background);
+    }
+
+    [Fact]
+    public void InArabic_TheAddressStaysInTheOrderItWasTyped()
+    {
+        var (window, view) = Show(ViewModelWith(new NeverRespondingHandler(), "ar"));
+        var email = view.FindControl<TextBox>("EmailBox")!;
+
+        email.Focus();
+        window.KeyTextInput("ada@mail.");
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.True(TextOrder.IsLeftToRight(email));
+    }
+
+    [Fact]
+    public void InArabic_TheEyeShowsThePasswordInTheOrderItWasTyped()
+    {
+        var (window, view) = Show(ViewModelWith(new NeverRespondingHandler(), "ar"));
+        var password = view.FindControl<TextBox>("PasswordBox")!;
+
+        password.Focus();
+        window.KeyTextInput("2026 summer trip!");
+        password.RevealPassword = true;
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.True(TextOrder.IsLeftToRight(password));
+    }
+
+    [Fact]
+    public void InArabic_TheArrowKeysMoveTheWayTheyPoint()
+    {
+        var (window, view) = Show(ViewModelWith(new NeverRespondingHandler(), "ar"));
+        var email = view.FindControl<TextBox>("EmailBox")!;
+
+        email.Focus();
+        window.KeyTextInput("abcd");
+        window.KeyPressQwerty(PhysicalKey.ArrowLeft, RawInputModifiers.None);
+        window.KeyPressQwerty(PhysicalKey.ArrowLeft, RawInputModifiers.None);
+
+        Assert.Equal(2, email.CaretIndex);
+    }
+
+    [Theory]
+    [InlineData("ar", TextAlignment.Right)]
+    [InlineData("en", TextAlignment.Start)]
+    public void TheAddressAndThePassword_SitUnderTheirLabels(string language, TextAlignment alignment)
+    {
+        var (_, view) = Show(ViewModelWith(new NeverRespondingHandler(), language));
+
+        Assert.Equal(alignment, view.FindControl<TextBox>("EmailBox")!.TextAlignment);
+        Assert.Equal(alignment, view.FindControl<TextBox>("PasswordBox")!.TextAlignment);
+    }
+
+    // only the text turns left to right, the box keeps its mirrored layout
+    [Fact]
+    public void InArabic_TheEyeStaysOnTheLeft()
+    {
+        var (window, view) = Show(ViewModelWith(new NeverRespondingHandler(), "ar"));
+        var password = view.FindControl<TextBox>("PasswordBox")!;
+
+        password.Focus();
+        window.KeyTextInput("correct horse battery staple");
+        Dispatcher.UIThread.RunJobs();
+
+        var eye = password.GetVisualDescendants().OfType<ToggleButton>().Single();
+        var eyeCentre = eye.TranslatePoint(new Point(eye.Bounds.Width / 2, 0), window)!.Value.X;
+        var boxCentre = password.TranslatePoint(new Point(password.Bounds.Width / 2, 0), window)!.Value.X;
+
+        Assert.True(eyeCentre < boxCentre);
+    }
+
+    [Fact]
+    public void InArabic_TheServerAddressReadsLeftToRight()
+    {
+        var (_, view) = Show(ViewModelWith(new NeverRespondingHandler(), "ar"));
+
+        var footer = view.GetVisualDescendants()
+            .OfType<SelectableTextBlock>()
+            .Single(block => block.Classes.Contains("mono"));
+
+        Assert.Equal(FlowDirection.LeftToRight, footer.FlowDirection);
     }
 }
