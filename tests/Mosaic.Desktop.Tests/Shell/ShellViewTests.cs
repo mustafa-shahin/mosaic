@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Input;
+using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Mosaic.Desktop.Features.Settings;
@@ -21,7 +22,7 @@ public sealed class ShellViewTests : IDisposable
     private readonly CurrentSession _session = new();
 
     // the dashboard checks the API as soon as its view appears, and a check that never answers keeps it quiet
-    private ShellViewModel Shell(HttpMessageHandler signOutServer)
+    private ShellViewModel Shell(HttpMessageHandler signOutServer, string language = "en")
     {
         var api = new ApiClient(new HttpClient(new NeverRespondingHandler()) { BaseAddress = new Uri("http://localhost") }, _session);
         var signOut = new SignOut(
@@ -30,12 +31,12 @@ public sealed class ShellViewTests : IDisposable
         var person = _session.Start(SignInResults.Ada()).Person;
 
         return new ShellViewModel(
-            Localizer.Load(LanguageCatalog.Resolve("en")), composition, new HashSet<string>(StringComparer.Ordinal), person, signOut);
+            Localizer.Load(LanguageCatalog.Resolve(language)), composition, new HashSet<string>(StringComparer.Ordinal), person, signOut);
     }
 
     private static Window Shown(ShellViewModel shell)
     {
-        var window = new Window { Width = 1360, Height = 848, Content = new ShellView { DataContext = shell } };
+        var window = new Window { Width = 1360, Height = 848, FlowDirection = shell.Strings.FlowDirection, Content = new ShellView { DataContext = shell } };
 
         window.Show();
         Dispatcher.UIThread.RunJobs();
@@ -77,6 +78,19 @@ public sealed class ShellViewTests : IDisposable
         var texts = chip.GetVisualDescendants().OfType<TextBlock>().Select(block => block.Text).ToList();
 
         Assert.Equal(["AL", "Ada Lovelace", "ada@example.com"], texts);
+    }
+
+    [Theory]
+    [InlineData("ar", TextAlignment.Right)]
+    [InlineData("en", TextAlignment.Start)]
+    public void TheChipsEmail_ReadsLeftToRightUnderTheName(string language, TextAlignment alignment)
+    {
+        var window = Shown(Shell(new NeverRespondingHandler(), language));
+
+        var email = window.GetVisualDescendants().OfType<TextBlock>().Single(block => block.Classes.Contains("accountEmail"));
+
+        Assert.Equal(FlowDirection.LeftToRight, email.FlowDirection);
+        Assert.Equal(alignment, email.TextAlignment);
     }
 
     [Fact]

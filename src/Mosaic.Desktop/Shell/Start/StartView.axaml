@@ -32,7 +32,7 @@
 
     </StackPanel>
 
-    <SelectableTextBlock Classes="mono" Text="{Binding Server}" Margin="24,0,0,20"
+    <SelectableTextBlock Classes="mono ltr" Text="{Binding Server}" Margin="24,0,0,20"
                          HorizontalAlignment="Left" VerticalAlignment="Bottom" />
 
   </Panel>

@@ -5,6 +5,9 @@ namespace Mosaic.Desktop.Tests.Themes;
 // DynamicResource lookups fail silently at runtime, so check the keys here.
 public sealed partial class ThemeDriftTests
 {
+    // boxes for words in the person's own language; every other box holds Latin text such as an address or a token
+    private static readonly string[] LanguageBoxes = ["FirstNameBox", "LastNameBox"];
+
     [Fact]
     public void EveryResourceTheXamlAsksForIsDefined()
     {
@@ -124,7 +127,7 @@ public sealed partial class ThemeDriftTests
     {
         var lines = File.ReadAllLines(Path.Combine(RepoLayout.Themes, "Controls.axaml"));
 
-        var reset = Array.FindIndex(lines, line => line.Contains("FlowDirection=RightToLeft", StringComparison.Ordinal));
+        var reset = Array.FindIndex(lines, line => line.Contains(":is(TextBlock)[FlowDirection=RightToLeft]", StringComparison.Ordinal));
 
         Assert.True(reset >= 0, "The right-to-left letter-spacing reset is no longer in Controls.axaml.");
 
@@ -142,6 +145,29 @@ public sealed partial class ThemeDriftTests
         var late = setters.Where(line => line > reset).Skip(1).Select(line => line + 1).ToList();
 
         Assert.True(late.Count == 0, $"LetterSpacing is set after the right-to-left reset, on line {string.Join(", ", late)}");
+    }
+
+    // a box without the class draws Latin text out of order in Arabic, so every new box has to choose
+    [Fact]
+    public void EveryTextBoxRunsLeftToRightExceptTheNames()
+    {
+        var missing = new List<string>();
+
+        foreach (var file in XamlFiles())
+        {
+            foreach (var box in TextBoxElement().Matches(File.ReadAllText(file)).Cast<Match>())
+            {
+                var name = ElementName().Match(box.Value).Groups[1].Value;
+                var classes = ClassUse().Match(box.Value).Groups[2].Value.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+                if (!classes.Contains("ltr") && !LanguageBoxes.Contains(name))
+                {
+                    missing.Add($"{Path.GetFileName(file)} {name}");
+                }
+            }
+        }
+
+        Assert.True(missing.Count == 0, $"No ltr class and not a box for the person's own language: {string.Join("; ", missing)}");
     }
 
     private static HashSet<string> DefinedKeys()
@@ -189,4 +215,10 @@ public sealed partial class ThemeDriftTests
 
     [GeneratedRegex(@"#[0-9A-Fa-f]{3,8}\b")]
     private static partial Regex ColourLiteral();
+
+    [GeneratedRegex(@"<TextBox\s[^>]*>")]
+    private static partial Regex TextBoxElement();
+
+    [GeneratedRegex(@"\sName=""([^""]+)""")]
+    private static partial Regex ElementName();
 }

@@ -27,7 +27,7 @@
 
           <StackPanel Spacing="6">
             <TextBlock Classes="caption" Text="{Binding Strings[first_run.setup_token]}" />
-            <TextBox Name="SetupTokenBox" FontFamily="{DynamicResource MonoFont}" Text="{Binding SetupToken.Value}" />
+            <TextBox Name="SetupTokenBox" Classes="ltr" FontFamily="{DynamicResource MonoFont}" Text="{Binding SetupToken.Value}" />
             <TextBlock Classes="note" IsVisible="{Binding !SetupToken.HasError}"
                        Text="{Binding Strings[first_run.setup_token_help]}" />
             <TextBlock Classes="fieldError" IsVisible="{Binding SetupToken.HasError}" Text="{Binding SetupToken.Error}" />
@@ -35,7 +35,7 @@
 
           <StackPanel Spacing="6">
             <TextBlock Classes="caption" Text="{Binding Strings[first_run.email]}" />
-            <TextBox Name="EmailBox" Text="{Binding Email.Value}" />
+            <TextBox Name="EmailBox" Classes="ltr" Text="{Binding Email.Value}" />
             <TextBlock Classes="fieldError" IsVisible="{Binding Email.HasError}" Text="{Binding Email.Error}" />
           </StackPanel>
 
@@ -54,7 +54,7 @@
 
           <StackPanel Spacing="6">
             <TextBlock Classes="caption" Text="{Binding Strings[first_run.password]}" />
-            <TextBox Name="PasswordBox" Classes="revealPasswordButton" PasswordChar="•"
+            <TextBox Name="PasswordBox" Classes="revealPasswordButton ltr" PasswordChar="•"
                      Text="{Binding Password.Value}" />
             <TextBlock Classes="note" IsVisible="{Binding !Password.HasError}" Text="{Binding PasswordGuidance}" />
             <TextBlock Classes="fieldError" IsVisible="{Binding Password.HasError}" Text="{Binding Password.Error}" />
@@ -62,7 +62,7 @@
 
           <StackPanel Spacing="6">
             <TextBlock Classes="caption" Text="{Binding Strings[first_run.repeat_password]}" />
-            <TextBox Name="RepeatPasswordBox" Classes="revealPasswordButton" PasswordChar="•"
+            <TextBox Name="RepeatPasswordBox" Classes="revealPasswordButton ltr" PasswordChar="•"
                      Text="{Binding RepeatPassword.Value}" />
             <TextBlock Classes="fieldError" IsVisible="{Binding RepeatPassword.HasError}"
                        Text="{Binding RepeatPassword.Error}" />
@@ -76,7 +76,7 @@
       </StackPanel>
     </ScrollViewer>
 
-    <SelectableTextBlock Classes="mono" Text="{Binding Server}" Margin="24,0,0,20"
+    <SelectableTextBlock Classes="mono ltr" Text="{Binding Server}" Margin="24,0,0,20"
                          HorizontalAlignment="Left" VerticalAlignment="Bottom" />
 
   </Panel>
