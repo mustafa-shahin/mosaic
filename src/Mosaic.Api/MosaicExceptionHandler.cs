@@ -1,8 +1,9 @@
 using System.Diagnostics;
+using System.Text.Json;
 using Microsoft.AspNetCore.Diagnostics;
+using Mosaic.Api.Validation;
 using Mosaic.Contracts;
 using Mosaic.Domain.Errors;
-using Mosaic.Application.Validation;
 
 namespace Mosaic.Api;
 
@@ -10,6 +11,9 @@ public sealed partial class MosaicExceptionHandler(
     ILogger<MosaicExceptionHandler> logger,
     IHostEnvironment environment) : IExceptionHandler
 {
+    // System.Text.Json's path to a property of the body, "$.email"; the body itself is "$"
+    private const string BodyPropertyPrefix = "$.";
+
     public async ValueTask<bool> TryHandleAsync(
         HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
@@ -63,6 +67,18 @@ public sealed partial class MosaicExceptionHandler(
             };
         }
 
+        // a request the endpoint could not read is the client's mistake, so it is refused like a broken rule
+        if (exception is BadHttpRequestException unreadable)
+        {
+            LogRefusal(logger, ErrorCodes.ValidationFailed);
+
+            return new ApiError
+            {
+                Code = ErrorCodes.ValidationFailed,
+                FieldErrors = FieldThatBroke(unreadable)
+            };
+        }
+
         // the middleware logs no exception that a handler reports as handled
         LogUnhandled(logger, exception);
 
@@ -82,8 +98,27 @@ public sealed partial class MosaicExceptionHandler(
         NotPermittedException => StatusCodes.Status403Forbidden,
         NotFoundException => StatusCodes.Status404NotFound,
         UnavailableException => StatusCodes.Status503ServiceUnavailable,
+        // keeps the status ASP.NET chose for it
+        BadHttpRequestException unreadable => unreadable.StatusCode,
         _ => StatusCodes.Status500InternalServerError,
     };
+
+    // only the JSON reader knows where the body broke, so an empty body names no field
+    private static Dictionary<string, IReadOnlyList<FieldError>>? FieldThatBroke(BadHttpRequestException exception)
+    {
+        if (exception.InnerException is not JsonException { Path: { } path })
+        {
+            return null;
+        }
+
+        var property = path.StartsWith(BodyPropertyPrefix, StringComparison.Ordinal) ? path[BodyPropertyPrefix.Length..] : path;
+
+        // the desktop keys its fields camelCase, as the validators name them
+        return new Dictionary<string, IReadOnlyList<FieldError>>(StringComparer.Ordinal)
+        {
+            [JsonNamingPolicy.CamelCase.ConvertName(property)] = [new FieldError { Code = ErrorCodes.InvalidValue }],
+        };
+    }
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Request refused with {Code}")]
     private static partial void LogRefusal(ILogger logger, string code);

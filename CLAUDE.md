@@ -10,17 +10,21 @@ compile and run with pro absent from the disk**, so no file here may name a pro 
 
 | Project | Holds | References |
 |---|---|---|
-| `Mosaic.Domain` | entities, typed constants, errors | nothing |
+| `Mosaic.Domain` | entities, typed constants, errors, and each entity's column sizes | nothing |
 | `Mosaic.Contracts` | wire shapes, the `ApiResponse` envelope, the vocabulary the desktop names | nothing |
-| `Mosaic.Application` | services, catalogues, registries, the interfaces infrastructure implements | Domain, Contracts |
-| `Mosaic.Infrastructure` | EF Core, persistence configurations, DI registration | Application |
-| `Mosaic.Api` | controllers, middleware, the exception handler | Application, Infrastructure |
+| `Mosaic.Persistence` | the `ManagementDbContext`, the table mappings, the migrations and the design-time factory | Domain |
+| `Mosaic.Api` | the server program: one folder per feature with its endpoints, use cases and validators, plus the middleware and the exception handler | Domain, Contracts, Persistence |
 | `Mosaic.Desktop` | the shell, screens, themes and strings — a **library** | Contracts only |
 | `Mosaic.Desktop.App` | `Program.cs` and the manifest: the core-only entry point | Desktop |
 
 The desktop is a library because two entry points need it and an executable cannot be referenced as
 the shell by another executable. Pro's entry point is its twin in the private repository, and the two
 differ by one line: which composition is built.
+
+On the server, a feature's code lives in one folder of `Mosaic.Api`, such as `Identity/` with `Registration/`
+and `Sessions/` inside it. Endpoints are minimal APIs: a `<Feature>Endpoints` class maps the routes, each to a
+named static method, and `Program.cs` calls `Add<Feature>()` and `Map<Feature>()` for each feature. A use
+case takes plain values and never an ASP.NET type or a `ClaimsPrincipal`; `UseCaseDriftTests` fails when one does.
 
 ## Running it locally
 
@@ -72,16 +76,13 @@ regenerating it.
 ## Migrations
 
 ```
-dotnet ef migrations add <Name> --project src/Mosaic.Infrastructure --output-dir Persistence/Migrations
+dotnet ef migrations add <Name> --project src/Mosaic.Persistence
 ```
 
-**Infrastructure is its own startup project.** Passing `--startup-project src/Mosaic.Api` fails, because
+**Persistence is its own startup project.** Passing `--startup-project src/Mosaic.Api` fails, because
 the API does not reference `Microsoft.EntityFrameworkCore.Design` and must not — carrying it shipped
-Roslyn, MSBuild and the design tools inside the API and took its output from 8 MB to 33 MB. Infrastructure
+Roslyn, MSBuild and the design tools inside the API and took its output from 8 MB to 33 MB. Persistence
 owns the design-time factory, so it needs no other project.
-
-**`--output-dir Persistence/Migrations` is not optional.** Without it EF writes to a `Migrations/` folder
-at the project root, away from the ones already there.
 
 `add` and `remove` never open a connection, so they work with no database running. Anything that does
 connect needs the connection string **in the environment** — the design-time factory reads that and never
@@ -89,7 +90,7 @@ connect needs the connection string **in the environment** — the design-time f
 
 ```
 ConnectionStrings__Management="Host=127.0.0.1;Port=5433;Database=mosaic;Username=mosaic;Password=mosaic-dev-only" \
-  dotnet ef database update --project src/Mosaic.Infrastructure
+  dotnet ef database update --project src/Mosaic.Persistence
 ```
 
 Without the variable the factory falls back to a credential-free placeholder aimed at 5433, so a command

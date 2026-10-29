@@ -1,4 +1,3 @@
-
 namespace Mosaic.Domain.Authorization;
 
 public sealed class PrincipalPermissions

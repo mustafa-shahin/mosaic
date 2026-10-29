@@ -5,6 +5,10 @@ namespace Mosaic.Domain.Identity;
 
 public sealed class Role : SoftDeletableEntity
 {
+    public const int NameMaxLength = 100;
+    public const int DescriptionMaxLength = 500;
+    public const int SeedKeyMaxLength = 100;
+
     private readonly List<Permission> _permissions = [];
 
     private Role()

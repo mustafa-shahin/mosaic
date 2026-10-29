@@ -1,6 +1,6 @@
 namespace Mosaic.Contracts.Identity;
 
-// AuthController's segments, which the desktop's AuthApi builds its paths from.
+// The auth endpoints' segments, which the desktop's AuthApi builds its paths from.
 public static class AuthRoutes
 {
     public const string Prefix = "auth";

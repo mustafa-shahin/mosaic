@@ -5,7 +5,7 @@ public static class ApiVersions
 {
     private const string Major1 = "1";
 
-    // what a v1 controller declares in [ApiVersion]
+    // what a v1 endpoint group declares with HasApiVersion
     public const string V1 = Major1 + ".0";
 
     // what a client writes in front of a v1 path
