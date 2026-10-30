@@ -9,7 +9,7 @@ namespace Mosaic.Desktop.Tests.Services;
 
 public sealed class ApiClientTests
 {
-    private const string SignOutPath = "v1/auth/sign-out";
+    private const string SignOutPath = ApiPaths.RelativeAuth + AuthRoutes.SignOut;
 
     private static ApiClient ClientWith(HttpMessageHandler handler) => ClientWith(handler, new CurrentSession());
 
@@ -17,7 +17,7 @@ public sealed class ApiClientTests
         new(new HttpClient(handler) { BaseAddress = new Uri("http://localhost") }, session);
 
     private static Task<ApiResponse<HealthResult>> Get(HttpMessageHandler handler) =>
-        ClientWith(handler).GetAsync<HealthResult>("health", TestContext.Current.CancellationToken);
+        ClientWith(handler).GetAsync<HealthResult>(HealthRoutes.Health, TestContext.Current.CancellationToken);
 
     private static List<SessionEnded> EndsOf(CurrentSession session)
     {
@@ -33,7 +33,7 @@ public sealed class ApiClientTests
     {
         using var cancellation = new CancellationTokenSource();
 
-        var pending = ClientWith(new NeverRespondingHandler()).GetAsync<HealthResult>("health", cancellation.Token);
+        var pending = ClientWith(new NeverRespondingHandler()).GetAsync<HealthResult>(HealthRoutes.Health, cancellation.Token);
 
         await cancellation.CancelAsync();
 
@@ -98,10 +98,10 @@ public sealed class ApiClientTests
         var recorder = new RecordingHandler(HttpStatusCode.OK, SignInBodies.Accepted);
 
         await ClientWith(recorder).PostAsync<SignInRequest, SignInResult>(
-            "v1/auth/sign-in", new SignInRequest { Email = "ada@example.com" }, TestContext.Current.CancellationToken);
+            ApiPaths.RelativeAuth + AuthRoutes.SignIn, new SignInRequest { Email = "ada@example.com" }, TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpMethod.Post, recorder.Method);
-        Assert.Equal("/v1/auth/sign-in", recorder.Path);
+        Assert.Equal(ApiPaths.Auth + AuthRoutes.SignIn, recorder.Path);
         Assert.Equal("""{"email":"ada@example.com"}""", recorder.Body);
     }
 
@@ -110,7 +110,7 @@ public sealed class ApiClientTests
     {
         var response = await ClientWith(new CannedResponseHandler(HttpStatusCode.OK, SignInBodies.Accepted))
             .PostAsync<SignInRequest, SignInResult>(
-                "v1/auth/sign-in", new SignInRequest(), TestContext.Current.CancellationToken);
+                ApiPaths.RelativeAuth + AuthRoutes.SignIn, new SignInRequest(), TestContext.Current.CancellationToken);
 
         Assert.True(response.Success);
         Assert.Equal("Ada Lovelace", response.Data!.Session.FullName);
@@ -121,7 +121,7 @@ public sealed class ApiClientTests
     {
         var response = await ClientWith(new CannedResponseHandler(HttpStatusCode.Forbidden, SignInBodies.WrongPassword))
             .PostAsync<SignInRequest, SignInResult>(
-                "v1/auth/sign-in", new SignInRequest(), TestContext.Current.CancellationToken);
+                ApiPaths.RelativeAuth + AuthRoutes.SignIn, new SignInRequest(), TestContext.Current.CancellationToken);
 
         Assert.False(response.Success);
         Assert.Equal(ErrorCodes.InvalidCredentials, response.Error!.Code);
@@ -131,7 +131,7 @@ public sealed class ApiClientTests
     public async Task PostWithoutData_WhenTheApiAccepts_IsASuccess()
     {
         var response = await ClientWith(new CannedResponseHandler(HttpStatusCode.Created, RegisterBodies.Owner))
-            .PostAsync<RegisterRequest>("v1/auth/register", new RegisterRequest(), TestContext.Current.CancellationToken);
+            .PostAsync<RegisterRequest>(ApiPaths.RelativeAuth + AuthRoutes.Register, new RegisterRequest(), TestContext.Current.CancellationToken);
 
         Assert.True(response.Success);
     }
@@ -141,7 +141,7 @@ public sealed class ApiClientTests
     public async Task PostWithoutData_WhenANewerServerAddsData_IsStillASuccess()
     {
         var response = await ClientWith(new CannedResponseHandler(HttpStatusCode.Created, """{"data":{"outcome":"Owner"},"success":true}"""))
-            .PostAsync<RegisterRequest>("v1/auth/register", new RegisterRequest(), TestContext.Current.CancellationToken);
+            .PostAsync<RegisterRequest>(ApiPaths.RelativeAuth + AuthRoutes.Register, new RegisterRequest(), TestContext.Current.CancellationToken);
 
         Assert.True(response.Success);
     }
@@ -152,7 +152,7 @@ public sealed class ApiClientTests
         var response = await ClientWith(new CannedResponseHandler(
                 HttpStatusCode.Forbidden,
                 """{"error":{"code":"error.registration_closed"},"traceId":"00-abc-def-00","success":false}"""))
-            .PostAsync<RegisterRequest>("v1/auth/register", new RegisterRequest(), TestContext.Current.CancellationToken);
+            .PostAsync<RegisterRequest>(ApiPaths.RelativeAuth + AuthRoutes.Register, new RegisterRequest(), TestContext.Current.CancellationToken);
 
         Assert.False(response.Success);
         Assert.Equal(ErrorCodes.RegistrationClosed, response.Error!.Code);
@@ -167,7 +167,7 @@ public sealed class ApiClientTests
 
         session.Start(SignInResults.Ada("mosaic_the-token"));
 
-        await ClientWith(recorder, session).GetAsync<HealthResult>("health", TestContext.Current.CancellationToken);
+        await ClientWith(recorder, session).GetAsync<HealthResult>(HealthRoutes.Health, TestContext.Current.CancellationToken);
 
         Assert.Equal("Bearer", recorder.Authorization?.Scheme);
         Assert.Equal("mosaic_the-token", recorder.Authorization?.Parameter);
@@ -178,7 +178,7 @@ public sealed class ApiClientTests
     {
         var recorder = new RecordingHandler(HttpStatusCode.OK, """{"success":true}""");
 
-        await ClientWith(recorder).GetAsync<HealthResult>("health", TestContext.Current.CancellationToken);
+        await ClientWith(recorder).GetAsync<HealthResult>(HealthRoutes.Health, TestContext.Current.CancellationToken);
 
         Assert.Equal(1, recorder.Calls);
         Assert.Null(recorder.Authorization);
@@ -199,7 +199,7 @@ public sealed class ApiClientTests
 
         Assert.True(response.Success);
         Assert.Equal(HttpMethod.Post, recorder.Method);
-        Assert.Equal("/v1/auth/sign-out", recorder.Path);
+        Assert.Equal(ApiPaths.Auth + AuthRoutes.SignOut, recorder.Path);
         Assert.Null(recorder.Body);
         Assert.Equal("mosaic_ended-token", recorder.Authorization?.Parameter);
     }
@@ -227,7 +227,7 @@ public sealed class ApiClientTests
         var ends = EndsOf(session);
 
         var response = await ClientWith(new CannedResponseHandler(HttpStatusCode.Unauthorized, string.Empty, "text/plain"), session)
-            .GetAsync<HealthResult>("health", TestContext.Current.CancellationToken);
+            .GetAsync<HealthResult>(HealthRoutes.Health, TestContext.Current.CancellationToken);
 
         Assert.Equal(DesktopErrorCodes.NotSignedIn, response.Error!.Code);
         Assert.Null(session.Current);
@@ -246,7 +246,7 @@ public sealed class ApiClientTests
 
         var response = await ClientWith(
                 new CannedResponseHandler(HttpStatusCode.Unauthorized, """{"error":{"code":"client.not_signed_in"}}"""), session)
-            .GetAsync<HealthResult>("health", screen.Token);
+            .GetAsync<HealthResult>(HealthRoutes.Health, screen.Token);
 
         Assert.Equal(DesktopErrorCodes.NotSignedIn, response.Error!.Code);
         Assert.True(screen.IsCancellationRequested);
@@ -259,7 +259,7 @@ public sealed class ApiClientTests
         var ends = EndsOf(session);
 
         await ClientWith(new CannedResponseHandler(HttpStatusCode.Unauthorized, string.Empty, "text/plain"), session)
-            .GetAsync<HealthResult>("health", TestContext.Current.CancellationToken);
+            .GetAsync<HealthResult>(HealthRoutes.Health, TestContext.Current.CancellationToken);
 
         Assert.Empty(ends);
     }
@@ -292,7 +292,7 @@ public sealed class ApiClientTests
         var ends = EndsOf(session);
 
         await ClientWith(new CannedResponseHandler(HttpStatusCode.Forbidden, string.Empty, "text/plain"), session)
-            .GetAsync<HealthResult>("health", TestContext.Current.CancellationToken);
+            .GetAsync<HealthResult>(HealthRoutes.Health, TestContext.Current.CancellationToken);
 
         Assert.Same(started, session.Current);
         Assert.Empty(ends);

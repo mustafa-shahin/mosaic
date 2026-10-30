@@ -21,7 +21,7 @@ public sealed class SignOutEndpointTests(PostgresFixture postgres, ApiFactory fa
         var client = Client();
         var token = await SignIn(client, await Owner(client));
 
-        var response = await Send(client, HttpMethod.Post, "/v1/auth/sign-out", token);
+        var response = await Send(client, HttpMethod.Post, ApiPaths.Auth + AuthRoutes.SignOut, token);
         var body = await response.Content.ReadFromJsonAsync<ApiResponse>(MosaicJson.Options, Token);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -37,7 +37,7 @@ public sealed class SignOutEndpointTests(PostgresFixture postgres, ApiFactory fa
         var first = await SignIn(client, email);
         var second = await SignIn(client, email);
 
-        await Send(client, HttpMethod.Post, "/v1/auth/sign-out", first);
+        await Send(client, HttpMethod.Post, ApiPaths.Auth + AuthRoutes.SignOut, first);
 
         Assert.Equal(HttpStatusCode.OK, (await GetSession(client, second)).StatusCode);
     }
@@ -49,9 +49,9 @@ public sealed class SignOutEndpointTests(PostgresFixture postgres, ApiFactory fa
         var client = Client();
         var token = await SignIn(client, await Owner(client));
 
-        await Send(client, HttpMethod.Post, "/v1/auth/sign-out", token);
+        await Send(client, HttpMethod.Post, ApiPaths.Auth + AuthRoutes.SignOut, token);
 
-        var again = await Send(client, HttpMethod.Post, "/v1/auth/sign-out", token);
+        var again = await Send(client, HttpMethod.Post, ApiPaths.Auth + AuthRoutes.SignOut, token);
 
         Assert.Equal(HttpStatusCode.Unauthorized, again.StatusCode);
         Assert.Equal("Bearer realm=\"mosaic\", error=\"invalid_token\"", Assert.Single(again.Headers.GetValues("WWW-Authenticate")));
@@ -65,7 +65,7 @@ public sealed class SignOutEndpointTests(PostgresFixture postgres, ApiFactory fa
         var first = await SignIn(client, email);
         var second = await SignIn(client, email);
 
-        var response = await Send(client, HttpMethod.Post, "/v1/auth/sign-out-everywhere", first);
+        var response = await Send(client, HttpMethod.Post, ApiPaths.Auth + AuthRoutes.SignOutEverywhere, first);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, (await GetSession(client, first)).StatusCode);
@@ -86,7 +86,7 @@ public sealed class SignOutEndpointTests(PostgresFixture postgres, ApiFactory fa
             SetupToken = PostgresFixture.SetupToken,
         };
 
-        var response = await client.PostAsJsonAsync("/v1/auth/register", request, MosaicJson.Options, Token);
+        var response = await client.PostAsJsonAsync(ApiPaths.Auth + AuthRoutes.Register, request, MosaicJson.Options, Token);
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
@@ -97,14 +97,14 @@ public sealed class SignOutEndpointTests(PostgresFixture postgres, ApiFactory fa
     {
         var request = new SignInRequest { Email = email, Password = Password };
 
-        var response = await client.PostAsJsonAsync("/v1/auth/sign-in", request, MosaicJson.Options, Token);
+        var response = await client.PostAsJsonAsync(ApiPaths.Auth + AuthRoutes.SignIn, request, MosaicJson.Options, Token);
         var body = await response.Content.ReadFromJsonAsync<ApiResponse<SignInResult>>(MosaicJson.Options, Token);
 
         return body!.Data!.Token;
     }
 
     private static Task<HttpResponseMessage> GetSession(HttpClient client, string token) =>
-        Send(client, HttpMethod.Get, "/v1/auth/session", token);
+        Send(client, HttpMethod.Get, ApiPaths.Auth + AuthRoutes.Session, token);
 
     private static Task<HttpResponseMessage> Send(HttpClient client, HttpMethod method, string path, string token)
     {

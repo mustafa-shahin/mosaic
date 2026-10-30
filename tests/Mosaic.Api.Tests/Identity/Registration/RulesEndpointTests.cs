@@ -10,7 +10,7 @@ namespace Mosaic.Api.Tests.Identity.Registration;
 [Trait("Requires", "Docker")]
 public sealed class RulesEndpointTests(PostgresFixture postgres, ApiFactory factory) : IClassFixture<ApiFactory>
 {
-    private const string Path = "/v1/auth/rules";
+    private const string Path = ApiPaths.Auth + AuthRoutes.Rules;
 
     private static CancellationToken Token => TestContext.Current.CancellationToken;
 
@@ -43,7 +43,7 @@ public sealed class RulesEndpointTests(PostgresFixture postgres, ApiFactory fact
             SetupToken = PostgresFixture.SetupToken,
         };
 
-        Assert.Equal(HttpStatusCode.Created, (await client.PostAsJsonAsync("/v1/auth/register", register, MosaicJson.Options, Token)).StatusCode);
+        Assert.Equal(HttpStatusCode.Created, (await client.PostAsJsonAsync(ApiPaths.Auth + AuthRoutes.Register, register, MosaicJson.Options, Token)).StatusCode);
 
         var body = await client.GetFromJsonAsync<ApiResponse<RulesResult>>(Path, MosaicJson.Options, Token);
 
@@ -72,7 +72,7 @@ public sealed class RulesEndpointTests(PostgresFixture postgres, ApiFactory fact
             SetupToken = PostgresFixture.SetupToken,
         };
 
-        Assert.Equal(HttpStatusCode.Created, (await client.PostAsJsonAsync("/v1/auth/register", register, MosaicJson.Options, Token)).StatusCode);
+        Assert.Equal(HttpStatusCode.Created, (await client.PostAsJsonAsync(ApiPaths.Auth + AuthRoutes.Register, register, MosaicJson.Options, Token)).StatusCode);
     }
 
     private HttpClient Client() =>

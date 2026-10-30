@@ -11,8 +11,8 @@ namespace Mosaic.Desktop.Tests.Shell.FirstRun;
 
 public sealed class FirstRunViewModelTests
 {
-    private const string Register = "/v1/auth/register";
-    private const string SignIn = "/v1/auth/sign-in";
+    private const string Register = ApiPaths.Auth + AuthRoutes.Register;
+    private const string SignIn = ApiPaths.Auth + AuthRoutes.SignIn;
     private const string Password = "correct horse battery staple";
 
     private static readonly PasswordRule Rule = new() { MinLength = 15, MaxLength = 128 };

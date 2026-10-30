@@ -10,7 +10,7 @@ namespace Mosaic.Api.Tests.Identity.Registration;
 [Trait("Requires", "Docker")]
 public sealed class RegisterEndpointTests(PostgresFixture postgres, ApiFactory factory) : IClassFixture<ApiFactory>
 {
-    private const string Path = "/v1/auth/register";
+    private const string Path = ApiPaths.Auth + AuthRoutes.Register;
 
     private static CancellationToken Token => TestContext.Current.CancellationToken;
 

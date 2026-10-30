@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
+using Mosaic.Contracts.Identity;
 
 namespace Mosaic.Api.Tests.Identity.Sessions;
 
@@ -14,7 +15,7 @@ public sealed class SessionChallengeTests(ApiFactory factory) : IClassFixture<Ap
     [InlineData("Bearer not-a-token", "Bearer realm=\"mosaic\", error=\"invalid_token\"")]
     public async Task WithoutALiveSession_TheAnswerIs401WithAChallengeAndNoBody(string? authorization, string challenge)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, "/v1/auth/session");
+        using var request = new HttpRequestMessage(HttpMethod.Get, ApiPaths.Auth + AuthRoutes.Session);
 
         if (authorization is not null)
         {

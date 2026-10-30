@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using Mosaic.Contracts.Identity;
 
 namespace Mosaic.Api.Tests;
 
@@ -11,7 +12,7 @@ public sealed class CacheControlTests(ApiFactory factory) : IClassFixture<ApiFac
     [Fact]
     public async Task AnAnswer_TellsEveryCacheNotToKeepIt()
     {
-        var response = await factory.CreateClient().GetAsync("/health", Token);
+        var response = await factory.CreateClient().GetAsync(ApiPaths.Health, Token);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("no-store", response.Headers.CacheControl?.ToString());
@@ -20,7 +21,7 @@ public sealed class CacheControlTests(ApiFactory factory) : IClassFixture<ApiFac
     [Fact]
     public async Task ARefusalForLackOfASession_IsNotKeptEither()
     {
-        var response = await factory.CreateClient().GetAsync("/v1/auth/session", Token);
+        var response = await factory.CreateClient().GetAsync(ApiPaths.Auth + AuthRoutes.Session, Token);
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         Assert.Equal("no-store", response.Headers.CacheControl?.ToString());
@@ -35,10 +36,10 @@ public sealed class CacheControlTests(ApiFactory factory) : IClassFixture<ApiFac
         // the register bucket holds ten, and a body that cannot be read never reaches the database
         for (var attempt = 0; attempt < 10; attempt++)
         {
-            await client.PostAsync("/v1/auth/register", Unreadable(), Token);
+            await client.PostAsync(ApiPaths.Auth + AuthRoutes.Register, Unreadable(), Token);
         }
 
-        var refused = await client.PostAsync("/v1/auth/register", Unreadable(), Token);
+        var refused = await client.PostAsync(ApiPaths.Auth + AuthRoutes.Register, Unreadable(), Token);
 
         Assert.Equal(HttpStatusCode.TooManyRequests, refused.StatusCode);
         Assert.Equal("no-store", refused.Headers.CacheControl?.ToString());
@@ -48,7 +49,7 @@ public sealed class CacheControlTests(ApiFactory factory) : IClassFixture<ApiFac
     [Fact]
     public async Task AnAnswerFromTheExceptionHandler_IsNotKeptEither()
     {
-        var response = await factory.CreateClient().PostAsync("/v1/auth/sign-in", Unreadable(), Token);
+        var response = await factory.CreateClient().PostAsync(ApiPaths.Auth + AuthRoutes.SignIn, Unreadable(), Token);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.True(response.Headers.CacheControl?.NoStore);

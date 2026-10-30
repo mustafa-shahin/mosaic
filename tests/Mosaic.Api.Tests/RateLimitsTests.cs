@@ -6,6 +6,7 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;
 using Mosaic.Contracts;
+using Mosaic.Contracts.Identity;
 
 namespace Mosaic.Api.Tests;
 
@@ -99,10 +100,10 @@ public sealed class RateLimitsTests(ApiFactory factory) : IClassFixture<ApiFacto
 
         for (var request = 0; request < 100; request++)
         {
-            Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/health", Token)).StatusCode);
+            Assert.Equal(HttpStatusCode.OK, (await client.GetAsync(ApiPaths.Health, Token)).StatusCode);
         }
 
-        var refused = await client.GetAsync("/health", Token);
+        var refused = await client.GetAsync(ApiPaths.Health, Token);
         var body = await refused.Content.ReadFromJsonAsync<ApiResponse>(MosaicJson.Options, Token);
 
         Assert.Equal(HttpStatusCode.TooManyRequests, refused.StatusCode);
@@ -119,14 +120,14 @@ public sealed class RateLimitsTests(ApiFactory factory) : IClassFixture<ApiFacto
 
         for (var attempt = 0; attempt < 10; attempt++)
         {
-            Assert.Equal(HttpStatusCode.BadRequest, (await client.PostAsync("/v1/auth/register", Unreadable(), Token)).StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, (await client.PostAsync(ApiPaths.Auth + AuthRoutes.Register, Unreadable(), Token)).StatusCode);
         }
 
-        var refused = await client.PostAsync("/v1/auth/register", Unreadable(), Token);
+        var refused = await client.PostAsync(ApiPaths.Auth + AuthRoutes.Register, Unreadable(), Token);
 
         Assert.Equal(HttpStatusCode.TooManyRequests, refused.StatusCode);
         Assert.Equal("60", Assert.Single(refused.Headers.GetValues("Retry-After")));
-        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/health", Token)).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync(ApiPaths.Health, Token)).StatusCode);
     }
 
     [Fact]
@@ -136,10 +137,10 @@ public sealed class RateLimitsTests(ApiFactory factory) : IClassFixture<ApiFacto
 
         for (var attempt = 0; attempt < 30; attempt++)
         {
-            Assert.Equal(HttpStatusCode.BadRequest, (await client.PostAsync("/v1/auth/sign-in", Unreadable(), Token)).StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, (await client.PostAsync(ApiPaths.Auth + AuthRoutes.SignIn, Unreadable(), Token)).StatusCode);
         }
 
-        var refused = await client.PostAsync("/v1/auth/sign-in", Unreadable(), Token);
+        var refused = await client.PostAsync(ApiPaths.Auth + AuthRoutes.SignIn, Unreadable(), Token);
 
         Assert.Equal(HttpStatusCode.TooManyRequests, refused.StatusCode);
         Assert.Equal("6", Assert.Single(refused.Headers.GetValues("Retry-After")));
@@ -153,10 +154,10 @@ public sealed class RateLimitsTests(ApiFactory factory) : IClassFixture<ApiFacto
 
         for (var request = 0; request < 100; request++)
         {
-            Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/v1/auth/session", Token)).StatusCode);
+            Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync(ApiPaths.Auth + AuthRoutes.Session, Token)).StatusCode);
         }
 
-        Assert.Equal(HttpStatusCode.TooManyRequests, (await client.GetAsync("/v1/auth/session", Token)).StatusCode);
+        Assert.Equal(HttpStatusCode.TooManyRequests, (await client.GetAsync(ApiPaths.Auth + AuthRoutes.Session, Token)).StatusCode);
     }
 
     private static DefaultHttpContext Anonymous(IPAddress address)

@@ -1,6 +1,7 @@
 using System.Net;
 using FluentIcons.Common;
 using Mosaic.Contracts;
+using Mosaic.Contracts.Identity;
 using Mosaic.Desktop.Features.Health;
 using Mosaic.Desktop.Localization;
 using Mosaic.Desktop.Services;
@@ -16,10 +17,10 @@ namespace Mosaic.Desktop.Tests.Shell;
 
 public sealed class MainWindowViewModelTests : IDisposable
 {
-    private const string Rules = "/v1/auth/rules";
-    private const string Register = "/v1/auth/register";
-    private const string SignInPath = "/v1/auth/sign-in";
-    private const string SignOutPath = "/v1/auth/sign-out";
+    private const string Rules = ApiPaths.Auth + AuthRoutes.Rules;
+    private const string Register = ApiPaths.Auth + AuthRoutes.Register;
+    private const string SignInPath = ApiPaths.Auth + AuthRoutes.SignIn;
+    private const string SignOutPath = ApiPaths.Auth + AuthRoutes.SignOut;
 
     private static readonly LanguageOption English = LanguageCatalog.Resolve("en");
     private static readonly LanguageOption German = LanguageCatalog.Resolve("de");

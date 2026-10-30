@@ -14,7 +14,7 @@ public sealed class HealthEndpointTests(ApiFactory factory) : IClassFixture<ApiF
     {
         var client = factory.CreateClient();
 
-        var response = await client.GetAsync("/health", TestContext.Current.CancellationToken);
+        var response = await client.GetAsync(ApiPaths.Health, TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -33,7 +33,7 @@ public sealed class HealthEndpointTests(ApiFactory factory) : IClassFixture<ApiF
     {
         var client = factory.CreateClient();
 
-        var json = await client.GetStringAsync("/health", TestContext.Current.CancellationToken);
+        var json = await client.GetStringAsync(ApiPaths.Health, TestContext.Current.CancellationToken);
 
         Assert.Contains("\"success\":true", json);
         Assert.Contains("\"service\":\"Mosaic.Api\"", json);
@@ -46,7 +46,7 @@ public sealed class HealthEndpointTests(ApiFactory factory) : IClassFixture<ApiF
     [Fact]
     public async Task Health_WithATokenWhoseCheckCannotReachTheDatabase_StillAnswers()
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, "/health");
+        using var request = new HttpRequestMessage(HttpMethod.Get, ApiPaths.Health);
 
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", SessionTokenFormat.Create().Token);
 

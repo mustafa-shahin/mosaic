@@ -36,7 +36,7 @@ public sealed class TrustedProxiesTests(ApiFactory factory) : IClassFixture<ApiF
     {
         using var client = StartInProduction("none");
 
-        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/health", Token)).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync(ApiPaths.Health, Token)).StatusCode);
     }
 
     [Fact]
@@ -44,7 +44,7 @@ public sealed class TrustedProxiesTests(ApiFactory factory) : IClassFixture<ApiF
     {
         using var client = StartInProduction("172.20.0.0/16, 10.0.0.0/8");
 
-        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/health", Token)).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync(ApiPaths.Health, Token)).StatusCode);
     }
 
     [Fact]
@@ -120,7 +120,7 @@ public sealed class TrustedProxiesTests(ApiFactory factory) : IClassFixture<ApiF
         {
             context.Connection.RemoteIpAddress = IPAddress.Parse(peer);
             context.Request.Method = HttpMethods.Get;
-            context.Request.Path = "/health";
+            context.Request.Path = ApiPaths.Health;
             context.Request.Headers["X-Forwarded-For"] = forwardedFor;
         }, Token);
 

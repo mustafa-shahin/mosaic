@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Mosaic.Api.Identity.Sessions;
 using Mosaic.Contracts;
+using Mosaic.Contracts.Identity;
 
 namespace Mosaic.Api.Tests;
 
@@ -19,7 +20,7 @@ public sealed class ExceptionPipelineTests(ApiFactory factory) : IClassFixture<A
                     services.AddSingleton<TimeProvider>(new UnavailableClock())))
             .CreateClient();
 
-        var response = await client.GetAsync("/health", TestContext.Current.CancellationToken);
+        var response = await client.GetAsync(ApiPaths.Health, TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
         Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
@@ -36,7 +37,7 @@ public sealed class ExceptionPipelineTests(ApiFactory factory) : IClassFixture<A
     [Fact]
     public async Task ASessionCheckThatThrows_AnswersWithTheEnvelopeAsJson()
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, "/v1/auth/session");
+        using var request = new HttpRequestMessage(HttpMethod.Get, ApiPaths.Auth + AuthRoutes.Session);
 
         // well formed, so the check queries the database this factory never reaches
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", SessionTokenFormat.Create().Token);

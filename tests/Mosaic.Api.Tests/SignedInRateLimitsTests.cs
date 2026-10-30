@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Mosaic.Api.Identity.Sessions;
+using Mosaic.Contracts.Identity;
 using Mosaic.Domain.Identity;
 using Mosaic.Persistence;
 
@@ -25,14 +26,14 @@ public sealed class SignedInRateLimitsTests(PostgresFixture postgres, ApiFactory
 
         for (var request = 0; request < 150; request++)
         {
-            Assert.Equal(HttpStatusCode.OK, (await Send(client, HttpMethod.Get, "/v1/auth/session", token)).StatusCode);
+            Assert.Equal(HttpStatusCode.OK, (await Send(client, HttpMethod.Get, ApiPaths.Auth + AuthRoutes.Session, token)).StatusCode);
         }
     }
 
     // attempts with a token use up the address's bucket, so the next one without a token is refused
     [Theory]
-    [InlineData("/v1/auth/register", 10)]
-    [InlineData("/v1/auth/sign-in", 30)]
+    [InlineData(ApiPaths.Auth + AuthRoutes.Register, 10)]
+    [InlineData(ApiPaths.Auth + AuthRoutes.SignIn, 30)]
     public async Task StrictBuckets_CountAgainstTheAddressEvenWithAToken(string path, int bucket)
     {
         var client = Client();

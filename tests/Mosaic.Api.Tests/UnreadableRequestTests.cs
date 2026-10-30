@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text;
 using Microsoft.AspNetCore.Hosting;
 using Mosaic.Contracts;
+using Mosaic.Contracts.Identity;
 
 namespace Mosaic.Api.Tests;
 
@@ -40,7 +41,7 @@ public sealed class UnreadableRequestTests(ApiFactory factory) : IClassFixture<A
             .UseSetting(TrustedProxies.Key, "none"));
 
         var response = await host.CreateClient()
-            .PostAsync("/v1/auth/sign-in", new StringContent(json, Encoding.UTF8, "application/json"), Token);
+            .PostAsync(ApiPaths.Auth + AuthRoutes.SignIn, new StringContent(json, Encoding.UTF8, "application/json"), Token);
 
         return (response.StatusCode, (await response.Content.ReadFromJsonAsync<ApiResponse>(MosaicJson.Options, Token))!);
     }

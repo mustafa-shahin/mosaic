@@ -14,7 +14,7 @@ namespace Mosaic.Api.Tests.Identity.Sessions;
 [Trait("Requires", "Docker")]
 public sealed class SessionEndpointTests(PostgresFixture postgres, ApiFactory factory) : IClassFixture<ApiFactory>
 {
-    private const string Path = "/v1/auth/session";
+    private const string Path = ApiPaths.Auth + AuthRoutes.Session;
     private const string Password = "correct horse battery staple";
 
     private static CancellationToken Token => TestContext.Current.CancellationToken;
@@ -72,9 +72,9 @@ public sealed class SessionEndpointTests(PostgresFixture postgres, ApiFactory fa
             SetupToken = PostgresFixture.SetupToken,
         };
 
-        Assert.Equal(HttpStatusCode.Created, (await client.PostAsJsonAsync("/v1/auth/register", register, MosaicJson.Options, Token)).StatusCode);
+        Assert.Equal(HttpStatusCode.Created, (await client.PostAsJsonAsync(ApiPaths.Auth + AuthRoutes.Register, register, MosaicJson.Options, Token)).StatusCode);
 
-        var response = await client.PostAsJsonAsync("/v1/auth/sign-in", new SignInRequest { Email = email, Password = Password }, MosaicJson.Options, Token);
+        var response = await client.PostAsJsonAsync(ApiPaths.Auth + AuthRoutes.SignIn, new SignInRequest { Email = email, Password = Password }, MosaicJson.Options, Token);
         var body = await response.Content.ReadFromJsonAsync<ApiResponse<SignInResult>>(MosaicJson.Options, Token);
 
         return body!.Data!;

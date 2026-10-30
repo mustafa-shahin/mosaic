@@ -6,6 +6,7 @@ using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Mosaic.Contracts.Identity;
 using Mosaic.Desktop.Features.Settings;
 using Mosaic.Desktop.Localization;
 using Mosaic.Desktop.Services;
@@ -109,7 +110,7 @@ public sealed class ShellViewTests : IDisposable
         signOut.Command!.Execute(signOut.CommandParameter);
 
         Assert.Null(_session.Current);
-        Assert.Equal("/v1/auth/sign-out", server.Path);
+        Assert.Equal(ApiPaths.Auth + AuthRoutes.SignOut, server.Path);
     }
 
     public void Dispose()

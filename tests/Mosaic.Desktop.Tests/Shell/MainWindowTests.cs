@@ -1,6 +1,7 @@
 using System.Net;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Mosaic.Contracts.Identity;
 using Mosaic.Desktop.Localization;
 using Mosaic.Desktop.Services;
 using Mosaic.Desktop.Services.Identity;
@@ -74,8 +75,8 @@ public sealed class MainWindowTests : IDisposable
     {
         var main = Main(new RoutingHandler(new Dictionary<string, (HttpStatusCode, string)>
         {
-            ["/v1/auth/rules"] = (HttpStatusCode.OK, RulesBodies.Closed),
-            ["/v1/auth/sign-in"] = (HttpStatusCode.OK, SignInBodies.Accepted),
+            [ApiPaths.Auth + AuthRoutes.Rules] = (HttpStatusCode.OK, RulesBodies.Closed),
+            [ApiPaths.Auth + AuthRoutes.SignIn] = (HttpStatusCode.OK, SignInBodies.Accepted),
         }));
         var window = await ShownPastTheStart(main);
 

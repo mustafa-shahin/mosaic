@@ -5,6 +5,7 @@ using Avalonia.Headless;
 using Avalonia.Input;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Mosaic.Contracts.Identity;
 using Mosaic.Desktop.Features.Settings;
 using Mosaic.Desktop.Localization;
 using Mosaic.Desktop.Services;
@@ -50,7 +51,7 @@ public sealed class SettingsViewTests : IDisposable
 
         await settings.SignOutEverywhereCommand.ExecutionTask!;
 
-        Assert.Equal("/v1/auth/sign-out-everywhere", server.Path);
+        Assert.Equal(ApiPaths.Auth + AuthRoutes.SignOutEverywhere, server.Path);
         Assert.Null(_session.Current);
     }
 
