@@ -54,8 +54,8 @@ jobs:
           global-json-file: global.json
 
       - name: Restore
-        run: dotnet restore tests/Mosaic.Integration.Tests/Mosaic.Integration.Tests.csproj --locked-mode
+        run: dotnet restore tests/Mosaic.Api.Tests/Mosaic.Api.Tests.csproj --locked-mode
 
       # A run that matches no test fails, so a trait spelled differently here turns this job red.
       - name: Test
-        run: dotnet test --project tests/Mosaic.Integration.Tests/Mosaic.Integration.Tests.csproj --no-restore --configuration Release --filter-trait "Requires=Docker"
+        run: dotnet test --project tests/Mosaic.Api.Tests/Mosaic.Api.Tests.csproj --no-restore --configuration Release --filter-trait "Requires=Docker"

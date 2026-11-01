@@ -2,13 +2,28 @@
   "version": 2,
   "dependencies": {
     "net10.0": {
-      "Asp.Versioning.Mvc": {
+      "Asp.Versioning.Http": {
         "type": "Direct",
         "requested": "[10.2.1, )",
         "resolved": "10.2.1",
-        "contentHash": "fMzUraYZOAobKQn2PffrgPsULbCWFeWroYRYndPasxPsiQl1+i8x5qYRuMYZAbzDrBnymPUMBxT2gZG2PwbkcQ==",
+        "contentHash": "XaVOKS4AV6a6JdFsiuyLkNwU0ilWhUK2U71mBEXJsgi5AGpo24UkfZ4KUhpRGpuMmQNrugS7yxCIscGcnujdFA==",
         "dependencies": {
-          "Asp.Versioning.Http": "10.2.1"
+          "Asp.Versioning.Abstractions": "10.2.1"
+        }
+      },
+      "FluentValidation": {
+        "type": "Direct",
+        "requested": "[12.2.0, )",
+        "resolved": "12.2.0",
+        "contentHash": "DR3lFbdnKucaaj1/8zMNOACMz/64igzox1yVZSFVsLxYB5mxAB+wFP1WZ8fjwrZnbU1KA1DoMzHKYKxUfuZ4wQ=="
+      },
+      "Konscious.Security.Cryptography.Argon2": {
+        "type": "Direct",
+        "requested": "[1.3.1, )",
+        "resolved": "1.3.1",
+        "contentHash": "T+OAGwzYYXftahpOxO7J4xA5K6urxwGnWQf3M+Jpi+76Azv/0T3M5SuN+h7/QvXuiqNw3ZEZ5QqVLI5ygDAylw==",
+        "dependencies": {
+          "Konscious.Security.Cryptography.Blake2": "1.1.1"
         }
       },
       "Microsoft.AspNetCore.OpenApi": {
@@ -24,14 +39,6 @@
         "type": "Transitive",
         "resolved": "10.2.1",
         "contentHash": "jMBztsVim+rYVrkNY23dMuOjTGXGQ9+je1xb3i17KgUof7OcBZtMMDduEWoCQ52SpTlYqKsuzgJyUMCMOFCBfg=="
-      },
-      "Asp.Versioning.Http": {
-        "type": "Transitive",
-        "resolved": "10.2.1",
-        "contentHash": "XaVOKS4AV6a6JdFsiuyLkNwU0ilWhUK2U71mBEXJsgi5AGpo24UkfZ4KUhpRGpuMmQNrugS7yxCIscGcnujdFA==",
-        "dependencies": {
-          "Asp.Versioning.Abstractions": "10.2.1"
-        }
       },
       "Konscious.Security.Cryptography.Blake2": {
         "type": "Transitive",
@@ -58,29 +65,18 @@
         "resolved": "10.0.3",
         "contentHash": "7nb5YzXuvWWJxB0J8DiyL3we+X4FOctZrt0fIBnucOIaIevFEEwGQVZKtiu9olXdlNAK1eNgqSral6r/jlhI4w=="
       },
-      "mosaic.application": {
-        "type": "Project",
-        "dependencies": {
-          "FluentValidation": "[12.2.0, )",
-          "Konscious.Security.Cryptography.Argon2": "[1.3.1, )",
-          "Microsoft.EntityFrameworkCore": "[10.0.13, )",
-          "Mosaic.Contracts": "[1.0.0, )",
-          "Mosaic.Domain": "[1.0.0, )"
-        }
-      },
       "mosaic.contracts": {
         "type": "Project"
       },
       "mosaic.domain": {
         "type": "Project"
       },
-      "mosaic.infrastructure": {
+      "mosaic.persistence": {
         "type": "Project",
         "dependencies": {
           "EFCore.NamingConventions": "[10.0.1, )",
           "Microsoft.EntityFrameworkCore": "[10.0.13, )",
           "Microsoft.EntityFrameworkCore.Relational": "[10.0.13, )",
-          "Mosaic.Application": "[1.0.0, )",
           "Mosaic.Domain": "[1.0.0, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )"
         }
@@ -93,21 +89,6 @@
         "dependencies": {
           "Microsoft.EntityFrameworkCore": "[10.0.1, 11.0.0)",
           "Microsoft.EntityFrameworkCore.Relational": "[10.0.1, 11.0.0)"
-        }
-      },
-      "FluentValidation": {
-        "type": "CentralTransitive",
-        "requested": "[12.2.0, )",
-        "resolved": "12.2.0",
-        "contentHash": "DR3lFbdnKucaaj1/8zMNOACMz/64igzox1yVZSFVsLxYB5mxAB+wFP1WZ8fjwrZnbU1KA1DoMzHKYKxUfuZ4wQ=="
-      },
-      "Konscious.Security.Cryptography.Argon2": {
-        "type": "CentralTransitive",
-        "requested": "[1.3.1, )",
-        "resolved": "1.3.1",
-        "contentHash": "T+OAGwzYYXftahpOxO7J4xA5K6urxwGnWQf3M+Jpi+76Azv/0T3M5SuN+h7/QvXuiqNw3ZEZ5QqVLI5ygDAylw==",
-        "dependencies": {
-          "Konscious.Security.Cryptography.Blake2": "1.1.1"
         }
       },
       "Microsoft.EntityFrameworkCore": {

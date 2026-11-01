@@ -56,8 +56,8 @@ public sealed class FirstRunViewTests
     {
         var handler = new RoutingHandler(new Dictionary<string, (HttpStatusCode, string)>
         {
-            ["/v1/auth/register"] = (HttpStatusCode.Created, RegisterBodies.Owner),
-            ["/v1/auth/sign-in"] = (HttpStatusCode.OK, SignInBodies.Accepted),
+            [ApiPaths.Auth + AuthRoutes.Register] = (HttpStatusCode.Created, RegisterBodies.Owner),
+            [ApiPaths.Auth + AuthRoutes.SignIn] = (HttpStatusCode.OK, SignInBodies.Accepted),
         });
         var viewModel = ViewModelWith(handler);
         var (window, view) = Show(viewModel);
@@ -95,7 +95,7 @@ public sealed class FirstRunViewTests
     {
         var viewModel = ViewModelWith(new RoutingHandler(new Dictionary<string, (HttpStatusCode, string)>
         {
-            ["/v1/auth/register"] = (HttpStatusCode.BadRequest, RegisterBodies.InvalidEmailAndTooShort),
+            [ApiPaths.Auth + AuthRoutes.Register] = (HttpStatusCode.BadRequest, RegisterBodies.InvalidEmailAndTooShort),
         }));
         var (_, view) = Show(viewModel);
 

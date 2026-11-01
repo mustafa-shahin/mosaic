@@ -233,7 +233,7 @@ public sealed class ShellViewModelTests : IDisposable
 
         Assert.Null(_session.Current);
         Assert.Equal(SessionEndReason.SignedOut, Assert.Single(ends).Reason);
-        Assert.Equal("/v1/auth/sign-out", server.Path);
+        Assert.Equal(ApiPaths.Auth + AuthRoutes.SignOut, server.Path);
     }
 
     public void Dispose()

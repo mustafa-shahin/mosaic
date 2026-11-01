@@ -1,5 +1,6 @@
 using System.Net;
 using Mosaic.Contracts;
+using Mosaic.Contracts.Identity;
 using Mosaic.Desktop.Services;
 using Mosaic.Desktop.Services.Identity;
 
@@ -39,7 +40,7 @@ public sealed class SignOutTests
 
         await SignOutWith(recorder).HereAsync();
 
-        Assert.Equal("/v1/auth/sign-out", recorder.Path);
+        Assert.Equal(ApiPaths.Auth + AuthRoutes.SignOut, recorder.Path);
         Assert.Equal("mosaic_leaving", recorder.Authorization?.Parameter);
     }
 
@@ -77,7 +78,7 @@ public sealed class SignOutTests
         var answer = await SignOutWith(recorder).EverywhereAsync(TestContext.Current.CancellationToken);
 
         Assert.True(answer.Success);
-        Assert.Equal("/v1/auth/sign-out-everywhere", recorder.Path);
+        Assert.Equal(ApiPaths.Auth + AuthRoutes.SignOutEverywhere, recorder.Path);
         Assert.Equal("mosaic_everywhere", recorder.Authorization?.Parameter);
         Assert.Equal([new SessionEnded(started, SessionEndReason.SignedOutEverywhere)], _ends);
     }
