@@ -8,6 +8,7 @@
   "client.passwords_differ": "The two passwords are not the same.",
   "client.unexpected_response": "The server sent something this app did not understand.",
   "error.account_inactive": "This account is not active. Ask an owner to activate it.",
+  "error.account_locked": "The account was locked after too many failed attempts.",
   "error.already_taken": "That email address is already registered.",
   "error.common_password": "This password is too easy to guess. It is a common password, or just your name, your email address or the word Mosaic with numbers or symbols before or after it. A phrase of several words is easy to remember and hard to guess.",
   "error.invalid_credentials": "The email address or the password is wrong. Too many attempts lock the account for a while.",

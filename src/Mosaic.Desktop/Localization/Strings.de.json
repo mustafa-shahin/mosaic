@@ -8,6 +8,7 @@
   "client.passwords_differ": "Die beiden Passwörter stimmen nicht überein.",
   "client.unexpected_response": "Der Server hat eine Antwort gesendet, die diese App nicht versteht.",
   "error.account_inactive": "Dieses Konto ist nicht aktiv. Bitten Sie einen Eigentümer, es zu aktivieren.",
+  "error.account_locked": "Das Konto war nach zu vielen fehlgeschlagenen Versuchen gesperrt.",
   "error.already_taken": "Diese E-Mail-Adresse ist bereits registriert.",
   "error.common_password": "Dieses Passwort ist zu leicht zu erraten. Es ist ein häufig verwendetes Passwort oder nur Ihr Name, Ihre E-Mail-Adresse oder das Wort Mosaic mit Zahlen oder Zeichen davor oder dahinter. Ein Satz aus mehreren Wörtern ist leicht zu merken und schwer zu erraten.",
   "error.invalid_credentials": "Die E-Mail-Adresse oder das Passwort ist falsch. Zu viele Versuche sperren das Konto für eine Weile.",

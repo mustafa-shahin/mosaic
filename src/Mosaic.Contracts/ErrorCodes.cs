@@ -4,6 +4,10 @@ namespace Mosaic.Contracts;
 public static class ErrorCodes
 {
     public const string AccountInactive = "error.account_inactive";
+
+    // audit rows only, the sign-in answer stays InvalidCredentials so a stranger cannot learn the address exists
+    public const string AccountLocked = "error.account_locked";
+
     public const string AlreadyTaken = "error.already_taken";
     public const string CommonPassword = "error.common_password";
     public const string InvalidCredentials = "error.invalid_credentials";

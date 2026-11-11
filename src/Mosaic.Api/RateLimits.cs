@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
@@ -62,17 +61,12 @@ internal static partial class RateLimits
 
     internal static string ClientKey(HttpContext context)
     {
-        var address = context.Connection.RemoteIpAddress;
+        // plain IPv4 for an IPv4 client, because ::ffff:a.b.c.d cut to /64 is :: and would put all of IPv4 in one bucket
+        var address = context.ClientAddress();
 
         if (address is null)
         {
             return NoAddress;
-        }
-
-        // Kestrel reports an IPv4 client as ::ffff:a.b.c.d, cut to /64 that would put all of IPv4 in one bucket
-        if (address.IsIPv4MappedToIPv6)
-        {
-            address = address.MapToIPv4();
         }
 
         if (address.AddressFamily != AddressFamily.InterNetworkV6)
@@ -112,7 +106,7 @@ internal static partial class RateLimits
 
         var response = ApiResponse.Fail(new ApiError { Code = ErrorCodes.TooManyRequests }) with
         {
-            TraceId = Activity.Current?.Id ?? httpContext.TraceIdentifier
+            TraceId = httpContext.CorrelationId()
         };
 
         await httpContext.Response.WriteAsJsonAsync(response, MosaicJson.Options, cancellationToken);
