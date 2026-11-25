@@ -17,9 +17,9 @@ compile and run with pro absent from the disk**, so no file here may name a pro 
 | `Mosaic.Desktop` | the shell, screens, themes and strings — a **library** | Contracts only |
 | `Mosaic.Desktop.App` | `Program.cs` and the manifest: the core-only entry point | Desktop |
 
-The desktop is a library because two entry points need it and an executable cannot be referenced as
-the shell by another executable. Pro's entry point is its twin in the private repository, and the two
-differ by one line: which composition is built.
+The desktop is a library because pro's entry point, its twin in the private repository, will need it
+too, and an executable cannot be referenced as the shell by another executable. Until pro's desktop is
+started, `App` builds core's list of screens itself.
 
 On the server, a feature's code lives in one folder of `Mosaic.Api`, such as `Identity/` with `Registration/`
 and `Sessions/` inside it. Endpoints are minimal APIs: a `<Feature>Endpoints` class maps the routes, each to a

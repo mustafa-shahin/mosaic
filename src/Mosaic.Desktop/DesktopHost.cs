@@ -1,15 +1,14 @@
 using Avalonia;
 using Avalonia.Media;
 using Avalonia.Media.Fonts;
-using Mosaic.Desktop.Shell.Navigation;
 
 namespace Mosaic.Desktop;
 
-// Fonts, platform and logging for every entry point, so core's and pro's Program differ only in the composition.
+// The app builder with its fonts, platform and logging.
 public static class DesktopHost
 {
-    public static AppBuilder Build(Func<DesktopServices, IDesktopComposition> compose)
-        => AppBuilder.Configure(() => new App(compose))
+    public static AppBuilder Build()
+        => AppBuilder.Configure<App>()
             .UsePlatformDetect()
 #if DEBUG
             .WithDeveloperTools()

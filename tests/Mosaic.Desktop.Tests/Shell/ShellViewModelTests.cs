@@ -14,7 +14,10 @@ namespace Mosaic.Desktop.Tests.Shell;
 
 public sealed class ShellViewModelTests : IDisposable
 {
-    private static readonly IReadOnlySet<string> Nothing = new HashSet<string>(StringComparer.Ordinal);
+    // a shell refuses a composition with no screen
+    private static readonly DesktopComposition OneScreen = new(
+        [new NavSectionDefinition("main", "nav.overview")],
+        [new NavContribution("main", "one", Symbol.Board, _ => new FakeScreen())]);
 
     private readonly string _folder = Path.Combine(Path.GetTempPath(), "mosaic-tests", Guid.CreateVersion7().ToString());
 
@@ -40,16 +43,17 @@ public sealed class ShellViewModelTests : IDisposable
     private ShellViewModel Shell(Localizer strings, string? startAt = null)
     {
         var api = new ApiClient(new HttpClient(_network) { BaseAddress = new Uri("http://localhost") }, _session);
-        var services = new DesktopServices(api, new SettingsStore(_folder), SignOutOver(_network), (_, _) => { });
+        var store = new SettingsStore(_folder);
+        var services = new DesktopServices(api, store, SignOutOver(_network), new LanguageChoice(store, strings.Language));
 
-        return new ShellViewModel(strings, new CoreComposition(services), Nothing, _person, SignOutOver(_network), startAt);
+        return new ShellViewModel(strings, CoreComposition.Build(services), _person, SignOutOver(_network), startAt);
     }
 
-    private ShellViewModel ShellOf(IDesktopComposition composition) =>
-        new(_strings, composition, Nothing, _person, SignOutOver(_network));
+    private ShellViewModel ShellOf(DesktopComposition composition) =>
+        new(_strings, composition, _person, SignOutOver(_network));
 
     private ShellViewModel ShellFor(string fullName) =>
-        new(_strings, new FakeComposition([], []), Nothing, _person with { FullName = fullName }, SignOutOver(_network));
+        new(_strings, OneScreen, _person with { FullName = fullName }, SignOutOver(_network));
 
     private static NavEntry EntryFor(ShellViewModel shell, string key) =>
         shell.Sections.SelectMany(section => section.Entries).Single(entry => entry.Key == key);
@@ -128,16 +132,16 @@ public sealed class ShellViewModelTests : IDisposable
     {
         DisposableScreen? opened = null;
 
-        var composition = new FakeComposition(
+        var composition = new DesktopComposition(
             [new NavSectionDefinition("main", "nav.overview")],
             [
-                new NavContribution("main", "one", Symbol.Board, local: true, _ =>
+                new NavContribution("main", "one", Symbol.Board, _ =>
                 {
                     opened = new DisposableScreen();
 
                     return opened;
                 }),
-                new NavContribution("main", "two", Symbol.Settings, local: true, _ => new FakeScreen())
+                new NavContribution("main", "two", Symbol.Settings, _ => new FakeScreen())
             ]);
 
         var shell = ShellOf(composition);
@@ -155,10 +159,10 @@ public sealed class ShellViewModelTests : IDisposable
     {
         DisposableScreen? opened = null;
 
-        var composition = new FakeComposition(
+        var composition = new DesktopComposition(
             [new NavSectionDefinition("main", "nav.overview")],
             [
-                new NavContribution("main", "one", Symbol.Board, local: true, _ =>
+                new NavContribution("main", "one", Symbol.Board, _ =>
                 {
                     opened = new DisposableScreen();
 
@@ -172,20 +176,6 @@ public sealed class ShellViewModelTests : IDisposable
 
         Assert.NotNull(opened);
         Assert.True(opened.WasDisposed);
-    }
-
-    [Fact]
-    public void Construct_WhenNothingIsVisible_ShowsNoAccessInsteadOfThrowing()
-    {
-        var composition = new FakeComposition(
-            [new NavSectionDefinition("main", "nav.overview")],
-            [new NavContribution("main", "one", Symbol.Board, local: false, _ => new FakeScreen())]);
-
-        var shell = ShellOf(composition);
-
-        Assert.IsType<NoAccessViewModel>(shell.Current);
-        Assert.Empty(shell.Sections);
-        Assert.Equal(string.Empty, shell.ActiveKey);
     }
 
     [Fact]
@@ -224,7 +214,7 @@ public sealed class ShellViewModelTests : IDisposable
     public void SignOutHere_EndsTheSessionAtOnceAndThenTellsTheServer()
     {
         var server = new RecordingHandler(HttpStatusCode.OK, """{"success":true}""");
-        var shell = new ShellViewModel(_strings, new FakeComposition([], []), Nothing, _person, SignOutOver(server));
+        var shell = new ShellViewModel(_strings, OneScreen, _person, SignOutOver(server));
         var ends = new List<SessionEnded>();
 
         _session.Ended += (_, ended) => ends.Add(ended);

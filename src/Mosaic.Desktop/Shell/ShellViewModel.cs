@@ -15,23 +15,16 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
     private readonly SignOut _signOut;
 
     public ShellViewModel(
-        Localizer strings, IDesktopComposition composition, IReadOnlySet<string> visible, SessionResult person,
-        SignOut signOut, string? startAt = null)
+        Localizer strings, DesktopComposition composition, SessionResult person, SignOut signOut, string? startAt = null)
     {
         Strings = strings;
-        Sections = NavBuilder.Build(composition, visible, strings);
-        _entries = NavBuilder.Flatten(Sections);
+        Sections = NavBuilder.Build(composition, strings);
+        _entries = [.. Sections.SelectMany(section => section.Entries)];
         _signOut = signOut;
 
         Name = person.FullName;
         Email = person.Email;
         Initials = InitialsOf(person.FullName);
-
-        if (_entries.Count == 0)
-        {
-            Current = new NoAccessViewModel(strings);
-            return;
-        }
 
         var opening = _entries.Find(entry => entry.Key == startAt) ?? _entries[0];
 

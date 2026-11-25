@@ -13,6 +13,8 @@ internal static class DesignContext
     // its own folder, so previewing can never read or overwrite the real settings.json
     public static SettingsStore Store { get; } = new(Path.Combine(Path.GetTempPath(), "MosaicDesign"));
 
+    public static LanguageChoice Language { get; } = new(Store, Strings.Language);
+
     public static CurrentSession Session { get; } = new();
 
     // nothing in a preview calls the API; the address gives the previews a server name to show
@@ -21,6 +23,6 @@ internal static class DesignContext
     public static SignOut SignOut { get; } = new(new AuthApi(Api), Session);
 
     // the same composition the running app builds, so a previewed sidebar is the real sidebar
-    public static IDesktopComposition Composition { get; } =
-        new CoreComposition(new DesktopServices(Api, Store, SignOut, (_, _) => { }));
+    public static DesktopComposition Composition { get; } =
+        CoreComposition.Build(new DesktopServices(Api, Store, SignOut, Language));
 }

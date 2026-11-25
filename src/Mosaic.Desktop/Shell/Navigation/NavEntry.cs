@@ -5,8 +5,7 @@ using Mosaic.Desktop.Localization;
 namespace Mosaic.Desktop.Shell.Navigation;
 
 // What the sidebar binds to, built by NavBuilder with the label already translated.
-public sealed partial class NavEntry(NavContribution contribution, string label, IReadOnlyList<NavEntry> children)
-    : ObservableObject
+public sealed partial class NavEntry(NavContribution contribution, string label) : ObservableObject
 {
     // the translation key, stable across a language change
     public string Key => contribution.Key;
@@ -14,8 +13,6 @@ public sealed partial class NavEntry(NavContribution contribution, string label,
     public string Label { get; } = label;
 
     public Symbol Icon => contribution.Icon;
-
-    public IReadOnlyList<NavEntry> Children { get; } = children;
 
     [ObservableProperty]
     public partial bool IsActive { get; set; }

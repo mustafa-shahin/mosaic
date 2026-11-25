@@ -28,7 +28,8 @@ public sealed class SettingsViewTests : IDisposable
         var server = new RecordingHandler(HttpStatusCode.OK, """{"success":true}""");
         var signOut = new SignOut(
             new AuthApi(new ApiClient(new HttpClient(server) { BaseAddress = new Uri("http://localhost:5175/") }, _session)), _session);
-        var settings = new SettingsViewModel(_strings, new SettingsStore(_folder), signOut);
+        var store = new SettingsStore(_folder);
+        var settings = new SettingsViewModel(_strings, store, signOut, new LanguageChoice(store, _strings.Language));
 
         _session.Start(SignInResults.Ada());
 

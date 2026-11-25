@@ -9,6 +9,6 @@ public static class Program
     public static void Main(string[] args) => BuildAvaloniaApp()
         .StartWithClassicDesktopLifetime(args);
 
-    // Parameterless for the visual designer, and it composes the core edition.
-    public static AppBuilder BuildAvaloniaApp() => DesktopHost.Build(services => new CoreComposition(services));
+    // Parameterless for the visual designer.
+    public static AppBuilder BuildAvaloniaApp() => DesktopHost.Build();
 }

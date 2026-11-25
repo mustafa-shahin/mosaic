@@ -57,15 +57,17 @@ public sealed class MainWindowViewModelTests : IDisposable
             (Register, registerStatus, registerBody),
             (SignInPath, signInStatus, signInBody));
 
-    private MainWindowViewModel Main(AuthApi auth, IDesktopComposition? composition = null, LanguageOption? language = null) =>
+    private MainWindowViewModel Main(AuthApi auth, DesktopComposition? composition = null, LanguageOption? language = null) =>
         new(auth, _session, new SignOut(auth, _session), composition ?? Composition(), language ?? English);
 
     // the real composition, whose screens never call the network unless a view asks them to
-    private CoreComposition Composition()
+    private DesktopComposition Composition()
     {
         var api = new ApiClient(new HttpClient(_network) { BaseAddress = new Uri("http://localhost") }, _session);
+        var store = new SettingsStore(_folder);
 
-        return new CoreComposition(new DesktopServices(api, new SettingsStore(_folder), new SignOut(new AuthApi(api), _session), (_, _) => { }));
+        return CoreComposition.Build(
+            new DesktopServices(api, store, new SignOut(new AuthApi(api), _session), new LanguageChoice(store, English)));
     }
 
     private static async Task Start(MainWindowViewModel main) =>
@@ -90,10 +92,10 @@ public sealed class MainWindowViewModelTests : IDisposable
         await firstRun.CreateCommand.ExecuteAsync(null);
     }
 
-    private static FakeComposition OneScreen(Action<DisposableScreen> opened) => new(
+    private static DesktopComposition OneScreen(Action<DisposableScreen> opened) => new(
         [new NavSectionDefinition("main", "nav.overview")],
         [
-            new NavContribution("main", "one", Symbol.Board, local: true, _ =>
+            new NavContribution("main", "one", Symbol.Board, _ =>
             {
                 var screen = new DisposableScreen();
 
@@ -292,7 +294,7 @@ public sealed class MainWindowViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task ChooseLanguage_FromTheScreenStandingOpen_RebuildsTheShellThereInThatLanguage()
+    public async Task SwitchLanguage_RebuildsTheShellThereInThatLanguage()
     {
         var main = Main(SetUp(HttpStatusCode.OK, SignInBodies.Accepted));
 
@@ -302,7 +304,7 @@ public sealed class MainWindowViewModelTests : IDisposable
 
         standing.GoCommand.Execute(standing.Sections.SelectMany(section => section.Entries).Single(entry => entry.Key == "nav.settings"));
 
-        main.ChooseLanguage(standing.Current, German);
+        main.SwitchLanguage(German);
 
         var rebuilt = Assert.IsType<ShellViewModel>(main.Current);
 
@@ -313,16 +315,15 @@ public sealed class MainWindowViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task ChooseLanguage_KeepsTheSessionAndThePerson()
+    public async Task SwitchLanguage_KeepsTheSessionAndThePerson()
     {
         var main = Main(SetUp(HttpStatusCode.OK, SignInBodies.Accepted));
 
         await SignIn(main);
 
         var session = _session.Current;
-        var standing = Assert.IsType<ShellViewModel>(main.Current);
 
-        main.ChooseLanguage(standing.Current, German);
+        main.SwitchLanguage(German);
 
         var rebuilt = Assert.IsType<ShellViewModel>(main.Current);
 
@@ -332,7 +333,7 @@ public sealed class MainWindowViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task ChooseLanguage_DisposesTheShellItReplaces()
+    public async Task SwitchLanguage_DisposesTheShellItReplaces()
     {
         DisposableScreen? opened = null;
         var main = Main(SetUp(HttpStatusCode.OK, SignInBodies.Accepted), OneScreen(screen => opened = screen));
@@ -341,7 +342,7 @@ public sealed class MainWindowViewModelTests : IDisposable
 
         var first = opened;
 
-        main.ChooseLanguage(first, German);
+        main.SwitchLanguage(German);
 
         Assert.NotNull(first);
         Assert.True(first.WasDisposed);
@@ -349,22 +350,7 @@ public sealed class MainWindowViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task ChooseLanguage_FromAScreenNoLongerOpen_ChangesNothing()
-    {
-        var main = Main(SetUp(HttpStatusCode.OK, SignInBodies.Accepted));
-
-        await SignIn(main);
-
-        var standing = main.Current;
-
-        main.ChooseLanguage(new FakeScreen(), German);
-
-        Assert.Same(standing, main.Current);
-        Assert.Equal("en", main.Strings.Language.Code);
-    }
-
-    [Fact]
-    public async Task ChooseLanguage_TheLanguageAlreadyShown_ChangesNothing()
+    public async Task SwitchLanguage_TheLanguageAlreadyShown_ChangesNothing()
     {
         var main = Main(SetUp(HttpStatusCode.OK, SignInBodies.Accepted));
 
@@ -372,19 +358,19 @@ public sealed class MainWindowViewModelTests : IDisposable
 
         var standing = Assert.IsType<ShellViewModel>(main.Current);
 
-        main.ChooseLanguage(standing.Current, English);
+        main.SwitchLanguage(English);
 
         Assert.Same(standing, main.Current);
     }
 
     // there is no language picker before sign-in, so a request then can only be stale
     [Fact]
-    public void ChooseLanguage_BeforeSignIn_ChangesNothing()
+    public void SwitchLanguage_BeforeSignIn_ChangesNothing()
     {
         var main = Main(SetUp(HttpStatusCode.OK, SignInBodies.Accepted));
         var start = main.Current;
 
-        main.ChooseLanguage(start, German);
+        main.SwitchLanguage(German);
 
         Assert.Same(start, main.Current);
         Assert.Equal("en", main.Strings.Language.Code);

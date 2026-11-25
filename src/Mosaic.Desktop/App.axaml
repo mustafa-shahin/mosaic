@@ -31,10 +31,6 @@
         <DataTemplate DataType="settings:SettingsViewModel">
             <settings:SettingsView />
         </DataTemplate>
-        <!-- the shell's own screen, a single text block, so it has no view file of its own -->
-        <DataTemplate DataType="shell:NoAccessViewModel">
-            <SelectableTextBlock Classes="body" Text="{Binding Message}" TextWrapping="Wrap" MaxWidth="480" />
-        </DataTemplate>
     </Application.DataTemplates>
 
     <Application.Resources>
