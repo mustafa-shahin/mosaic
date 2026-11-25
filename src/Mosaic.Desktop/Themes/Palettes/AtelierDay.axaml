@@ -34,5 +34,6 @@
   <SolidColorBrush x:Key="StatusInfoSoft">#1F4E718F</SolidColorBrush>
 
   <BoxShadows x:Key="CardShadow">0 1 2 0 #40000000</BoxShadows>
+  <BoxShadows x:Key="PanelShadow">-8 0 24 0 #26000000</BoxShadows>
 
 </ResourceDictionary>

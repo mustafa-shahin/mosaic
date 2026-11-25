@@ -75,4 +75,22 @@ public sealed class ValidationResultExtensionsTests
         Assert.Equal(ErrorParams.Limit, parameter.Key);
         Assert.Equal(limit, parameter.Value);
     }
+
+    // a comparison names its number ComparisonValue, a length check names two others
+    [Theory]
+    [InlineData(0, Paging.DefaultPageSize, "page", ErrorCodes.TooSmall, "1")]
+    [InlineData(Paging.FirstPage, 0, "pageSize", ErrorCodes.TooSmall, "1")]
+    [InlineData(Paging.FirstPage, Paging.MaxPageSize + 1, "pageSize", ErrorCodes.TooLarge, "100")]
+    public void AComparison_CarriesTheNumberItComparesWithAsTheLimit(int page, int pageSize, string field, string code, string limit)
+    {
+        var thrown = Assert.Throws<ValidationException>(() =>
+            new PageRequestValidator().Validate(new PageRequest { Page = page, PageSize = pageSize }).ThrowIfInvalid());
+
+        var error = Assert.Single(thrown.FieldErrors[field]);
+        var parameter = Assert.Single(error.Params!);
+
+        Assert.Equal(code, error.Code);
+        Assert.Equal(ErrorParams.Limit, parameter.Key);
+        Assert.Equal(limit, parameter.Value);
+    }
 }

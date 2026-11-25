@@ -1,4 +1,3 @@
-using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Mosaic.Contracts.Identity;
@@ -24,7 +23,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
 
         Name = person.FullName;
         Email = person.Email;
-        Initials = InitialsOf(person.FullName);
+        Initials = NameInitials.Of(person.FullName);
 
         var opening = _entries.Find(entry => entry.Key == startAt) ?? _entries[0];
 
@@ -80,19 +79,4 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
     // the window leaves this shell at once, and the server hears about it afterwards
     [RelayCommand]
     private void SignOutHere() => _ = _signOut.HereAsync();
-
-    // "Ada Lovelace" gives "AL"; each letter is a whole text element, so an accent written as a second character stays on it
-    private static string InitialsOf(string fullName)
-    {
-        var words = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-
-        return words.Length switch
-        {
-            0 => string.Empty,
-            1 => FirstLetter(words[0]),
-            _ => FirstLetter(words[0]) + FirstLetter(words[^1]),
-        };
-    }
-
-    private static string FirstLetter(string word) => StringInfo.GetNextTextElement(word).ToUpperInvariant();
 }

@@ -2,332 +2,574 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:c="using:Mosaic.Desktop.Controls">
 
-  <!-- StatusLevel to colours -->
-  <Style Selector="c|StatusPill[Level=Info]">
-    <Setter Property="Foreground" Value="{DynamicResource StatusInfo}" />
-    <Setter Property="Background" Value="{DynamicResource StatusInfoSoft}" />
-  </Style>
+    <!-- StatusLevel to colours -->
+    <Style Selector="c|StatusPill[Level=Info]">
+        <Setter Property="Foreground" Value="{DynamicResource StatusInfo}" />
+        <Setter Property="Background" Value="{DynamicResource StatusInfoSoft}" />
+    </Style>
 
-  <Style Selector="c|StatusPill[Level=Ok]">
-    <Setter Property="Foreground" Value="{DynamicResource StatusOk}" />
-    <Setter Property="Background" Value="{DynamicResource StatusOkSoft}" />
-  </Style>
+    <Style Selector="c|StatusPill[Level=Ok]">
+        <Setter Property="Foreground" Value="{DynamicResource StatusOk}" />
+        <Setter Property="Background" Value="{DynamicResource StatusOkSoft}" />
+    </Style>
 
-  <Style Selector="c|StatusPill[Level=Warn]">
-    <Setter Property="Foreground" Value="{DynamicResource StatusWarn}" />
-    <Setter Property="Background" Value="{DynamicResource StatusWarnSoft}" />
-  </Style>
+    <Style Selector="c|StatusPill[Level=Warn]">
+        <Setter Property="Foreground" Value="{DynamicResource StatusWarn}" />
+        <Setter Property="Background" Value="{DynamicResource StatusWarnSoft}" />
+    </Style>
 
-  <Style Selector="c|StatusPill[Level=Bad]">
-    <Setter Property="Foreground" Value="{DynamicResource StatusBad}" />
-    <Setter Property="Background" Value="{DynamicResource StatusBadSoft}" />
-  </Style>
+    <Style Selector="c|StatusPill[Level=Bad]">
+        <Setter Property="Foreground" Value="{DynamicResource StatusBad}" />
+        <Setter Property="Background" Value="{DynamicResource StatusBadSoft}" />
+    </Style>
 
-  <Style Selector="c|FactRow[IsLast=True] /template/ Border#Separator">
-    <Setter Property="BorderThickness" Value="0" />
-  </Style>
+    <Style Selector="c|FactRow[IsLast=True] /template/ Border#Separator">
+        <Setter Property="BorderThickness" Value="0" />
+    </Style>
 
-  <Style Selector=":is(TextBlock)">
-    <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
-    <Setter Property="FontFamily" Value="{DynamicResource TextFont}" />
-  </Style>
+    <Style Selector=":is(TextBlock)">
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+        <Setter Property="FontFamily" Value="{DynamicResource TextFont}" />
+    </Style>
 
-  <Style Selector=":is(TextBlock).title">
-    <Setter Property="FontSize" Value="{DynamicResource TitleSize}" />
-    <Setter Property="FontWeight" Value="SemiBold" />
-    <Setter Property="LetterSpacing" Value="-0.3" />
-  </Style>
+    <Style Selector=":is(TextBlock).title">
+        <Setter Property="FontSize" Value="{DynamicResource TitleSize}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="LetterSpacing" Value="-0.3" />
+    </Style>
 
-  <Style Selector=":is(TextBlock).cardTitle">
-    <Setter Property="FontSize" Value="{DynamicResource CardTitleSize}" />
-    <Setter Property="FontWeight" Value="SemiBold" />
-  </Style>
+    <Style Selector=":is(TextBlock).cardTitle">
+        <Setter Property="FontSize" Value="{DynamicResource CardTitleSize}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
 
-  <Style Selector=":is(TextBlock).body">
-    <Setter Property="FontSize" Value="{DynamicResource BodySize}" />
-  </Style>
+    <Style Selector=":is(TextBlock).body">
+        <Setter Property="FontSize" Value="{DynamicResource BodySize}" />
+    </Style>
 
-  <Style Selector=":is(TextBlock).note">
-    <Setter Property="FontSize" Value="{DynamicResource NoteSize}" />
-    <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
-    <Setter Property="TextWrapping" Value="Wrap" />
-  </Style>
+    <Style Selector=":is(TextBlock).note">
+        <Setter Property="FontSize" Value="{DynamicResource NoteSize}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
 
-  <Style Selector=":is(TextBlock).secondary">
-    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
-  </Style>
+    <Style Selector=":is(TextBlock).secondary">
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
+    </Style>
 
-  <!-- a refusal under the field it is about -->
-  <Style Selector=":is(TextBlock).fieldError">
-    <Setter Property="FontSize" Value="{DynamicResource NoteSize}" />
-    <Setter Property="Foreground" Value="{DynamicResource StatusBad}" />
-    <Setter Property="TextWrapping" Value="Wrap" />
-  </Style>
+    <!-- a refusal under the field it is about -->
+    <Style Selector=":is(TextBlock).fieldError">
+        <Setter Property="FontSize" Value="{DynamicResource NoteSize}" />
+        <Setter Property="Foreground" Value="{DynamicResource StatusBad}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
 
-  <!-- Avalonia has no text-transform, so a caption meant in capitals is stored uppercase in the json files. -->
-  <Style Selector=":is(TextBlock).caption">
-    <Setter Property="FontSize" Value="{DynamicResource CaptionSize}" />
-    <Setter Property="FontWeight" Value="Medium" />
-    <Setter Property="LetterSpacing" Value="0.8" />
-    <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
-  </Style>
+    <!-- Avalonia has no text-transform, so a caption meant in capitals is stored uppercase in the json files. -->
+    <Style Selector=":is(TextBlock).caption">
+        <Setter Property="FontSize" Value="{DynamicResource CaptionSize}" />
+        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="LetterSpacing" Value="0.8" />
+        <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+    </Style>
 
-  <!-- FactRow value column, see Components.axaml. tnum so times and versions line up down the column. -->
-  <Style Selector=":is(TextBlock).value">
-    <Setter Property="FontSize" Value="{DynamicResource NoteSize}" />
-    <Setter Property="FontFeatures" Value="tnum" />
-    <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
-  </Style>
+    <!-- FactRow value column, see Components.axaml. tnum so times and versions line up down the column. -->
+    <Style Selector=":is(TextBlock).value">
+        <Setter Property="FontSize" Value="{DynamicResource NoteSize}" />
+        <Setter Property="FontFeatures" Value="tnum" />
+        <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+    </Style>
 
-  <!-- the wordmark on the start and sign-in screens -->
-  <Style Selector=":is(TextBlock).display">
-    <Setter Property="FontSize" Value="{DynamicResource DisplaySize}" />
-    <Setter Property="FontWeight" Value="SemiBold" />
-    <Setter Property="LetterSpacing" Value="-0.5" />
-  </Style>
+    <!-- the wordmark on the start and sign-in screens -->
+    <Style Selector=":is(TextBlock).display">
+        <Setter Property="FontSize" Value="{DynamicResource DisplaySize}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="LetterSpacing" Value="-0.5" />
+    </Style>
 
-  <!-- hosts, image tags and commands -->
-  <Style Selector=":is(TextBlock).mono">
-    <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
-    <Setter Property="FontSize" Value="{DynamicResource MonoSize}" />
-    <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
-  </Style>
+    <!-- hosts, image tags and commands -->
+    <Style Selector=":is(TextBlock).mono">
+        <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+        <Setter Property="FontSize" Value="{DynamicResource MonoSize}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+    </Style>
 
-  <!-- letter spacing breaks Arabic letter joins, reset it for RTL. Has to come after every style that sets it -->
-  <Style Selector=":is(TextBlock)[FlowDirection=RightToLeft]">
-    <Setter Property="LetterSpacing" Value="0" />
-  </Style>
+    <!-- letter spacing breaks Arabic letter joins, reset it for RTL. Has to come after every style that sets it -->
+    <Style Selector=":is(TextBlock)[FlowDirection=RightToLeft]">
+        <Setter Property="LetterSpacing" Value="0" />
+    </Style>
 
-  <Style Selector="Border.sunk">
-    <Setter Property="Background" Value="{DynamicResource SurfaceSunk}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource HairlineFaint}" />
-    <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="CornerRadius" Value="{DynamicResource ControlRadius}" />
-    <Setter Property="Padding" Value="16,4" />
-  </Style>
+    <Style Selector="Border.sunk">
+        <Setter Property="Background" Value="{DynamicResource SurfaceSunk}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource HairlineFaint}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{DynamicResource ControlRadius}" />
+        <Setter Property="Padding" Value="16,4" />
+    </Style>
 
-  <Style Selector="Button.secondary">
-    <Setter Property="Height" Value="36" />
-    <Setter Property="Padding" Value="12,0" />
-    <Setter Property="CornerRadius" Value="{DynamicResource ControlRadius}" />
-    <Setter Property="Background" Value="Transparent" />
-    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource HairlineSoft}" />
-    <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="FontSize" Value="14" />
-    <Setter Property="VerticalContentAlignment" Value="Center" />
-  </Style>
+    <!-- a table: the names of its columns, one value in a row, and the line under each of them -->
+    <Style Selector=":is(TextBlock).columnName">
+        <Setter Property="FontSize" Value="{DynamicResource CaptionSize}" />
+        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Margin" Value="0,0,16,0" />
+    </Style>
 
-  <Style Selector="Button.secondary:pointerover /template/ ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource SurfaceHover}" />
-    <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextPrimary}" />
-  </Style>
+    <Style Selector=":is(TextBlock).cell">
+        <Setter Property="FontSize" Value="{DynamicResource NoteSize}" />
+        <Setter Property="FontFeatures" Value="tnum" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        <Setter Property="Margin" Value="0,0,16,0" />
+    </Style>
 
-  <!-- The active indicator bar lives in SidebarView.axaml so it mirrors correctly in RTL. -->
-  <Style Selector="Button.nav">
-    <Setter Property="Height" Value="{DynamicResource NavRowHeight}" />
-    <Setter Property="Padding" Value="10,0" />
-    <Setter Property="CornerRadius" Value="{DynamicResource ControlRadius}" />
-    <Setter Property="Background" Value="Transparent" />
-    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
-    <Setter Property="BorderThickness" Value="0" />
-    <Setter Property="FontSize" Value="14" />
-    <Setter Property="HorizontalAlignment" Value="Stretch" />
-    <Setter Property="HorizontalContentAlignment" Value="Left" />
-    <Setter Property="VerticalContentAlignment" Value="Center" />
-  </Style>
+    <!-- a value the eye should pass over, such as a date that the row above already shows -->
+    <Style Selector=":is(TextBlock).quiet">
+        <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+    </Style>
 
-  <Style Selector="Button.nav:pointerover /template/ ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource SurfaceHover}" />
-    <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextPrimary}" />
-  </Style>
+    <Style Selector=":is(TextBlock).strong">
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
 
-  <Style Selector="Button.nav.active">
-    <Setter Property="Background" Value="{DynamicResource AccentSoft}" />
-    <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
-    <Setter Property="FontWeight" Value="Medium" />
-  </Style>
+    <!-- the small square before an outcome: filled when it worked, an empty red outline when it failed -->
+    <Style Selector="Border.marker">
+        <Setter Property="Width" Value="8" />
+        <Setter Property="Height" Value="8" />
+        <Setter Property="CornerRadius" Value="2" />
+        <Setter Property="Margin" Value="0,0,8,0" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Background" Value="{DynamicResource StatusOk}" />
+    </Style>
 
-  <Style Selector="Button.nav.active /template/ ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource AccentSoft}" />
-  </Style>
+    <Style Selector="Border.marker.failed">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource StatusBad}" />
+        <Setter Property="BorderThickness" Value="1.5" />
+    </Style>
 
-  <!-- the account chip at the foot of the sidebar -->
-  <Style Selector="Button.account">
-    <Setter Property="Padding" Value="8" />
-    <Setter Property="CornerRadius" Value="{DynamicResource ControlRadius}" />
-    <Setter Property="Background" Value="Transparent" />
-    <Setter Property="BorderThickness" Value="0" />
-    <Setter Property="HorizontalAlignment" Value="Stretch" />
-    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-  </Style>
+    <Style Selector="Border.tableHeader">
+        <Setter Property="Height" Value="{DynamicResource TableHeaderHeight}" />
+        <Setter Property="Padding" Value="24,0" />
+        <Setter Property="BorderBrush" Value="{DynamicResource HairlineSoft}" />
+        <Setter Property="BorderThickness" Value="0,1" />
+    </Style>
 
-  <Style Selector="Button.account:pointerover /template/ ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource SurfaceHover}" />
-  </Style>
+    <Style Selector="Border.tableRow">
+        <Setter Property="Height" Value="{DynamicResource TableRowHeight}" />
+        <Setter Property="Padding" Value="24,0" />
+        <Setter Property="BorderBrush" Value="{DynamicResource HairlineFaint}" />
+        <Setter Property="BorderThickness" Value="0,0,0,1" />
+    </Style>
 
-  <Style Selector="Border.initials">
-    <Setter Property="Width" Value="32" />
-    <Setter Property="Height" Value="32" />
-    <Setter Property="CornerRadius" Value="{DynamicResource PillRadius}" />
-    <Setter Property="Background" Value="{DynamicResource SurfaceHover}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource HairlineSoft}" />
-    <Setter Property="BorderThickness" Value="1" />
-  </Style>
+    <Style Selector="ListBox.table">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="ItemContainerTheme" Value="{DynamicResource TableRowItem}" />
+    </Style>
 
-  <Style Selector="Border.initials > TextBlock">
-    <Setter Property="FontSize" Value="12" />
-    <Setter Property="FontWeight" Value="SemiBold" />
-    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
-  </Style>
+    <!-- the rows on the screen while the next page loads: still readable, but clearly not the answer yet -->
+    <Style Selector="ListBox.table.reloading">
+        <Setter Property="Opacity" Value="0.5" />
+    </Style>
 
-  <Style Selector=":is(TextBlock).accountName">
-    <Setter Property="FontSize" Value="{DynamicResource NoteSize}" />
-    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
-  </Style>
+    <!-- a grey bar that stands in for a value while a list waits for its rows -->
+    <Style Selector="Border.placeholder">
+        <Setter Property="Height" Value="9" />
+        <Setter Property="CornerRadius" Value="{DynamicResource PillRadius}" />
+        <Setter Property="Background" Value="{DynamicResource SurfaceHover}" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
 
-  <Style Selector=":is(TextBlock).accountEmail">
-    <Setter Property="FontSize" Value="{DynamicResource CaptionSize}" />
-    <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
-    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
-  </Style>
+    <!-- the row of filters above a list; it wraps onto a second line when the window is narrow -->
+    <Style Selector="WrapPanel.filters">
+        <Setter Property="Margin" Value="24,14" />
+        <Setter Property="ItemSpacing" Value="12" />
+        <Setter Property="LineSpacing" Value="8" />
+    </Style>
 
-  <Style Selector="ComboBox">
-    <Setter Property="Height" Value="{DynamicResource RowHeight}" />
-    <Setter Property="Padding" Value="14,0" />
-    <Setter Property="CornerRadius" Value="{DynamicResource ControlRadius}" />
-    <Setter Property="Background" Value="Transparent" />
-    <Setter Property="BorderBrush" Value="{DynamicResource HairlineSoft}" />
-    <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
-    <Setter Property="FontSize" Value="14" />
-    <Setter Property="VerticalContentAlignment" Value="Center" />
-  </Style>
+    <!-- a few choices in one frame, such as All, Succeeded and Failed; one of them is always chosen -->
+    <Style Selector="ListBox.segmented">
+        <Setter Property="Padding" Value="3" />
+        <Setter Property="Background" Value="{DynamicResource SurfaceSunk}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource HairlineFaint}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{DynamicResource ControlRadius}" />
+        <Setter Property="SelectionMode" Value="Single,AlwaysSelected" />
+        <Setter Property="ItemContainerTheme" Value="{DynamicResource SegmentItem}" />
+        <Setter Property="ItemsPanel">
+            <ItemsPanelTemplate>
+                <StackPanel Orientation="Horizontal" Spacing="2" />
+            </ItemsPanelTemplate>
+        </Setter>
+    </Style>
 
-  <Style Selector="ComboBox:pointerover /template/ Border#Background">
-    <Setter Property="Background" Value="{DynamicResource SurfaceHover}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource HairlineStrong}" />
-  </Style>
+    <Style Selector="ListBox.segmented ListBoxItem TextBlock">
+        <Setter Property="FontSize" Value="{DynamicResource BodySize}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
+    </Style>
 
-  <Style Selector="ComboBox:focus /template/ Border#Background">
-    <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
-  </Style>
+    <Style Selector="ListBox.segmented ListBoxItem:selected TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+        <Setter Property="FontWeight" Value="Medium" />
+    </Style>
 
-  <Style Selector="ComboBoxItem">
-    <Setter Property="Height" Value="36" />
-    <Setter Property="FontSize" Value="14" />
-    <Setter Property="VerticalContentAlignment" Value="Center" />
-  </Style>
+    <Style Selector="Border.detailsPanel">
+        <Setter Property="Width" Value="{DynamicResource DetailsPanelWidth}" />
+        <Setter Property="HorizontalAlignment" Value="Right" />
+        <Setter Property="Padding" Value="16" />
+        <Setter Property="Background" Value="{DynamicResource SurfaceCard}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource HairlineSoft}" />
+        <Setter Property="BorderThickness" Value="1,0,0,0" />
+        <Setter Property="Opacity" Value="0" />
+        <Setter Property="RenderTransform" Value="translateX(24px)" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition Property="Opacity" Duration="{StaticResource MotionTime}" Easing="CubicEaseOut" />
+                <TransformOperationsTransition Property="RenderTransform" Duration="{StaticResource MotionTime}" Easing="CubicEaseOut" />
+            </Transitions>
+        </Setter>
+    </Style>
 
-  <Style Selector="Button.icon">
-    <Setter Property="Width" Value="{DynamicResource RowHeight}" />
-    <Setter Property="Height" Value="{DynamicResource RowHeight}" />
-    <Setter Property="Padding" Value="0" />
-    <Setter Property="CornerRadius" Value="{DynamicResource ControlRadius}" />
-    <Setter Property="Background" Value="Transparent" />
-    <Setter Property="BorderBrush" Value="{DynamicResource HairlineSoft}" />
-    <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
-    <Setter Property="HorizontalContentAlignment" Value="Center" />
-    <Setter Property="VerticalContentAlignment" Value="Center" />
-  </Style>
+    <!-- a Reveal sets :open. The style above is the closed panel, and the transitions move it between the two -->
+    <Style Selector="Border.detailsPanel:open">
+        <Setter Property="Opacity" Value="1" />
+        <Setter Property="RenderTransform" Value="none" />
+    </Style>
 
-  <Style Selector="Button.icon:pointerover /template/ ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource SurfaceHover}" />
-    <Setter Property="TextBlock.Foreground" Value="{DynamicResource Accent}" />
-  </Style>
+    <!-- a part of a list screen that moves aside while a details panel is open on its right; a reload fades it in the same time -->
+    <Style Selector=":is(Control).besidePanel">
+        <Setter Property="Transitions">
+            <Transitions>
+                <ThicknessTransition Property="Margin" Duration="{StaticResource MotionTime}" Easing="CubicEaseOut" />
+                <DoubleTransition Property="Opacity" Duration="{StaticResource MotionTime}" Easing="CubicEaseOut" />
+            </Transitions>
+        </Setter>
+    </Style>
 
-  <!-- the one bronze action on a screen -->
-  <Style Selector="Button.primary">
-    <Setter Property="Height" Value="{DynamicResource RowHeight}" />
-    <Setter Property="Padding" Value="16,0" />
-    <Setter Property="CornerRadius" Value="{DynamicResource ControlRadius}" />
-    <Setter Property="Background" Value="{DynamicResource Accent}" />
-    <Setter Property="Foreground" Value="{DynamicResource OnAccent}" />
-    <Setter Property="BorderThickness" Value="0" />
-    <Setter Property="FontSize" Value="{DynamicResource BodySize}" />
-    <Setter Property="FontWeight" Value="SemiBold" />
-    <Setter Property="HorizontalContentAlignment" Value="Center" />
-    <Setter Property="VerticalContentAlignment" Value="Center" />
-  </Style>
+    <Style Selector=":is(Control).besidePanel.panelOpen">
+        <Setter Property="Margin" Value="{DynamicResource DetailsPanelRoom}" />
+    </Style>
 
-  <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource AccentHover}" />
-    <Setter Property="Foreground" Value="{DynamicResource OnAccent}" />
-  </Style>
+    <Style Selector="Border.detailsField">
+        <Setter Property="Padding" Value="0,10" />
+        <Setter Property="BorderBrush" Value="{DynamicResource HairlineFaint}" />
+        <Setter Property="BorderThickness" Value="0,0,0,1" />
+    </Style>
 
-  <Style Selector="Button.primary:pressed /template/ ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource Accent}" />
-    <Setter Property="Foreground" Value="{DynamicResource OnAccent}" />
-  </Style>
+    <Style Selector="Button.secondary">
+        <Setter Property="Height" Value="36" />
+        <Setter Property="Padding" Value="12,0" />
+        <Setter Property="CornerRadius" Value="{DynamicResource ControlRadius}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource HairlineSoft}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
 
-  <!-- while its request runs. The theme's grey would read as a different button -->
-  <Style Selector="Button.primary:disabled /template/ ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource Accent}" />
-    <Setter Property="Foreground" Value="{DynamicResource OnAccent}" />
-    <Setter Property="Opacity" Value="0.6" />
-  </Style>
+    <Style Selector="Button.secondary:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SurfaceHover}" />
+        <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextPrimary}" />
+    </Style>
 
-  <Style Selector="TextBox">
-    <Setter Property="MinHeight" Value="36" />
-    <Setter Property="Padding" Value="12,0" />
-    <Setter Property="VerticalContentAlignment" Value="Center" />
-    <Setter Property="CornerRadius" Value="{DynamicResource ControlRadius}" />
-    <Setter Property="Background" Value="{DynamicResource SurfaceCard}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource HairlineSoft}" />
-    <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
-    <Setter Property="CaretBrush" Value="{DynamicResource TextPrimary}" />
-    <Setter Property="SelectionBrush" Value="{DynamicResource Accent}" />
-    <Setter Property="SelectionForegroundBrush" Value="{DynamicResource OnAccent}" />
-    <Setter Property="FontSize" Value="{DynamicResource BodySize}" />
-  </Style>
+    <!-- the theme's grey fill would read as a pressed button, so a switched-off one only fades -->
+    <Style Selector="Button.secondary:disabled /template/ ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource HairlineSoft}" />
+        <Setter Property="Opacity" Value="0.5" />
+    </Style>
 
-  <!-- in these states the theme sets the border element itself, and in the system accent while focused -->
-  <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
-    <Setter Property="Background" Value="{DynamicResource SurfaceCard}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource HairlineStrong}" />
-  </Style>
+    <!-- one page number of a pager: as wide as it is high, so one and two digits take the same room -->
+    <Style Selector="Button.secondary.pageNumber">
+        <Setter Property="MinWidth" Value="36" />
+        <Setter Property="Padding" Value="8,0" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+    </Style>
 
-  <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
-    <Setter Property="Background" Value="{DynamicResource SurfaceCard}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
-    <Setter Property="BorderThickness" Value="1" />
-  </Style>
+    <Style Selector="Button.secondary.pageNumber.current">
+        <Setter Property="Background" Value="{DynamicResource AccentSoft}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+        <Setter Property="FontWeight" Value="Medium" />
+    </Style>
 
-  <!-- the password eye. Checked, the theme fills it with the system accent, a second accent hue -->
-  <Style Selector="TextBox.revealPasswordButton ToggleButton">
-    <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
-  </Style>
+    <Style Selector="Button.secondary.pageNumber.current /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource AccentSoft}" />
+    </Style>
 
-  <Style Selector="TextBox.revealPasswordButton ToggleButton:pointerover /template/ ContentPresenter">
-    <Setter Property="Background" Value="Transparent" />
-    <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
-  </Style>
+    <Style Selector=":is(TextBlock).pageGap">
+        <Setter Property="Width" Value="36" />
+        <Setter Property="TextAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
 
-  <Style Selector="TextBox.revealPasswordButton ToggleButton:checked /template/ ContentPresenter">
-    <Setter Property="Background" Value="Transparent" />
-    <Setter Property="Foreground" Value="{DynamicResource Accent}" />
-  </Style>
+    <!-- The active indicator bar lives in SidebarView.axaml so it mirrors correctly in RTL. -->
+    <Style Selector="Button.nav">
+        <Setter Property="Height" Value="{DynamicResource NavRowHeight}" />
+        <Setter Property="Padding" Value="10,0" />
+        <Setter Property="CornerRadius" Value="{DynamicResource ControlRadius}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
 
-  <!-- addresses, tokens and passwords run left to right in Arabic too. Only the text turns, the eye and the menu stay mirrored -->
-  <Style Selector="TextBox.ltr /template/ TextPresenter#PART_TextPresenter">
-    <Setter Property="FlowDirection" Value="LeftToRight" />
-  </Style>
+    <Style Selector="Button.nav:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SurfaceHover}" />
+        <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextPrimary}" />
+    </Style>
 
-  <!-- the default Start would follow the turned text and put it on the left, away from its label -->
-  <Style Selector="TextBox.ltr[FlowDirection=RightToLeft]">
-    <Setter Property="TextAlignment" Value="Right" />
-  </Style>
+    <Style Selector="Button.nav.active">
+        <Setter Property="Background" Value="{DynamicResource AccentSoft}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+        <Setter Property="FontWeight" Value="Medium" />
+    </Style>
 
-  <!-- a text block has no template part for its text, so the whole block turns, and only the window still knows the language -->
-  <Style Selector=":is(TextBlock).ltr">
-    <Setter Property="FlowDirection" Value="LeftToRight" />
-  </Style>
+    <Style Selector="Button.nav.active /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource AccentSoft}" />
+    </Style>
 
-  <Style Selector="Window[FlowDirection=RightToLeft] :is(TextBlock).ltr">
-    <Setter Property="TextAlignment" Value="Right" />
-  </Style>
+    <!-- the account chip at the foot of the sidebar -->
+    <Style Selector="Button.account">
+        <Setter Property="Padding" Value="8" />
+        <Setter Property="CornerRadius" Value="{DynamicResource ControlRadius}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    </Style>
 
+    <Style Selector="Button.account:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SurfaceHover}" />
+    </Style>
+
+    <Style Selector="Border.initials">
+        <Setter Property="Width" Value="32" />
+        <Setter Property="Height" Value="32" />
+        <Setter Property="CornerRadius" Value="{DynamicResource PillRadius}" />
+        <Setter Property="Background" Value="{DynamicResource SurfaceHover}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource HairlineSoft}" />
+        <Setter Property="BorderThickness" Value="1" />
+    </Style>
+
+    <Style Selector="Border.initials > TextBlock">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
+    </Style>
+
+    <Style Selector=":is(TextBlock).accountName">
+        <Setter Property="FontSize" Value="{DynamicResource NoteSize}" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    </Style>
+
+    <Style Selector=":is(TextBlock).accountEmail">
+        <Setter Property="FontSize" Value="{DynamicResource CaptionSize}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    </Style>
+
+    <Style Selector=":is(ComboBox)">
+        <Setter Property="Height" Value="{DynamicResource RowHeight}" />
+        <Setter Property="Padding" Value="14,0" />
+        <Setter Property="CornerRadius" Value="{DynamicResource ControlRadius}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource HairlineSoft}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector=":is(ComboBox):pointerover /template/ Border#Background">
+        <Setter Property="Background" Value="{DynamicResource SurfaceHover}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource HairlineStrong}" />
+    </Style>
+
+    <Style Selector=":is(ComboBox):focus /template/ Border#Background">
+        <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <Style Selector="ComboBoxItem">
+        <Setter Property="Height" Value="36" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+
+    <!-- the open list of a dropdown in the palette's colours; without :dropdownopen this loses to the colours Fluent's template writes on the part -->
+    <Style Selector=":is(ComboBox):dropdownopen /template/ Border#PopupBorder">
+        <Setter Property="Background" Value="{DynamicResource SurfaceCard}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource HairlineSoft}" />
+        <Setter Property="CornerRadius" Value="{DynamicResource ControlRadius}" />
+        <Setter Property="BoxShadow" Value="{DynamicResource CardShadow}" />
+    </Style>
+
+    <Style Selector="ComboBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SurfaceHover}" />
+    </Style>
+
+    <Style Selector="ComboBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource AccentSoft}" />
+    </Style>
+
+    <!-- a dropdown in a filter row is as high as the other filters -->
+    <Style Selector="c|FilterBox">
+        <Setter Property="Height" Value="36" />
+        <Setter Property="Padding" Value="12,0" />
+    </Style>
+
+    <!-- a search box in a filter row: as high as the other filters, with its label inside on the left -->
+    <Style Selector="AutoCompleteBox.filter">
+        <Setter Property="Width" Value="280" />
+        <Setter Property="Padding" Value="8,0" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource HairlineSoft}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{DynamicResource ControlRadius}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- its list of suggestions in the palette's colours; without :dropdownopen this loses to the colours Fluent's template writes on the part -->
+    <Style Selector="AutoCompleteBox:dropdownopen /template/ Border#PART_SuggestionsContainer">
+        <Setter Property="Background" Value="{DynamicResource SurfaceCard}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource HairlineSoft}" />
+        <Setter Property="CornerRadius" Value="{DynamicResource ControlRadius}" />
+        <Setter Property="BoxShadow" Value="{DynamicResource CardShadow}" />
+    </Style>
+
+    <Style Selector="ListBox#PART_SelectingItemsControl ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SurfaceHover}" />
+    </Style>
+
+    <Style Selector="ListBox#PART_SelectingItemsControl ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource AccentSoft}" />
+    </Style>
+
+    <Style Selector="ContentPresenter.filterValue TextBlock">
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="Button.icon">
+        <Setter Property="Width" Value="{DynamicResource RowHeight}" />
+        <Setter Property="Height" Value="{DynamicResource RowHeight}" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="CornerRadius" Value="{DynamicResource ControlRadius}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource HairlineSoft}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="Button.icon:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SurfaceHover}" />
+        <Setter Property="TextBlock.Foreground" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <!-- an icon beside a title or a value: small, and with no frame, so it stays behind the text -->
+    <Style Selector="Button.icon.quiet">
+        <Setter Property="Width" Value="28" />
+        <Setter Property="Height" Value="28" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+    </Style>
+
+    <!-- the one bronze action on a screen -->
+    <Style Selector="Button.primary">
+        <Setter Property="Height" Value="{DynamicResource RowHeight}" />
+        <Setter Property="Padding" Value="16,0" />
+        <Setter Property="CornerRadius" Value="{DynamicResource ControlRadius}" />
+        <Setter Property="Background" Value="{DynamicResource Accent}" />
+        <Setter Property="Foreground" Value="{DynamicResource OnAccent}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="FontSize" Value="{DynamicResource BodySize}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource AccentHover}" />
+        <Setter Property="Foreground" Value="{DynamicResource OnAccent}" />
+    </Style>
+
+    <Style Selector="Button.primary:pressed /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Accent}" />
+        <Setter Property="Foreground" Value="{DynamicResource OnAccent}" />
+    </Style>
+
+    <!-- while its request runs. The theme's grey would read as a different button -->
+    <Style Selector="Button.primary:disabled /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Accent}" />
+        <Setter Property="Foreground" Value="{DynamicResource OnAccent}" />
+        <Setter Property="Opacity" Value="0.6" />
+    </Style>
+
+    <Style Selector="TextBox">
+        <Setter Property="MinHeight" Value="36" />
+        <Setter Property="Padding" Value="12,0" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="CornerRadius" Value="{DynamicResource ControlRadius}" />
+        <Setter Property="Background" Value="{DynamicResource SurfaceCard}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource HairlineSoft}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+        <Setter Property="CaretBrush" Value="{DynamicResource TextPrimary}" />
+        <Setter Property="SelectionBrush" Value="{DynamicResource Accent}" />
+        <Setter Property="SelectionForegroundBrush" Value="{DynamicResource OnAccent}" />
+        <Setter Property="FontSize" Value="{DynamicResource BodySize}" />
+    </Style>
+
+    <!-- in these states the theme sets the border element itself, and in the system accent while focused -->
+    <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{DynamicResource SurfaceCard}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource HairlineStrong}" />
+    </Style>
+
+    <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{DynamicResource SurfaceCard}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+        <Setter Property="BorderThickness" Value="1" />
+    </Style>
+
+    <!-- the password eye. Checked, the theme fills it with the system accent, a second accent hue -->
+    <Style Selector="TextBox.revealPasswordButton ToggleButton">
+        <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+    </Style>
+
+    <Style Selector="TextBox.revealPasswordButton ToggleButton:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+    </Style>
+
+    <Style Selector="TextBox.revealPasswordButton ToggleButton:checked /template/ ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <!-- addresses, tokens and passwords run left to right in Arabic too. Only the text turns, the eye and the menu stay mirrored -->
+    <Style Selector="TextBox.ltr /template/ TextPresenter#PART_TextPresenter">
+        <Setter Property="FlowDirection" Value="LeftToRight" />
+    </Style>
+
+    <!-- the default Start would follow the turned text and put it on the left, away from its label -->
+    <Style Selector="TextBox.ltr[FlowDirection=RightToLeft]">
+        <Setter Property="TextAlignment" Value="Right" />
+    </Style>
+
+    <!-- a text block has no template part for its text, so the whole block turns, and only the window still knows the language -->
+    <Style Selector=":is(TextBlock).ltr">
+        <Setter Property="FlowDirection" Value="LeftToRight" />
+    </Style>
+
+    <Style Selector="Window[FlowDirection=RightToLeft] :is(TextBlock).ltr">
+        <Setter Property="TextAlignment" Value="Right" />
+    </Style>
 
 </Styles>

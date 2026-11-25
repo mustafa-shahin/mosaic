@@ -26,13 +26,14 @@ public static class ValidationResultExtensions
         throw new ValidationException(byField);
     }
 
-    // a length failure carries both bounds, the code says which one is the limit
+    // a length failure carries both bounds, the code says which one is the limit; a comparison carries only its own number
     private static Dictionary<string, string>? Limit(ValidationFailure failure)
     {
         var bound = failure.ErrorCode switch
         {
             ErrorCodes.TooShort => LengthPlaceholders.Min,
             ErrorCodes.TooLong => LengthPlaceholders.Max,
+            ErrorCodes.TooSmall or ErrorCodes.TooLarge => ComparisonPlaceholders.Value,
             _ => null,
         };
 

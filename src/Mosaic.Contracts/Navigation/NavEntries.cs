@@ -5,4 +5,5 @@ public static class NavEntries
 {
     public const string Dashboard = "nav.dashboard";
     public const string Settings = "nav.settings";
+    public const string Audit = "nav.audit";
 }

@@ -11,47 +11,49 @@
              mc:Ignorable="d" d:DesignWidth="640" d:DesignHeight="340"
              Design.DataContext="{x:Static vm:SettingsDesignData.Default}">
 
-  <StackPanel Spacing="16" Width="{DynamicResource ContentColumnWidth}" HorizontalAlignment="Left">
+  <ScrollViewer Padding="{DynamicResource PagePadding}">
+    <StackPanel Spacing="16" Width="{DynamicResource ContentColumnWidth}" HorizontalAlignment="Left">
 
-    <c:Card Title="{Binding Strings[settings.language]}">
-      <ComboBox ItemsSource="{Binding Languages}"
-                SelectedItem="{Binding SelectedLanguage}"
-                HorizontalAlignment="Stretch">
-        <ComboBox.ItemTemplate>
-          <DataTemplate x:DataType="loc:LanguageOption">
-            <TextBlock Text="{Binding NativeName}" VerticalAlignment="Center" />
-          </DataTemplate>
-        </ComboBox.ItemTemplate>
-      </ComboBox>
-    </c:Card>
+      <c:Card Title="{Binding Strings[settings.language]}">
+        <ComboBox ItemsSource="{Binding Languages}"
+                  SelectedItem="{Binding SelectedLanguage}"
+                  HorizontalAlignment="Stretch">
+          <ComboBox.ItemTemplate>
+            <DataTemplate x:DataType="loc:LanguageOption">
+              <TextBlock Text="{Binding NativeName}" VerticalAlignment="Center" />
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+      </c:Card>
 
-    <c:Card Title="{Binding Strings[settings.appearance]}">
-      <Grid ColumnDefinitions="*,Auto" Height="{DynamicResource RowHeight}">
+      <c:Card Title="{Binding Strings[settings.appearance]}">
+        <Grid ColumnDefinitions="*,Auto" Height="{DynamicResource RowHeight}">
 
-        <SelectableTextBlock Grid.Column="0" Classes="body"
-                             Text="{Binding AppearanceName}"
-                             VerticalAlignment="Center" />
+          <SelectableTextBlock Grid.Column="0" Classes="body"
+                               Text="{Binding AppearanceName}"
+                               VerticalAlignment="Center" />
 
-        <Button Grid.Column="1" Classes="icon"
-                Command="{Binding ToggleAppearanceCommand}"
-                ToolTip.Tip="{Binding AppearanceAction}">
-          <Panel>
-            <fi:SymbolIcon Symbol="WeatherSunny" FontSize="18" IsVisible="{Binding IsDark}" />
-            <fi:SymbolIcon Symbol="WeatherMoon" FontSize="18" IsVisible="{Binding !IsDark}" />
-          </Panel>
-        </Button>
+          <Button Grid.Column="1" Classes="icon"
+                  Command="{Binding ToggleAppearanceCommand}"
+                  ToolTip.Tip="{Binding AppearanceAction}">
+            <Panel>
+              <fi:SymbolIcon Symbol="WeatherSunny" FontSize="18" IsVisible="{Binding IsDark}" />
+              <fi:SymbolIcon Symbol="WeatherMoon" FontSize="18" IsVisible="{Binding !IsDark}" />
+            </Panel>
+          </Button>
 
-      </Grid>
-    </c:Card>
+        </Grid>
+      </c:Card>
 
-    <c:Card Title="{Binding Strings[settings.sessions]}" Subtitle="{Binding Strings[settings.sessions_text]}">
-      <StackPanel Spacing="12">
-        <c:ErrorBox IsVisible="{Binding HasError}" Text="{Binding ErrorMessage}" />
-        <Button Classes="secondary" HorizontalAlignment="Left"
-                Content="{Binding Strings[settings.sign_out_everywhere]}"
-                Command="{Binding SignOutEverywhereCommand}" />
-      </StackPanel>
-    </c:Card>
+      <c:Card Title="{Binding Strings[settings.sessions]}" Subtitle="{Binding Strings[settings.sessions_text]}">
+        <StackPanel Spacing="12">
+          <c:ErrorBox IsVisible="{Binding HasError}" Text="{Binding ErrorMessage}" />
+          <Button Classes="secondary" HorizontalAlignment="Left"
+                  Content="{Binding Strings[settings.sign_out_everywhere]}"
+                  Command="{Binding SignOutEverywhereCommand}" />
+        </StackPanel>
+      </c:Card>
 
-  </StackPanel>
+    </StackPanel>
+  </ScrollViewer>
 </UserControl>

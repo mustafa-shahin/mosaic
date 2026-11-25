@@ -76,6 +76,8 @@ internal sealed class RecordingHandler(HttpStatusCode status, string body) : Htt
 
     public string? Path { get; private set; }
 
+    public string? Query { get; private set; }
+
     public string? Body { get; private set; }
 
     public AuthenticationHeaderValue? Authorization { get; private set; }
@@ -88,6 +90,7 @@ internal sealed class RecordingHandler(HttpStatusCode status, string body) : Htt
         Calls++;
         Method = request.Method;
         Path = request.RequestUri?.AbsolutePath;
+        Query = request.RequestUri?.Query;
         Body = request.Content is null ? null : await request.Content.ReadAsStringAsync(cancellationToken);
         Authorization = request.Headers.Authorization;
 

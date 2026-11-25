@@ -1,0 +1,242 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Mosaic.Desktop.Features.Auditing"
+             xmlns:c="using:Mosaic.Desktop.Controls"
+             xmlns:fi="using:FluentIcons.Avalonia"
+             x:Class="Mosaic.Desktop.Features.Auditing.AuditLogView"
+             x:DataType="vm:AuditLogViewModel">
+
+    <UserControl.KeyBindings>
+        <KeyBinding Gesture="Escape" Command="{Binding CloseDetailsCommand}" />
+    </UserControl.KeyBindings>
+
+    <UserControl.Styles>
+        <!-- under 1050 the table (750) and the panel (300) do not fit side by side, so the table keeps its width and the panel lies over its right part -->
+        <ContainerQuery Name="audit" Query="max-width:1049">
+            <Style Selector=":is(Control).besidePanel.panelOpen">
+                <Setter Property="Margin" Value="0" />
+            </Style>
+
+            <Style Selector="Border.detailsPanel">
+                <Setter Property="BoxShadow" Value="{DynamicResource PanelShadow}" />
+            </Style>
+        </ContainerQuery>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Container.Name="audit" Container.Sizing="Width">
+
+        <WrapPanel Grid.Row="0" Classes="filters">
+            <c:FilterBox Label="{Binding Strings[audit.action]}" ItemsSource="{Binding Actions}" SelectedIndex="{Binding ActionIndex}">
+                <c:FilterBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ActionOption">
+                        <TextBlock Text="{Binding Text}" />
+                    </DataTemplate>
+                </c:FilterBox.ItemTemplate>
+            </c:FilterBox>
+
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Classes="body quiet" VerticalAlignment="Center" Text="{Binding Strings[audit.outcome]}" />
+                <ListBox Classes="segmented" ItemsSource="{Binding Outcomes}" SelectedIndex="{Binding OutcomeIndex}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:OutcomeOption">
+                            <TextBlock Text="{Binding Text}" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </StackPanel>
+
+            <AutoCompleteBox Classes="filter" MinimumPopulateDelay="0:0:0.3" FilterMode="None"
+                             PlaceholderText="{Binding Strings[filter.anyone]}"
+                             AsyncPopulator="{Binding SearchPeople}"
+                             SelectedItem="{Binding SelectedPerson}"
+                             ValueMemberBinding="{Binding Name, DataType=vm:PersonOption}">
+                <AutoCompleteBox.InnerLeftContent>
+                    <TextBlock Classes="quiet" VerticalAlignment="Center" Margin="12,0,0,0" Text="{Binding Strings[audit.person]}" />
+                </AutoCompleteBox.InnerLeftContent>
+                <AutoCompleteBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:PersonOption">
+                        <DockPanel>
+                            <c:PersonBadge DockPanel.Dock="Left" Margin="0,0,8,0" Initials="{Binding Initials}" />
+                            <TextBlock Classes="cell quiet" DockPanel.Dock="Right" Text="{Binding Email}" />
+                            <TextBlock Classes="cell" Text="{Binding Name}" />
+                        </DockPanel>
+                    </DataTemplate>
+                </AutoCompleteBox.ItemTemplate>
+            </AutoCompleteBox>
+
+            <c:FilterBox Label="{Binding Strings[audit.date_range]}" ItemsSource="{Binding DateRanges}" SelectedIndex="{Binding DateRangeIndex}">
+                <c:FilterBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:DateRangeOption">
+                        <TextBlock Text="{Binding Text}" />
+                    </DataTemplate>
+                </c:FilterBox.ItemTemplate>
+            </c:FilterBox>
+        </WrapPanel>
+
+        <Border Grid.Row="1" Classes="tableHeader besidePanel" IsVisible="{Binding ShowsColumns}"
+                Classes.panelOpen="{Binding SelectedEntry, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <vm:AuditGrid>
+                <TextBlock Grid.Column="0" Classes="columnName" Text="{Binding Strings[audit.time]}" />
+                <TextBlock Grid.Column="1" Classes="columnName" Text="{Binding Strings[audit.action]}" />
+                <TextBlock Grid.Column="2" Classes="columnName" Text="{Binding Strings[audit.outcome]}" />
+                <TextBlock Grid.Column="3" Classes="columnName" Text="{Binding Strings[audit.person]}" />
+                <TextBlock Grid.Column="4" Classes="columnName" Text="{Binding Strings[audit.target]}" />
+            </vm:AuditGrid>
+        </Border>
+
+        <ItemsControl Grid.Row="2" ItemsSource="{Binding PlaceholderRows}" IsVisible="{Binding IsLoading}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="x:Object">
+                    <Border Classes="tableRow">
+                        <vm:AuditGrid>
+                            <Border Grid.Column="0" Classes="placeholder" Width="136" />
+                            <Border Grid.Column="1" Classes="placeholder" Width="92" />
+                            <Border Grid.Column="2" Classes="placeholder" Width="128" />
+                            <Border Grid.Column="3" Classes="placeholder" Width="104" />
+                            <Border Grid.Column="4" Classes="placeholder" Width="96" />
+                        </vm:AuditGrid>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <ListBox Grid.Row="2" Classes="table besidePanel" ItemsSource="{Binding Entries}" SelectedItem="{Binding SelectedEntry}"
+                 IsVisible="{Binding IsReady}" Classes.reloading="{Binding LoadCommand.IsRunning}"
+                 Classes.panelOpen="{Binding SelectedEntry, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:AuditRow">
+                    <Border Classes="tableRow">
+                        <vm:AuditGrid>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                <TextBlock Classes="cell" Classes.quiet="{Binding !StartsDay}" Width="100" TextAlignment="End" Text="{Binding Date}" />
+                                <TextBlock Classes="cell" Text="{Binding Time}" />
+                            </StackPanel>
+                            <TextBlock Grid.Column="1" Classes="cell" Text="{Binding Action}" />
+                            <DockPanel Grid.Column="2">
+                                <Border DockPanel.Dock="Left" Classes="marker" Classes.failed="{Binding !Succeeded}" />
+                                <TextBlock DockPanel.Dock="Left" Classes="cell" Classes.strong="{Binding !Succeeded}" Margin="0,0,6,0" Text="{Binding Outcome}" />
+                                <TextBlock Classes="cell quiet" Text="{Binding Reason, StringFormat='· {0}'}"
+                                           IsVisible="{Binding Reason, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                            </DockPanel>
+                            <DockPanel Grid.Column="3">
+                                <c:PersonBadge DockPanel.Dock="Left" Margin="0,0,8,0" Initials="{Binding Initials}" />
+                                <TextBlock Classes="cell" Classes.quiet="{Binding IsAnonymous}" Text="{Binding Person}" />
+                            </DockPanel>
+                            <TextBlock Grid.Column="4" Classes="cell" Text="{Binding Target}" />
+                        </vm:AuditGrid>
+                    </Border>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <c:Pager Grid.Row="3" Classes="besidePanel" Mode="Numbers" IsVisible="{Binding IsReady}"
+                 Classes.panelOpen="{Binding SelectedEntry, Converter={x:Static ObjectConverters.IsNotNull}}"
+                 CurrentPage="{Binding CurrentPage}" TotalPages="{Binding TotalPages}"
+                 Summary="{Binding PageSummary}" Position="{Binding PagePosition}"
+                 PreviousText="{Binding Strings[pager.previous]}" NextText="{Binding Strings[pager.next]}"
+                 GoToCommand="{Binding LoadCommand}" />
+
+        <c:StateMessage Grid.Row="1" Grid.RowSpan="3" Icon="History" IsVisible="{Binding IsEmpty}"
+                        Title="{Binding Strings[audit.empty_title]}" Text="{Binding Strings[audit.empty_text]}" />
+
+        <c:StateMessage Grid.Row="1" Grid.RowSpan="3" Icon="Filter" IsVisible="{Binding IsNoMatch}"
+                        Title="{Binding Strings[audit.no_match_title]}" Text="{Binding Strings[audit.no_match_text]}">
+            <Button Classes="secondary" Content="{Binding Strings[filter.clear]}" Command="{Binding ClearFiltersCommand}" />
+        </c:StateMessage>
+
+        <c:StateMessage Grid.Row="1" Grid.RowSpan="3" Icon="ErrorCircle" IsVisible="{Binding IsFailed}"
+                        Title="{Binding Strings[audit.load_failed]}" Text="{Binding FailureText}">
+            <Button Classes="secondary" Content="{Binding Strings[audit.try_again]}" Command="{Binding TryAgainCommand}" />
+        </c:StateMessage>
+
+        <c:Reveal Grid.Row="1" Grid.RowSpan="3" Classes="detailsPanel" LeaveTime="{StaticResource MotionTime}"
+                  IsOpen="{Binding SelectedEntry, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <StackPanel>
+                <DockPanel Margin="0,0,0,8">
+                    <Button DockPanel.Dock="Right" Classes="icon quiet"
+                            Command="{Binding CloseDetailsCommand}"
+                            ToolTip.Tip="{Binding Strings[audit.close]}">
+                        <fi:SymbolIcon Symbol="Dismiss" FontSize="16" />
+                    </Button>
+                    <TextBlock Classes="cardTitle" VerticalAlignment="Center" Text="{Binding Strings[audit.details]}" />
+                </DockPanel>
+
+                <Border Classes="detailsField">
+                    <StackPanel Spacing="4">
+                        <TextBlock Classes="columnName" Text="{Binding Strings[audit.time]}" />
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Classes="cell" Margin="0,0,6,0" Text="{Binding ShownEntry.Date}" />
+                            <TextBlock Classes="cell" Text="{Binding ShownEntry.Time}" />
+                        </StackPanel>
+                        <TextBlock Classes="cell quiet" Text="{Binding ShownEntry.Offset}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="detailsField">
+                    <StackPanel Spacing="4">
+                        <TextBlock Classes="columnName" Text="{Binding Strings[audit.action]}" />
+                        <TextBlock Classes="cell" Text="{Binding ShownEntry.Action}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="detailsField">
+                    <StackPanel Spacing="4">
+                        <TextBlock Classes="columnName" Text="{Binding Strings[audit.outcome]}" />
+                        <StackPanel Orientation="Horizontal">
+                            <Border Classes="marker" Classes.failed="{Binding !ShownEntry.Succeeded}" />
+                            <TextBlock Classes="cell" Classes.strong="{Binding !ShownEntry.Succeeded}" Margin="0,0,6,0" Text="{Binding ShownEntry.Outcome}" />
+                        </StackPanel>
+                        <TextBlock Classes="note" Text="{Binding ShownEntry.Reason}"
+                                   IsVisible="{Binding ShownEntry.Reason, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="detailsField">
+                    <StackPanel Spacing="4">
+                        <TextBlock Classes="columnName" Text="{Binding Strings[audit.person]}" />
+                        <DockPanel>
+                            <c:PersonBadge DockPanel.Dock="Left" Margin="0,0,8,0" Initials="{Binding ShownEntry.Initials}" />
+                            <StackPanel Spacing="4">
+                                <TextBlock Classes="cell" Text="{Binding ShownEntry.Person}" />
+                                <TextBlock Classes="cell quiet" Text="{Binding ShownEntry.Email}"
+                                           IsVisible="{Binding ShownEntry.Email, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                                <TextBlock Classes="note" Text="{Binding Strings[audit.anonymous_text]}"
+                                           IsVisible="{Binding ShownEntry.IsAnonymous}" />
+                            </StackPanel>
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="detailsField">
+                    <StackPanel Spacing="4">
+                        <TextBlock Classes="columnName" Text="{Binding Strings[audit.target]}" />
+                        <TextBlock Classes="cell" Text="{Binding ShownEntry.Target}" />
+                        <TextBlock Classes="cell quiet" Text="{Binding ShownEntry.Kind}"
+                                   IsVisible="{Binding ShownEntry.Kind, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="detailsField" IsVisible="{Binding ShownEntry.IPAddress, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <StackPanel Spacing="4">
+                        <TextBlock Classes="columnName" Text="{Binding Strings[audit.ip_address]}" />
+                        <DockPanel>
+                            <c:CopyButton DockPanel.Dock="Right" Text="{Binding ShownEntry.IPAddress}" ToolTip.Tip="{Binding Strings[audit.copy]}" />
+                            <TextBlock Classes="mono" VerticalAlignment="Center" TextWrapping="Wrap" Text="{Binding ShownEntry.IPAddress}" />
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="detailsField">
+                    <StackPanel Spacing="4">
+                        <TextBlock Classes="columnName" Text="{Binding Strings[audit.trace]}" />
+                        <DockPanel>
+                            <c:CopyButton DockPanel.Dock="Right" Text="{Binding ShownEntry.TraceId}" ToolTip.Tip="{Binding Strings[audit.copy]}" />
+                            <TextBlock Classes="mono" VerticalAlignment="Center" Text="{Binding ShownEntry.TraceId}" />
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </c:Reveal>
+
+    </Grid>
+</UserControl>

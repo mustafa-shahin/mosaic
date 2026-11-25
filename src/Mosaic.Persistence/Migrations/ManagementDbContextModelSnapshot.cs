@@ -88,6 +88,21 @@ namespace Mosaic.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_audit_entries");
 
+                    b.HasIndex("Action", "OccurredAt")
+                        .HasDatabaseName("ix_audit_entries_action_occurred_at");
+
+                    b.HasIndex("ActorId", "OccurredAt")
+                        .HasDatabaseName("ix_audit_entries_actor_id_occurred_at");
+
+                    b.HasIndex("OccurredAt", "Id")
+                        .HasDatabaseName("ix_audit_entries_occurred_at_id");
+
+                    b.HasIndex("Outcome", "OccurredAt")
+                        .HasDatabaseName("ix_audit_entries_outcome_occurred_at");
+
+                    b.HasIndex("TargetType", "TargetId", "OccurredAt")
+                        .HasDatabaseName("ix_audit_entries_target_type_target_id_occurred_at");
+
                     b.ToTable("audit_entries", null, t =>
                         {
                             t.HasCheckConstraint("ck_audit_entries_outcome", "outcome IN ('Succeeded', 'Failed')");

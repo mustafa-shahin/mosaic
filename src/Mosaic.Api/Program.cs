@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Mosaic.Api;
+using Mosaic.Api.Auditing;
 using Mosaic.Api.Authorization;
 using Mosaic.Api.Health;
 using Mosaic.Api.Identity;
@@ -23,6 +24,7 @@ builder.Services.AddPersistence(
         + "local one; elsewhere it arrives as the ConnectionStrings__Management variable."));
 
 builder.Services.AddPermissions();
+builder.Services.AddAuditing();
 
 // the default is next to the API, so a recreated container writes a new token and the copied one stops working
 builder.Services.AddAccounts(
@@ -75,5 +77,6 @@ if (app.Environment.IsDevelopment())
 
 app.MapHealth();
 app.MapIdentity();
+app.MapAuditing();
 
 app.Run();

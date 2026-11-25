@@ -34,5 +34,6 @@
 
   <!-- heavier than the day palette, black barely reads on a dark surface -->
   <BoxShadows x:Key="CardShadow">0 1 3 0 #66000000</BoxShadows>
+  <BoxShadows x:Key="PanelShadow">-8 0 24 0 #66000000</BoxShadows>
 
 </ResourceDictionary>
