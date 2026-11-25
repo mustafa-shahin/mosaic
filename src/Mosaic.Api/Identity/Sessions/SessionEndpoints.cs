@@ -27,10 +27,11 @@ public static class SessionEndpoints
     [EnableRateLimiting(RateLimits.SignIn)]
     public static async Task<ApiResponse<SignInResult>> SignIn(
         SignInRequest request,
+        HttpContext httpContext,
         [FromServices] SignInUser signInUser,
         CancellationToken cancellationToken)
     {
-        var result = await signInUser.HandleAsync(request, cancellationToken);
+        var result = await signInUser.HandleAsync(request, httpContext.AuditOrigin(), cancellationToken);
 
         return ApiResponse.Ok(result);
     }
@@ -52,13 +53,14 @@ public static class SessionEndpoints
     [AllowAnySignedIn]
     public static async Task<ApiResponse> SignOut(
         ClaimsPrincipal user,
+        HttpContext httpContext,
         [FromServices] SignOutUser signOutUser,
         CancellationToken cancellationToken)
     {
         // the id of this token's session row, so the person's other sessions stay signed in
         var sessionId = Guid.Parse(user.FindFirstValue(SessionAuthenticationHandler.SessionIdClaim)!);
 
-        await signOutUser.HandleAsync(sessionId, cancellationToken);
+        await signOutUser.HandleAsync(sessionId, httpContext.AuditOrigin(), cancellationToken);
 
         return ApiResponse.Ok();
     }
@@ -66,12 +68,13 @@ public static class SessionEndpoints
     [AllowAnySignedIn]
     public static async Task<ApiResponse> SignOutEverywhere(
         ClaimsPrincipal user,
+        HttpContext httpContext,
         [FromServices] SignOutEverywhere signOutEverywhere,
         CancellationToken cancellationToken)
     {
         var userId = Guid.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-        await signOutEverywhere.HandleAsync(userId, cancellationToken);
+        await signOutEverywhere.HandleAsync(userId, httpContext.AuditOrigin(), cancellationToken);
 
         return ApiResponse.Ok();
     }

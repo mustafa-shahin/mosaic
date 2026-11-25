@@ -1,5 +1,6 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="using:System">
 
   <!-- Dark/Light only pick the palette, everything below is shared -->
 
@@ -22,7 +23,13 @@
   <x:Double x:Key="HeaderHeight">64</x:Double>
   <x:Double x:Key="RowHeight">44</x:Double>
   <x:Double x:Key="NavRowHeight">34</x:Double>
+  <x:Double x:Key="TableHeaderHeight">36</x:Double>
+  <x:Double x:Key="TableRowHeight">40</x:Double>
   <x:Double x:Key="ContentColumnWidth">560</x:Double>
+  <Thickness x:Key="PagePadding">24</Thickness>
+  <!-- the details panel of a list screen, and the room the list leaves for it while the panel stands beside the list -->
+  <x:Double x:Key="DetailsPanelWidth">300</x:Double>
+  <Thickness x:Key="DetailsPanelRoom">0,0,300,0</Thickness>
   <!-- Fixed: each FactRow is its own Grid, so with Auto the values of different rows would not line up. -->
   <GridLength x:Key="FactLabelWidth">150</GridLength>
 
@@ -41,5 +48,8 @@
   <x:Double x:Key="NoteSize">13</x:Double>
   <x:Double x:Key="MonoSize">12.5</x:Double>
   <x:Double x:Key="CaptionSize">11.5</x:Double>
+
+  <!-- how long a part of the screen takes to arrive or to leave -->
+  <sys:TimeSpan x:Key="MotionTime">0:0:0.15</sys:TimeSpan>
 
 </ResourceDictionary>

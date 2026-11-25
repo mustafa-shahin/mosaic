@@ -46,11 +46,11 @@ public sealed class ShellDriftTests
             }
         }
 
-        foreach (var key in Keys(composition.Contributions))
+        foreach (var contribution in composition.Contributions)
         {
-            if (!english.Has(key))
+            if (!english.Has(contribution.Key))
             {
-                missing.Add(key);
+                missing.Add(contribution.Key);
             }
         }
 
@@ -58,27 +58,14 @@ public sealed class ShellDriftTests
     }
 
     // Building a composition only records the factories, so no screen and no request is made here.
-    private static CoreComposition Composition()
+    private static DesktopComposition Composition()
     {
         var session = new CurrentSession();
         var api = new ApiClient(new HttpClient(), session);
         var store = new SettingsStore(Path.Combine(Path.GetTempPath(), "mosaic-tests"));
+        var language = new LanguageChoice(store, LanguageCatalog.Resolve(LanguageCatalog.DefaultCode));
 
-        return new CoreComposition(new DesktopServices(api, store, new SignOut(new AuthApi(api), session), (_, _) => { }));
-    }
-
-    // children too, since a sub-entry needs a sentence just as much as its parent
-    private static IEnumerable<string> Keys(IReadOnlyList<NavContribution> contributions)
-    {
-        foreach (var contribution in contributions)
-        {
-            yield return contribution.Key;
-
-            foreach (var key in Keys(contribution.Children))
-            {
-                yield return key;
-            }
-        }
+        return CoreComposition.Build(new DesktopServices(api, store, new SignOut(new AuthApi(api), session), language));
     }
 
     // a feature names itself, and the two seams exist to name features

@@ -6,9 +6,10 @@
              xmlns:start="using:Mosaic.Desktop.Shell.Start"
              xmlns:firstrun="using:Mosaic.Desktop.Shell.FirstRun"
              xmlns:signin="using:Mosaic.Desktop.Shell.SignIn"
+             xmlns:audit="using:Mosaic.Desktop.Features.Auditing"
              x:Class="Mosaic.Desktop.App"
              RequestedThemeVariant="Default">
-             <!-- Overwritten at startup from settings. -->
+    <!-- Overwritten at startup from settings. -->
 
     <!-- no ViewLocator on purpose, this way a missing view is a compile error -->
     <Application.DataTemplates>
@@ -16,24 +17,29 @@
         <DataTemplate DataType="start:StartViewModel">
             <start:StartView />
         </DataTemplate>
+
         <DataTemplate DataType="firstrun:FirstRunViewModel">
             <firstrun:FirstRunView />
         </DataTemplate>
+
         <DataTemplate DataType="signin:SignInViewModel">
             <signin:SignInView />
         </DataTemplate>
+
         <DataTemplate DataType="shell:ShellViewModel">
             <shell:ShellView />
         </DataTemplate>
+
         <DataTemplate DataType="health:HealthViewModel">
             <health:HealthView />
         </DataTemplate>
+
+        <DataTemplate DataType="audit:AuditLogViewModel">
+            <audit:AuditLogView />
+        </DataTemplate>
+
         <DataTemplate DataType="settings:SettingsViewModel">
             <settings:SettingsView />
-        </DataTemplate>
-        <!-- the shell's own screen, a single text block, so it has no view file of its own -->
-        <DataTemplate DataType="shell:NoAccessViewModel">
-            <SelectableTextBlock Classes="body" Text="{Binding Message}" TextWrapping="Wrap" MaxWidth="480" />
         </DataTemplate>
     </Application.DataTemplates>
 

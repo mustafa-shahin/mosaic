@@ -1,9 +1,12 @@
+using System.Net;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Mosaic.Api.Identity;
 using Mosaic.Api.Identity.Sessions;
 using Mosaic.Contracts;
+using Mosaic.Contracts.Auditing;
 using Mosaic.Contracts.Identity;
+using Mosaic.Domain.Auditing;
 using Mosaic.Domain.Errors;
 using Mosaic.Domain.Identity;
 using Mosaic.Persistence;
@@ -15,6 +18,9 @@ namespace Mosaic.Api.Tests.Identity.Sessions;
 public sealed class SignInUserTests(PostgresFixture postgres) : IDisposable
 {
     private const string Password = "correct horse battery staple";
+
+    private static readonly AuditOrigin TestAuditOrigin =
+        new(IPAddress.Parse("203.0.113.7"), "51e82f01e6b0966e2cc88ad6e173b22f");
 
     private readonly PasswordHasher _hasher = new(19456, 2, 1);
     private readonly Clock _clock = new(new DateTimeOffset(2026, 10, 4, 12, 0, 0, TimeSpan.Zero));
@@ -47,6 +53,93 @@ public sealed class SignInUserTests(PostgresFixture postgres) : IDisposable
         Assert.Equal(user.Id, session.UserId);
         Assert.Equal(user.SecurityStamp, session.SecurityStamp);
         Assert.Equal(_clock.Now, session.CreatedAt);
+    }
+
+    [Fact]
+    public async Task TheRightPassword_SavesOneRowForTheSignIn()
+    {
+        await postgres.ResetAsync(Token);
+
+        var email = await Seed();
+
+        await SignIn(email, Password);
+
+        var user = await Find(email);
+        var row = await TheOnlyRow();
+
+        AssertSignInRow(row, AuditOutcome.Succeeded, errorCode: null, actor: user, target: user);
+    }
+
+    [Fact]
+    public async Task AWrongPassword_SavesOneFailedRow()
+    {
+        await postgres.ResetAsync(Token);
+
+        var email = await Seed();
+
+        await AssertRefused(ErrorCodes.InvalidCredentials, () => SignIn(email, "wrong horse battery staple"));
+
+        var user = await Find(email);
+        var row = await TheOnlyRow();
+
+        AssertSignInRow(row, AuditOutcome.Failed, ErrorCodes.InvalidCredentials, actor: null, target: user);
+    }
+
+    [Fact]
+    public async Task AnUnknownAddress_SavesOneFailedRow()
+    {
+        await postgres.ResetAsync(Token);
+
+        await AssertRefused(ErrorCodes.InvalidCredentials, () => SignIn(UniqueEmail(), Password));
+
+        var row = await TheOnlyRow();
+
+        AssertSignInRow(row, AuditOutcome.Failed, ErrorCodes.InvalidCredentials, actor: null, target: null);
+    }
+
+    [Fact]
+    public async Task AnInactiveAccount_WithTheRightPassword_SavesOneFailedRow()
+    {
+        await postgres.ResetAsync(Token);
+
+        var email = await Seed(active: false);
+
+        await AssertRefused(ErrorCodes.AccountInactive, () => SignIn(email, Password));
+
+        var user = await Find(email);
+        var row = await TheOnlyRow();
+
+        AssertSignInRow(row, AuditOutcome.Failed, ErrorCodes.AccountInactive, actor: user, target: user);
+    }
+
+    // the lockout is read before the failure is counted, so the fifth wrong password is still saved as a wrong password
+    [Fact]
+    public async Task WhileLocked_TheAttemptIsSavedAsLocked()
+    {
+        await postgres.ResetAsync(Token);
+
+        var email = await Seed();
+
+        await FailTimes(email, 5);
+        await AssertRefused(ErrorCodes.InvalidCredentials, () => SignIn(email, Password));
+
+        var user = await Find(email);
+        var rows = await Rows();
+        var locked = Assert.Single(rows, row => row.ErrorCode == ErrorCodes.AccountLocked);
+
+        Assert.Equal(6, rows.Count);
+        Assert.Equal(5, rows.Count(row => row.ErrorCode == ErrorCodes.InvalidCredentials));
+        AssertSignInRow(locked, AuditOutcome.Failed, ErrorCodes.AccountLocked, actor: null, target: user);
+    }
+
+    // an unknown address has no counter to save, so only its row makes the refusal cost the database what a wrong password costs
+    [Fact]
+    public async Task ARefusal_SendsOneSaveWhetherTheAddressIsKnownOrNot()
+    {
+        var email = await Seed();
+
+        AssertOneReadThenOneSave(await StatementsOfARefusal(email));
+        AssertOneReadThenOneSave(await StatementsOfARefusal(UniqueEmail()));
     }
 
     // this path saves the failure, so a session added before the password check would be saved with it
@@ -252,7 +345,10 @@ public sealed class SignInUserTests(PostgresFixture postgres) : IDisposable
         await using var scope = postgres.CreateScope();
 
         return await new SignInUser(Context(scope), hasher ?? _hasher, _clock)
-            .HandleAsync(new SignInRequest { Email = email, Password = password }, Token);
+            .HandleAsync(
+                new SignInRequest { Email = email, Password = password },
+                TestAuditOrigin,
+                Token);
     }
 
     private async Task FailTimes(string email, int times)
@@ -262,6 +358,26 @@ public sealed class SignInUserTests(PostgresFixture postgres) : IDisposable
             await AssertRefused(ErrorCodes.InvalidCredentials, () => SignIn(email, "wrong horse battery staple"));
         }
     }
+
+    private async Task<List<string>> StatementsOfARefusal(string email)
+    {
+        var log = new StatementLog();
+
+        await using var context = postgres.CreateLoggedContext(log);
+
+        await AssertRefused(
+            ErrorCodes.InvalidCredentials,
+            () => new SignInUser(context, _hasher, _clock).HandleAsync(
+                new SignInRequest { Email = email, Password = "wrong horse battery staple" }, TestAuditOrigin, Token));
+
+        return log.Statements;
+    }
+
+    private static void AssertOneReadThenOneSave(List<string> statements) =>
+        Assert.Collection(
+            statements,
+            statement => Assert.StartsWith("SELECT", statement, StringComparison.Ordinal),
+            statement => Assert.Contains("INSERT INTO audit_entries", statement, StringComparison.Ordinal));
 
     private async Task<User> Find(string email)
     {
@@ -278,6 +394,28 @@ public sealed class SignInUserTests(PostgresFixture postgres) : IDisposable
         await using var scope = postgres.CreateScope();
 
         return await Context(scope).SessionTokens.SingleAsync(session => session.TokenHash == hash, Token);
+    }
+
+    // after a reset the table holds only this test's rows, so exactly one row means exactly one was saved
+    private async Task<AuditEntry> TheOnlyRow() => Assert.Single(await Rows());
+
+    private Task<List<AuditEntry>> Rows() => postgres.AuditRowsAsync(Token);
+
+    // a null actor or target means its columns must be empty, not that they go unchecked
+    private void AssertSignInRow(AuditEntry row, AuditOutcome outcome, string? errorCode, User? actor, User? target)
+    {
+        Assert.Equal(AuditActions.SignIn, row.Action);
+        Assert.Equal(outcome, row.Outcome);
+        Assert.Equal(errorCode, row.ErrorCode);
+        Assert.Equal(actor?.Id, row.ActorId);
+        Assert.Equal(actor?.FullName, row.ActorName);
+        Assert.Equal(actor?.Email, row.ActorEmail);
+        Assert.Equal(target is null ? null : AuditTargets.User, row.TargetType);
+        Assert.Equal(target?.Id, row.TargetId);
+        Assert.Equal(target?.FullName, row.TargetName);
+        Assert.Equal(TestAuditOrigin.IPAddress, row.IPAddress);
+        Assert.Equal(TestAuditOrigin.CorrelationId, row.CorrelationId);
+        Assert.Equal(_clock.Now, row.OccurredAt);
     }
 
     private async Task<int> CountSessions(string email)

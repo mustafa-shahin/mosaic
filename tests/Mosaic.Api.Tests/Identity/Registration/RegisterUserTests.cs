@@ -1,10 +1,13 @@
+using System.Net;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Mosaic.Api.Identity;
 using Mosaic.Api.Identity.Registration;
 using Mosaic.Api.Validation;
 using Mosaic.Contracts;
+using Mosaic.Contracts.Auditing;
 using Mosaic.Contracts.Identity;
+using Mosaic.Domain.Auditing;
 using Mosaic.Domain.Errors;
 using Mosaic.Domain.Identity;
 using Mosaic.Persistence;
@@ -16,6 +19,9 @@ namespace Mosaic.Api.Tests.Identity.Registration;
 public sealed class RegisterUserTests(PostgresFixture postgres)
 {
     private const string Password = "correct horse battery staple";
+
+    private static readonly AuditOrigin TestAuditOrigin =
+        new(IPAddress.Parse("203.0.113.7"), "51e82f01e6b0966e2cc88ad6e173b22f");
 
     private static CancellationToken Token => TestContext.Current.CancellationToken;
 
@@ -32,6 +38,73 @@ public sealed class RegisterUserTests(PostgresFixture postgres)
         Assert.True(user.IsOwner);
         Assert.True(user.IsActive);
         Assert.Single(await Context(scope).InstanceSettings.ToListAsync(Token));
+    }
+
+    [Fact]
+    public async Task TheFirstRegistration_SavesOneRowForTheOwner()
+    {
+        await Reset();
+
+        var email = UniqueEmail();
+
+        await Register(email);
+
+        var owner = await Find(email);
+        var row = await TheOnlyRow();
+
+        AssertRegisterRow(row, AuditOutcome.Succeeded, errorCode: null, actor: owner, target: owner);
+    }
+
+    [Fact]
+    public async Task WithoutAToken_TheRefusalSavesOneFailedRow()
+    {
+        await Reset();
+
+        await Assert.ThrowsAsync<NotPermittedException>(() => Register(UniqueEmail(), setupToken: null));
+
+        var row = await TheOnlyRow();
+
+        AssertRegisterRow(row, AuditOutcome.Failed, ErrorCodes.SetupTokenRequired, actor: null, target: null);
+    }
+
+    [Fact]
+    public async Task AWrongToken_SavesOneFailedRow()
+    {
+        await Reset();
+
+        await Assert.ThrowsAsync<NotPermittedException>(() => Register(UniqueEmail(), setupToken: "guessed"));
+
+        var row = await TheOnlyRow();
+
+        AssertRegisterRow(row, AuditOutcome.Failed, ErrorCodes.SetupTokenInvalid, actor: null, target: null);
+    }
+
+    [Fact]
+    public async Task ARequestThatFailsTheRules_SavesOneFailedRow()
+    {
+        await Reset();
+
+        await Assert.ThrowsAsync<ValidationException>(() => Register("not an address", password: "short"));
+
+        var row = await TheOnlyRow();
+
+        AssertRegisterRow(row, AuditOutcome.Failed, ErrorCodes.ValidationFailed, actor: null, target: null);
+    }
+
+    // the owner's own registration is the first row, so the refusal is found by its outcome
+    [Fact]
+    public async Task OnceClaimed_ALaterRegistrationSavesOneFailedRow()
+    {
+        await Reset();
+        await Register(UniqueEmail());
+
+        await Assert.ThrowsAsync<NotPermittedException>(() => Register(UniqueEmail()));
+
+        var rows = await Rows();
+        var refused = Assert.Single(rows, row => row.Outcome == AuditOutcome.Failed);
+
+        Assert.Equal(2, rows.Count);
+        AssertRegisterRow(refused, AuditOutcome.Failed, ErrorCodes.RegistrationClosed, actor: null, target: null);
     }
 
     [Fact]
@@ -230,6 +303,7 @@ public sealed class RegisterUserTests(PostgresFixture postgres)
                 Password = password,
                 SetupToken = setupToken,
             },
+            TestAuditOrigin,
             Token);
     }
 
@@ -248,6 +322,30 @@ public sealed class RegisterUserTests(PostgresFixture postgres)
     }
 
     private Task Reset() => postgres.ResetAsync(Token);
+
+    // after a reset the table holds only this test's rows, so exactly one row means exactly one was saved
+    private async Task<AuditEntry> TheOnlyRow() => Assert.Single(await Rows());
+
+    private Task<List<AuditEntry>> Rows() => postgres.AuditRowsAsync(Token);
+
+    // a null actor or target means its columns must be empty, not that they go unchecked
+    private static void AssertRegisterRow(AuditEntry row, AuditOutcome outcome, string? errorCode, User? actor, User? target)
+    {
+        Assert.Equal(AuditActions.Register, row.Action);
+        Assert.Equal(outcome, row.Outcome);
+        Assert.Equal(errorCode, row.ErrorCode);
+        Assert.Equal(actor?.Id, row.ActorId);
+        Assert.Equal(actor?.FullName, row.ActorName);
+        Assert.Equal(actor?.Email, row.ActorEmail);
+        Assert.Equal(target is null ? null : AuditTargets.User, row.TargetType);
+        Assert.Equal(target?.Id, row.TargetId);
+        Assert.Equal(target?.FullName, row.TargetName);
+        Assert.Equal(TestAuditOrigin.IPAddress, row.IPAddress);
+        Assert.Equal(TestAuditOrigin.CorrelationId, row.CorrelationId);
+
+        // this class runs on the real clock, so the time can only be checked as recent
+        Assert.InRange(row.OccurredAt, DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow);
+    }
 
     private async Task Execute(string sql)
     {

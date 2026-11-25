@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- NavBuilder is internal so pro cannot call it; the tests check it and the internal design data -->
+    <!-- the tests check NavBuilder and the internal design data -->
     <InternalsVisibleTo Include="Mosaic.Desktop.Tests" />
   </ItemGroup>
 

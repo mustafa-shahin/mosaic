@@ -20,6 +20,12 @@ public sealed partial class ThemeDriftTests
             {
                 var key = match.Groups[2].Value;
 
+                // a key written as a type, such as {x:Type ComboBox} under BasedOn, is a theme that Fluent defines
+                if (key.StartsWith('{'))
+                {
+                    continue;
+                }
+
                 if (!defined.Contains(key))
                 {
                     missing.Add($"{Path.GetFileName(file)} asks for '{key}'");

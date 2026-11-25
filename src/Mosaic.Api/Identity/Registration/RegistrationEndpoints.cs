@@ -32,10 +32,11 @@ public static class RegistrationEndpoints
     [EnableRateLimiting(RateLimits.Register)]
     public static async Task<JsonHttpResult<ApiResponse>> Register(
         RegisterRequest request,
+        HttpContext httpContext,
         [FromServices] RegisterUser registerUser,
         CancellationToken cancellationToken)
     {
-        await registerUser.HandleAsync(request, cancellationToken);
+        await registerUser.HandleAsync(request, httpContext.AuditOrigin(), cancellationToken);
 
         return TypedResults.Json(ApiResponse.Ok(), statusCode: StatusCodes.Status201Created);
     }

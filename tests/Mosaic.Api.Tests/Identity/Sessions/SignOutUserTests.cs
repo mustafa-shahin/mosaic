@@ -1,6 +1,9 @@
+using System.Net;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Mosaic.Api.Identity.Sessions;
+using Mosaic.Contracts.Auditing;
+using Mosaic.Domain.Auditing;
 using Mosaic.Domain.Identity;
 using Mosaic.Persistence;
 
@@ -12,6 +15,9 @@ public sealed class SignOutUserTests(PostgresFixture postgres)
 {
     private static readonly DateTimeOffset Now = new(2026, 10, 16, 12, 0, 0, TimeSpan.Zero);
 
+    private static readonly AuditOrigin TestAuditOrigin =
+        new(IPAddress.Parse("203.0.113.7"), "51e82f01e6b0966e2cc88ad6e173b22f");
+
     private static CancellationToken Token => TestContext.Current.CancellationToken;
 
     [Fact]
@@ -22,6 +28,32 @@ public sealed class SignOutUserTests(PostgresFixture postgres)
         await SignOut(signedIn.SessionId);
 
         Assert.False(await Exists(signedIn.SessionId));
+    }
+
+    [Fact]
+    public async Task SigningOut_SavesOneRowForThePerson()
+    {
+        await postgres.ResetAsync(Token);
+
+        var signedIn = await SignIn();
+
+        await SignOut(signedIn.SessionId);
+
+        var user = await FindUser(signedIn.UserId);
+        var row = Assert.Single(await postgres.AuditRowsAsync(Token));
+
+        Assert.Equal(AuditActions.SignOut, row.Action);
+        Assert.Equal(AuditOutcome.Succeeded, row.Outcome);
+        Assert.Null(row.ErrorCode);
+        Assert.Equal(user.Id, row.ActorId);
+        Assert.Equal(user.FullName, row.ActorName);
+        Assert.Equal(user.Email, row.ActorEmail);
+        Assert.Equal(AuditTargets.User, row.TargetType);
+        Assert.Equal(user.Id, row.TargetId);
+        Assert.Equal(user.FullName, row.TargetName);
+        Assert.Equal(TestAuditOrigin.IPAddress, row.IPAddress);
+        Assert.Equal(TestAuditOrigin.CorrelationId, row.CorrelationId);
+        Assert.Equal(Now, row.OccurredAt);
     }
 
     [Fact]
@@ -51,10 +83,27 @@ public sealed class SignOutUserTests(PostgresFixture postgres)
         Assert.NotNull(await Check(Context(first), signedIn.Token));
         Assert.NotNull(await Check(Context(second), signedIn.Token));
 
-        await new SignOutUser(Context(first)).HandleAsync(signedIn.SessionId, Token);
-        await new SignOutUser(Context(second)).HandleAsync(signedIn.SessionId, Token);
+        await new SignOutUser(Context(first), new Clock(Now)).HandleAsync(signedIn.SessionId, TestAuditOrigin, Token);
+        await new SignOutUser(Context(second), new Clock(Now)).HandleAsync(signedIn.SessionId, TestAuditOrigin, Token);
 
         Assert.False(await Exists(signedIn.SessionId));
+    }
+
+    [Fact]
+    public async Task WhenTheRowFailsToSave_TheSessionStays()
+    {
+        var signedIn = await SignIn();
+
+        // one character more than the column holds, so the database refuses the row
+        var tooLong = new AuditOrigin(IPAddress.Parse("203.0.113.7"), new string('x', AuditEntry.CorrelationIdMaxLength + 1));
+
+        await using var scope = postgres.CreateScope();
+        var signOutUser = new SignOutUser(Context(scope), new Clock(Now));
+
+        await Assert.ThrowsAsync<DbUpdateException>(
+            () => signOutUser.HandleAsync(signedIn.SessionId, tooLong, Token));
+
+        Assert.True(await Exists(signedIn.SessionId));
     }
 
     // the person and the session are written straight to the database, the way sign-in leaves them
@@ -96,7 +145,7 @@ public sealed class SignOutUserTests(PostgresFixture postgres)
     {
         await using var scope = postgres.CreateScope();
 
-        await new SignOutUser(Context(scope)).HandleAsync(sessionId, Token);
+        await new SignOutUser(Context(scope), new Clock(Now)).HandleAsync(sessionId, TestAuditOrigin, Token);
     }
 
     private static Task<SessionToken?> Check(ManagementDbContext context, string token) =>
@@ -107,6 +156,13 @@ public sealed class SignOutUserTests(PostgresFixture postgres)
         await using var scope = postgres.CreateScope();
 
         return await Context(scope).SessionTokens.SingleAsync(session => session.Id == sessionId, Token);
+    }
+
+    private async Task<User> FindUser(Guid userId)
+    {
+        await using var scope = postgres.CreateScope();
+
+        return await Context(scope).Users.SingleAsync(user => user.Id == userId, Token);
     }
 
     private async Task<bool> Exists(Guid sessionId)

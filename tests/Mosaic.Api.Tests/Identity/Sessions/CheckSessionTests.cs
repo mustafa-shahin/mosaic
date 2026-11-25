@@ -1,8 +1,8 @@
-using System.Data.Common;
+using System.Net;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Mosaic.Api.Identity.Sessions;
+using Mosaic.Domain.Auditing;
 using Mosaic.Domain.Identity;
 using Mosaic.Persistence;
 
@@ -12,6 +12,9 @@ namespace Mosaic.Api.Tests.Identity.Sessions;
 [Trait("Requires", "Docker")]
 public sealed class CheckSessionTests(PostgresFixture postgres)
 {
+    private static readonly AuditOrigin TestAuditOrigin =
+        new(IPAddress.Parse("203.0.113.7"), "51e82f01e6b0966e2cc88ad6e173b22f");
+
     private readonly Clock _clock = new(new DateTimeOffset(2026, 10, 4, 12, 0, 0, TimeSpan.Zero));
 
     private static CancellationToken Token => TestContext.Current.CancellationToken;
@@ -97,7 +100,7 @@ public sealed class CheckSessionTests(PostgresFixture postgres)
         var signedIn = await SignIn();
         var log = new StatementLog();
 
-        await using var context = Logged(log);
+        await using var context = postgres.CreateLoggedContext(log);
 
         var session = await new CheckSession(context, _clock).HandleAsync(signedIn.Token, Token);
 
@@ -107,21 +110,22 @@ public sealed class CheckSessionTests(PostgresFixture postgres)
     }
 
     [Fact]
-    public async Task AfterACheck_SigningOutEverywhere_SendsOnlyTheUpdate()
+    public async Task AfterACheck_SigningOutEverywhere_SendsNoSecondQuery()
     {
         var signedIn = await SignIn();
         var log = new StatementLog();
 
-        await using var context = Logged(log);
+        await using var context = postgres.CreateLoggedContext(log);
 
         var session = await new CheckSession(context, _clock).HandleAsync(signedIn.Token, Token);
 
-        await new SignOutEverywhere(context).HandleAsync(session!.UserId, Token);
+        await new SignOutEverywhere(context, _clock).HandleAsync(session!.UserId, TestAuditOrigin, Token);
 
+        // one save is one command, and EF puts the row's INSERT before the UPDATE
         Assert.Collection(
             log.Statements,
             statement => Assert.StartsWith("SELECT", statement, StringComparison.Ordinal),
-            statement => Assert.StartsWith("UPDATE users", statement, StringComparison.Ordinal));
+            statement => Assert.Contains("UPDATE users", statement, StringComparison.Ordinal));
     }
 
     // the person and the session are written straight to the database, the way sign-in leaves them
@@ -147,24 +151,13 @@ public sealed class CheckSessionTests(PostgresFixture postgres)
     {
         var log = new StatementLog();
 
-        await using var context = Logged(log);
+        await using var context = postgres.CreateLoggedContext(log);
 
         var session = await new CheckSession(context, _clock).HandleAsync(token, Token);
 
         Assert.StartsWith("SELECT", Assert.Single(log.Statements), StringComparison.Ordinal);
 
         return session;
-    }
-
-    // a context of its own for every use, so nothing an earlier check tracked can answer for the database
-    private ManagementDbContext Logged(StatementLog log)
-    {
-        var options = new DbContextOptionsBuilder<ManagementDbContext>();
-
-        DatabaseOptions.Configure(options, postgres.ConnectionString);
-        options.AddInterceptors(log);
-
-        return new ManagementDbContext(options.Options);
     }
 
     private async Task ChangeUser(Guid userId, Action<User> change)
@@ -182,58 +175,4 @@ public sealed class CheckSessionTests(PostgresFixture postgres)
         scope.ServiceProvider.GetRequiredService<ManagementDbContext>();
 
     private sealed record SignedIn(string Token, Guid SessionId, Guid UserId);
-
-    // both the async and the plain methods, so a write cannot slip past by being synchronous
-    private sealed class StatementLog : DbCommandInterceptor
-    {
-        public List<string> Statements { get; } = [];
-
-        public override InterceptionResult<DbDataReader> ReaderExecuting(
-            DbCommand command, CommandEventData eventData, InterceptionResult<DbDataReader> result)
-        {
-            Statements.Add(command.CommandText);
-
-            return base.ReaderExecuting(command, eventData, result);
-        }
-
-        public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(
-            DbCommand command, CommandEventData eventData, InterceptionResult<DbDataReader> result, CancellationToken cancellationToken = default)
-        {
-            Statements.Add(command.CommandText);
-
-            return base.ReaderExecutingAsync(command, eventData, result, cancellationToken);
-        }
-
-        public override InterceptionResult<int> NonQueryExecuting(
-            DbCommand command, CommandEventData eventData, InterceptionResult<int> result)
-        {
-            Statements.Add(command.CommandText);
-
-            return base.NonQueryExecuting(command, eventData, result);
-        }
-
-        public override ValueTask<InterceptionResult<int>> NonQueryExecutingAsync(
-            DbCommand command, CommandEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
-        {
-            Statements.Add(command.CommandText);
-
-            return base.NonQueryExecutingAsync(command, eventData, result, cancellationToken);
-        }
-
-        public override InterceptionResult<object> ScalarExecuting(
-            DbCommand command, CommandEventData eventData, InterceptionResult<object> result)
-        {
-            Statements.Add(command.CommandText);
-
-            return base.ScalarExecuting(command, eventData, result);
-        }
-
-        public override ValueTask<InterceptionResult<object>> ScalarExecutingAsync(
-            DbCommand command, CommandEventData eventData, InterceptionResult<object> result, CancellationToken cancellationToken = default)
-        {
-            Statements.Add(command.CommandText);
-
-            return base.ScalarExecutingAsync(command, eventData, result, cancellationToken);
-        }
-    }
 }

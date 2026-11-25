@@ -28,11 +28,12 @@ public sealed class ShellViewTests : IDisposable
         var api = new ApiClient(new HttpClient(new NeverRespondingHandler()) { BaseAddress = new Uri("http://localhost") }, _session);
         var signOut = new SignOut(
             new AuthApi(new ApiClient(new HttpClient(signOutServer) { BaseAddress = new Uri("http://localhost") }, _session)), _session);
-        var composition = new CoreComposition(new DesktopServices(api, new SettingsStore(_folder), signOut, (_, _) => { }));
+        var strings = Localizer.Load(LanguageCatalog.Resolve(language));
+        var store = new SettingsStore(_folder);
+        var composition = CoreComposition.Build(new DesktopServices(api, store, signOut, new LanguageChoice(store, strings.Language)));
         var person = _session.Start(SignInResults.Ada()).Person;
 
-        return new ShellViewModel(
-            Localizer.Load(LanguageCatalog.Resolve(language)), composition, new HashSet<string>(StringComparer.Ordinal), person, signOut);
+        return new ShellViewModel(strings, composition, person, signOut);
     }
 
     private static Window Shown(ShellViewModel shell)

@@ -18,6 +18,9 @@ public sealed class ShippedRoutesTests(ApiFactory factory) : IClassFixture<ApiFa
         "GET /v1/auth/session",
         "POST /v1/auth/sign-out",
         "POST /v1/auth/sign-out-everywhere",
+        "GET /v1/audit/entries",
+        "GET /v1/audit/filters",
+        "GET /v1/audit/people",
     ];
 
     private static readonly string VersionParameter = RoutePatternFactory.Parse(ApiVersions.RouteTemplate).Parameters.Single().Name;

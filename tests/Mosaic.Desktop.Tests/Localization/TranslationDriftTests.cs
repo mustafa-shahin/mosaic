@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Mosaic.Contracts;
+using Mosaic.Contracts.Auditing;
 using Mosaic.Desktop.Localization;
 
 namespace Mosaic.Desktop.Tests.Localization;
@@ -66,6 +67,24 @@ public sealed partial class TranslationDriftTests
         Assert.True(
             missing.Count == 0,
             $"No English translation for: {string.Join(", ", missing)}");
+    }
+
+    // the audit screen shows these codes in words; one with no words shows as the bare code
+    [Fact]
+    public void EveryAuditActionAndTargetHasAnEnglishWord()
+    {
+        var english = Strings(LanguageCatalog.DefaultCode);
+        var missing = new List<string>();
+
+        foreach (var code in ConstantsOf(typeof(AuditActions)).Concat(ConstantsOf(typeof(AuditTargets))))
+        {
+            if (!english.ContainsKey(code))
+            {
+                missing.Add(code);
+            }
+        }
+
+        Assert.True(missing.Count == 0, $"No English word for: {string.Join(", ", missing)}");
     }
 
     [Theory]

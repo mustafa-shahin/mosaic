@@ -1,4 +1,3 @@
-using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Mosaic.Contracts.Identity;
@@ -15,23 +14,16 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
     private readonly SignOut _signOut;
 
     public ShellViewModel(
-        Localizer strings, IDesktopComposition composition, IReadOnlySet<string> visible, SessionResult person,
-        SignOut signOut, string? startAt = null)
+        Localizer strings, DesktopComposition composition, SessionResult person, SignOut signOut, string? startAt = null)
     {
         Strings = strings;
-        Sections = NavBuilder.Build(composition, visible, strings);
-        _entries = NavBuilder.Flatten(Sections);
+        Sections = NavBuilder.Build(composition, strings);
+        _entries = [.. Sections.SelectMany(section => section.Entries)];
         _signOut = signOut;
 
         Name = person.FullName;
         Email = person.Email;
-        Initials = InitialsOf(person.FullName);
-
-        if (_entries.Count == 0)
-        {
-            Current = new NoAccessViewModel(strings);
-            return;
-        }
+        Initials = NameInitials.Of(person.FullName);
 
         var opening = _entries.Find(entry => entry.Key == startAt) ?? _entries[0];
 
@@ -87,19 +79,4 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
     // the window leaves this shell at once, and the server hears about it afterwards
     [RelayCommand]
     private void SignOutHere() => _ = _signOut.HereAsync();
-
-    // "Ada Lovelace" gives "AL"; each letter is a whole text element, so an accent written as a second character stays on it
-    private static string InitialsOf(string fullName)
-    {
-        var words = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-
-        return words.Length switch
-        {
-            0 => string.Empty,
-            1 => FirstLetter(words[0]),
-            _ => FirstLetter(words[0]) + FirstLetter(words[^1]),
-        };
-    }
-
-    private static string FirstLetter(string word) => StringInfo.GetNextTextElement(word).ToUpperInvariant();
 }

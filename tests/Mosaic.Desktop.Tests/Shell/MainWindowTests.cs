@@ -26,9 +26,11 @@ public sealed class MainWindowTests : IDisposable
 
         var auth = new AuthApi(new ApiClient(new HttpClient(handler) { BaseAddress = new Uri("http://localhost") }, session));
         var signOut = new SignOut(auth, session);
-        var composition = new CoreComposition(new DesktopServices(shellApi, new SettingsStore(_folder), signOut, (_, _) => { }));
+        var english = LanguageCatalog.Resolve("en");
+        var store = new SettingsStore(_folder);
+        var composition = CoreComposition.Build(new DesktopServices(shellApi, store, signOut, new LanguageChoice(store, english)));
 
-        return new MainWindowViewModel(auth, session, signOut, composition, LanguageCatalog.Resolve("en"));
+        return new MainWindowViewModel(auth, session, signOut, composition, english);
     }
 
     private static MainWindow Shown(MainWindowViewModel main)

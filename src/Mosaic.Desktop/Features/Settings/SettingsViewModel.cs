@@ -15,22 +15,18 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     private readonly SettingsStore _store;
     private readonly SignOut _signOut;
-    private readonly bool _constructed;
+    private readonly LanguageChoice _language;
 
-    public SettingsViewModel(Localizer strings, SettingsStore store, SignOut signOut)
+    public SettingsViewModel(Localizer strings, SettingsStore store, SignOut signOut, LanguageChoice language)
     {
         Strings = strings;
         _store = store;
         _signOut = signOut;
+        _language = language;
 
         IsDark = Appearances.IsDark(store.Read().Appearance);
-        SelectedLanguage = strings.Language;
-
-        _constructed = true;
+        SelectedLanguage = language.Chosen;
     }
-
-    // App passes it on to MainWindowViewModel, which rebuilds the whole shell including this instance.
-    public event EventHandler<LanguageOption>? LanguageChosen;
 
     public Localizer Strings { get; }
 
@@ -69,15 +65,10 @@ public sealed partial class SettingsViewModel : ObservableObject
     // Generated setter already skips same-value assignments.
     partial void OnSelectedLanguageChanged(LanguageOption? value)
     {
-        // also reached from the constructor, where saving would turn the OS language into a stored choice
-        if (!_constructed || value is null)
+        if (value is not null)
         {
-            return;
+            _language.Choose(value);
         }
-
-        _store.Write(_store.Read() with { LanguageCode = value.Code });
-
-        LanguageChosen?.Invoke(this, value);
     }
 
     [RelayCommand]

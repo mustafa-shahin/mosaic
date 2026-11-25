@@ -1,5 +1,4 @@
 using Mosaic.Contracts.Identity;
-using Mosaic.Desktop.Shell.Navigation;
 
 namespace Mosaic.Desktop.Shell;
 
@@ -14,5 +13,5 @@ internal static class ShellDesignData
     };
 
     public static ShellViewModel Default { get; } =
-        new(DesignContext.Strings, DesignContext.Composition, NavBuilder.Keys(DesignContext.Composition), Person, DesignContext.SignOut);
+        new(DesignContext.Strings, DesignContext.Composition, Person, DesignContext.SignOut);
 }

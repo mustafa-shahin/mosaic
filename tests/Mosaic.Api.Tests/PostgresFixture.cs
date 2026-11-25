@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Mosaic.Api.Identity;
+using Mosaic.Domain.Auditing;
 using Mosaic.Persistence;
 using Testcontainers.PostgreSql;
 
@@ -41,16 +42,35 @@ public sealed class PostgresFixture : IAsyncLifetime
     // a new scope means a new context, so reading in one sees the database, not a tracked copy
     public AsyncServiceScope CreateScope() => _services.CreateAsyncScope();
 
-    // the claim is one row for the whole database, so a registration test starts without it and without users
+    // every class of the collection shares this database, so a test that resets starts like a fresh installation
     public async Task ResetAsync(CancellationToken cancellationToken)
     {
         await using var scope = CreateScope();
 
         await scope.ServiceProvider.GetRequiredService<ManagementDbContext>().Database
-            .ExecuteSqlRawAsync("DELETE FROM users; DELETE FROM instance_settings", cancellationToken);
+            .ExecuteSqlRawAsync("DELETE FROM users; DELETE FROM instance_settings; DELETE FROM audit_entries", cancellationToken);
 
         // a file that exists is read, not replaced, so every request can carry the known token
         await File.WriteAllTextAsync(SetupTokenPath, SetupToken, cancellationToken);
+    }
+
+    // after a reset the table holds only the rows of the test that reads it
+    public async Task<List<AuditEntry>> AuditRowsAsync(CancellationToken cancellationToken)
+    {
+        await using var scope = CreateScope();
+
+        return await scope.ServiceProvider.GetRequiredService<ManagementDbContext>().AuditEntries.ToListAsync(cancellationToken);
+    }
+
+    // a context of its own with every statement recorded, so nothing tracked earlier can answer for the database
+    public ManagementDbContext CreateLoggedContext(StatementLog log)
+    {
+        var options = new DbContextOptionsBuilder<ManagementDbContext>();
+
+        DatabaseOptions.Configure(options, ConnectionString);
+        options.AddInterceptors(log);
+
+        return new ManagementDbContext(options.Options);
     }
 
     public async ValueTask DisposeAsync()

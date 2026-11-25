@@ -20,9 +20,7 @@
         <SelectableTextBlock Classes="title" Text="{Binding Title}" VerticalAlignment="Center" />
       </Border>
 
-      <ScrollViewer Padding="24">
-        <ContentControl Content="{Binding Current}" HorizontalAlignment="Stretch" />
-      </ScrollViewer>
+      <ContentControl Content="{Binding Current}" />
 
     </DockPanel>
 

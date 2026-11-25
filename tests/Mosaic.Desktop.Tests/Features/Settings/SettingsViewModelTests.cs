@@ -13,24 +13,27 @@ public sealed class SettingsViewModelTests : IDisposable
 
     private readonly Localizer _strings = Localizer.Load(LanguageCatalog.Resolve("en"));
     private readonly CurrentSession _session = new();
+    private readonly LanguageChoice _language;
     private readonly SettingsViewModel _settings;
 
     public SettingsViewModelTests()
     {
-        _settings = new SettingsViewModel(_strings, new SettingsStore(_folder), SignOutOver(new NeverRespondingHandler()));
+        _language = new LanguageChoice(new SettingsStore(_folder), _strings.Language);
+        _settings = new SettingsViewModel(_strings, new SettingsStore(_folder), SignOutOver(new NeverRespondingHandler()), _language);
     }
 
     private SignOut SignOutOver(HttpMessageHandler handler) =>
         new(new AuthApi(new ApiClient(new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5175/") }, _session)), _session);
 
     // simulates a restart or shell rebuild
-    private SettingsViewModel Reopened() => new(_strings, new SettingsStore(_folder), SignOutOver(new NeverRespondingHandler()));
+    private SettingsViewModel Reopened() =>
+        new(_strings, new SettingsStore(_folder), SignOutOver(new NeverRespondingHandler()), _language);
 
     private SettingsViewModel SignedInWith(HttpMessageHandler server)
     {
         _session.Start(SignInResults.Ada());
 
-        return new SettingsViewModel(_strings, new SettingsStore(_folder), SignOutOver(server));
+        return new SettingsViewModel(_strings, new SettingsStore(_folder), SignOutOver(server), _language);
     }
 
     private DesktopSettings Stored() => new SettingsStore(_folder).Read();
@@ -59,7 +62,7 @@ public sealed class SettingsViewModelTests : IDisposable
     public void SelectedLanguage_WhenChosen_RemembersItAndAsksForARebuild()
     {
         var asked = new List<string>();
-        _settings.LanguageChosen += (_, language) => asked.Add(language.Code);
+        _language.Changed += (_, language) => asked.Add(language.Code);
 
         _settings.SelectedLanguage = LanguageCatalog.Resolve("ar");
 
@@ -71,7 +74,7 @@ public sealed class SettingsViewModelTests : IDisposable
     public void SelectedLanguage_WhenChosenAgain_AsksForNothing()
     {
         var asked = new List<string>();
-        _settings.LanguageChosen += (_, language) => asked.Add(language.Code);
+        _language.Changed += (_, language) => asked.Add(language.Code);
 
         _settings.SelectedLanguage = LanguageCatalog.Resolve("en");
 

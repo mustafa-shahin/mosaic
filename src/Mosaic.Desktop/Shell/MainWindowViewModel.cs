@@ -12,16 +12,13 @@ namespace Mosaic.Desktop.Shell;
 // The start screen, then first run or sign-in, then the shell. It outlives them all, so the language lives here.
 public sealed partial class MainWindowViewModel : ObservableObject
 {
-    // the server lists no entries yet, so only the local ones show
-    private static readonly IReadOnlySet<string> NoServedEntries = new HashSet<string>(StringComparer.Ordinal);
-
     private readonly AuthApi _auth;
     private readonly CurrentSession _session;
     private readonly SignOut _signOut;
-    private readonly IDesktopComposition _composition;
+    private readonly DesktopComposition _composition;
 
     public MainWindowViewModel(
-        AuthApi auth, CurrentSession session, SignOut signOut, IDesktopComposition composition, LanguageOption language)
+        AuthApi auth, CurrentSession session, SignOut signOut, DesktopComposition composition, LanguageOption language)
     {
         _auth = auth;
         _session = session;
@@ -40,11 +37,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     public partial ObservableObject Current { get; private set; }
 
-    public void ChooseLanguage(object? sender, LanguageOption language)
+    // before sign-in no screen offers the choice, so only a shell is rebuilt, at the screen standing open
+    public void SwitchLanguage(LanguageOption language)
     {
-        // only the screen standing open may ask, a request from one already left or rebuilt is stale
         if (Current is not ShellViewModel standing ||
-            !ReferenceEquals(standing.Current, sender) ||
             string.Equals(Strings.Language.Code, language.Code, StringComparison.Ordinal))
         {
             return;
@@ -126,6 +122,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
         var person = _session.Current?.Person
             ?? throw new InvalidOperationException("The shell was asked for without a session.");
 
-        return new ShellViewModel(Strings, _composition, NoServedEntries, person, _signOut, startAt);
+        return new ShellViewModel(Strings, _composition, person, _signOut, startAt);
     }
 }

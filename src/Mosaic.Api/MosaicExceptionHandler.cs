@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.AspNetCore.Diagnostics;
 using Mosaic.Api.Validation;
@@ -33,7 +32,7 @@ public sealed partial class MosaicExceptionHandler(
 
         var response = ApiResponse.Fail(Describe(exception)) with
         {
-            TraceId = Activity.Current?.Id ?? httpContext.TraceIdentifier
+            TraceId = httpContext.CorrelationId()
         };
 
         await httpContext.Response.WriteAsJsonAsync(response, MosaicJson.Options, cancellationToken);

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Mosaic.Api.Identity.Sessions;
 using Mosaic.Contracts;
+using Mosaic.Contracts.Auditing;
 using Mosaic.Contracts.Identity;
 using Mosaic.Domain.Identity;
 using Mosaic.Persistence;
@@ -60,6 +61,22 @@ public sealed class SignInEndpointTests(PostgresFixture postgres, ApiFactory fac
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         Assert.Equal(ErrorCodes.InvalidCredentials, body!.Error!.Code);
+    }
+
+    // the id a person reads from the error is the id of the row, so the answer leads to its record
+    [Fact]
+    public async Task ARefusal_SavesItsRowUnderTheTraceIdOfTheAnswer()
+    {
+        var client = Client();
+        var email = await Owner(client);
+
+        var response = await client.PostAsJsonAsync(Path, Request(email, "wrong horse battery staple"), MosaicJson.Options, Token);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponse>(MosaicJson.Options, Token);
+
+        var rows = await postgres.AuditRowsAsync(Token);
+        var refused = Assert.Single(rows, row => row.Action == AuditActions.SignIn);
+
+        Assert.Equal(body!.TraceId, refused.CorrelationId);
     }
 
     private async Task<string> Owner(HttpClient client)
